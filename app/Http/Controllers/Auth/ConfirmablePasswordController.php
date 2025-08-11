@@ -13,11 +13,11 @@ use Inertia\Response;
 class ConfirmablePasswordController extends Controller
 {
     /**
-     * Show the confirm password page.
+     * Show the confirm password view.
      */
     public function show(): Response
     {
-        return Inertia::render('auth/ConfirmPassword');
+        return Inertia::render('Auth/ConfirmPassword');
     }
 
     /**
@@ -30,11 +30,11 @@ class ConfirmablePasswordController extends Controller
             'password' => $request->password,
         ])) {
             throw ValidationException::withMessages([
-                'password' => __('auth.password'),
+                'password' => __('Auth.password'),
             ]);
         }
 
-        $request->session()->put('auth.password_confirmed_at', time());
+        $request->session()->put('Auth.password_confirmed_at', time());
 
         return redirect()->intended(route('dashboard', absolute: false));
     }

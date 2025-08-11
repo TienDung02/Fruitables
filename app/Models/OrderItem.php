@@ -30,7 +30,7 @@ class OrderItem extends Model
     }
 
     /**
-     * Get the product that belongs to the order item.
+     * Get the Products that belongs to the order item.
      */
     public function product(): BelongsTo
     {

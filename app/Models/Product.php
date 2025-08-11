@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'name',
         'slug',
@@ -34,7 +36,7 @@ class Product extends Model
     ];
 
     /**
-     * Get the category that owns the product.
+     * Get the Categories that owns the Products.
      */
     public function category(): BelongsTo
     {
@@ -42,7 +44,7 @@ class Product extends Model
     }
 
     /**
-     * Get the cart items for the product.
+     * Get the cart items for the Products.
      */
     public function cartItems(): HasMany
     {
@@ -50,7 +52,7 @@ class Product extends Model
     }
 
     /**
-     * Get the order items for the product.
+     * Get the order items for the Products.
      */
     public function orderItems(): HasMany
     {
@@ -58,7 +60,7 @@ class Product extends Model
     }
 
     /**
-     * Get the media files for the product.
+     * Get the media files for the Products.
      */
     public function media(): HasMany
     {
@@ -66,7 +68,23 @@ class Product extends Model
     }
 
     /**
-     * Get the primary image for the product.
+     * Get the reviews for the Products.
+     */
+    public function reviews(): HasMany
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get approved reviews only.
+     */
+    public function approvedReviews(): HasMany
+    {
+        return $this->hasMany(Review::class)->approved();
+    }
+
+    /**
+     * Get the primary image for the Products.
      */
     public function primaryImage(): HasMany
     {
@@ -74,7 +92,7 @@ class Product extends Model
     }
 
     /**
-     * Get all images for the product.
+     * Get all images for the Products.
      */
     public function images(): HasMany
     {
@@ -82,7 +100,7 @@ class Product extends Model
     }
 
     /**
-     * Get all videos for the product.
+     * Get all videos for the Products.
      */
     public function videos(): HasMany
     {
@@ -98,7 +116,7 @@ class Product extends Model
     }
 
     /**
-     * Check if product is on sale
+     * Check if Products is on sale
      */
     public function getIsOnSaleAttribute()
     {
@@ -137,5 +155,41 @@ class Product extends Model
     public function getThumbnailUrlsAttribute(): array
     {
         return $this->images->pluck('thumbnail_url')->toArray();
+    }
+
+    /**
+     * Get the average rating for the product.
+     */
+    public function getAverageRatingAttribute(): float
+    {
+        return (float) $this->approvedReviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get the total number of reviews for the product.
+     */
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->approvedReviews()->count();
+    }
+
+    /**
+     * Get the rating distribution (count of each star rating 1-5).
+     */
+    public function getRatingDistributionAttribute(): array
+    {
+        $distribution = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $distribution[$i] = $this->approvedReviews()->withRating($i)->count();
+        }
+        return $distribution;
+    }
+
+    /**
+     * Check if the product has any reviews.
+     */
+    public function getHasReviewsAttribute(): bool
+    {
+        return $this->reviews_count > 0;
     }
 }

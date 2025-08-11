@@ -28,7 +28,7 @@ class Cart extends Model
     }
 
     /**
-     * Get the product that belongs to the cart item.
+     * Get the Products that belongs to the cart item.
      */
     public function product(): BelongsTo
     {
