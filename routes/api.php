@@ -18,7 +18,7 @@ Route::apiResource('products', ProductController::class);
 Route::get('products/on-sale', [ProductController::class, 'onSale']);
 
 // Protected routes (requires authentication)
-Route::middleware('Auth:sanctum')->group(function () {
+Route::middleware('auth')->group(function () {
     // User info
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -40,7 +40,7 @@ Route::middleware('Auth:sanctum')->group(function () {
 });
 
 // Admin routes (requires admin role)
-Route::middleware(['Auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Categories management
     Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
 

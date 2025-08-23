@@ -24,7 +24,6 @@
                     <div class="navbar-nav mx-auto">
                         <Link :href="route('dashboard')" class="nav-item nav-link active">Home</Link>
                         <Link :href="route('products.index')" class="nav-item nav-link">Shop</Link>
-                        <a href="shop.html" class="nav-item nav-link">Shop</a>
                         <a href="shop-detail.html" class="nav-item nav-link">Shop Detail</a>
                         <div class="nav-item dropdown">
                             <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
@@ -38,14 +37,44 @@
                         <a href="contact.html" class="nav-item nav-link">Contact</a>
                     </div>
                     <div class="d-flex m-3 me-0">
-                        <button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>
                         <a href="#" class="position-relative me-4 my-auto">
                             <i class="fa fa-shopping-bag fa-2x"></i>
                             <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">3</span>
                         </a>
-                        <a href="#" class="my-auto">
-                            <i class="fas fa-user fa-2x"></i>
-                        </a>
+                        <div class="dropdown">
+                            <a href="#" class="my-auto dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user fa-2x"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+<!--                                <li><Link class="dropdown-item"><i class="fas fa-user-edit me-2"></i>Profile</Link></li>-->
+<!--                                <li><Link  class="dropdown-item"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</Link></li>-->
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <Link :href="route('cart.index')" class="dropdown-item">
+                                        <i class="fas fa-shopping-cart me-2"></i>
+                                        Cart
+                                    </Link>
+                                </li>
+<!--                                <li>-->
+<!--                                    <Link :href="route('wishlist.index')" class="dropdown-item">-->
+<!--                                        <i class="fas fa-heart me-2"></i>-->
+<!--                                        Wishlist-->
+<!--                                    </Link>-->
+<!--                                </li>-->
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <Link
+                                        :href="route('logout')"
+                                        method="post"
+                                        as="button"
+                                        class="dropdown-item text-danger"
+                                    >
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </Link>
+                                </li>
+
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -59,7 +88,7 @@ import  { Link } from '@inertiajs/vue3';
 export default {
     components: {
         Link,
-    }
+    },
 }
 </script>
 

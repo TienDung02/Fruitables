@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -13,16 +14,56 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index()
     {
-        $categories = Category::withCount('products')
-            ->orderBy('name')
-            ->paginate(10);
+        try {
+            // ✅ Lấy categories cha với subcategories
+            $categories = Category::with(['children' => function($query) {
+                $query->active()->orderBy('sort_order');
+            }])
+                ->active()
+                ->whereNull('parent_id') // Only main categories
+                ->orderBy('sort_order')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $categories
-        ]);
+            // ✅ Tính product count cho từng category
+            $categories->each(function ($category) {
+                // Lấy direct products của category cha
+                $directProducts = $category->products()->where('is_active', true)->count();
+
+                // Lấy products từ tất cả subcategories
+                $subcategoryProducts = 0;
+                if ($category->children->count() > 0) {
+                    $subcategoryIds = $category->children->pluck('id');
+                    $subcategoryProducts = \App\Models\Product::whereIn('category_id', $subcategoryIds)
+                        ->where('is_active', true)
+                        ->count();
+                }
+
+                // ✅ Tổng products = direct + subcategories
+                $category->total_products_count = $directProducts + $subcategoryProducts;
+
+                // ✅ Tính product count cho từng subcategory
+                $category->children->each(function ($subcategory) {
+                    $subcategory->products_count = $subcategory->products()
+                        ->where('is_active', true)
+                        ->count();
+                });
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $categories,
+                'message' => 'Categories fetched successfully'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch categories',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

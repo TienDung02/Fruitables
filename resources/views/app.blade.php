@@ -19,6 +19,7 @@
         <!-- Customized Bootstrap Stylesheet -->
         <link href="../css/bootstrap.min.css" rel="stylesheet">
 
+
         <!-- Libraries Stylesheet -->
         <link href="../js/lib/lightbox/css/lightbox.min.css" rel="stylesheet">
         <link href="../js/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
@@ -30,7 +31,7 @@
 
         <!-- Scripts -->
         @routes
-        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
+        @vite(['resources/js/app.js'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

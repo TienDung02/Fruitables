@@ -1,8 +1,5 @@
-
-
-
 <template>
-    <Head title="Products" />
+    <Head title="Products"/>
     <Menu></Menu>
     <Search></Search>
 
@@ -27,19 +24,43 @@
                     <div class="row g-4">
                         <div class="col-xl-3">
                             <div class="input-group w-100 mx-auto d-flex">
-                                <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1">
-                                <span id="search-icon-1" class="input-group-text p-3"><i class="fa fa-search"></i></span>
+                                <input
+                                    v-model="searchQuery"
+                                    @input="handleSearch"
+                                    @keyup.enter="performSearch"
+                                    aria-describedby="search-icon-1"
+                                    class="form-control p-3"
+                                    placeholder="Search products..."
+                                    type="search">
+                                <span id="search-icon-1"
+                                      class="input-group-text p-3"
+                                      @click="performSearch"
+                                      style="cursor: pointer;">
+                                    <i class="fa fa-search"></i>
+                                </span>
                             </div>
+
                         </div>
                         <div class="col-6"></div>
                         <div class="col-xl-3">
                             <div class="bg-light ps-3 py-3 rounded d-flex justify-content-between mb-4">
                                 <label for="fruits">Default Sorting:</label>
-                                <select id="fruits" name="fruitlist" class="border-0 form-select-sm bg-light me-3" form="fruitform">
-                                    <option value="volvo">Nothing</option>
-                                    <option value="saab">Popularity</option>
-                                    <option value="opel">Organic</option>
-                                    <option value="audi">Fantastic</option>
+                                <select
+                                    id="fruits"
+                                    v-model="sortBy"
+                                    @change="applySorting"
+                                    class="border-0 form-select-sm bg-light me-3 no-focus-border"
+                                    form="fruitform"
+                                    name="fruitlist">
+                                    <option value="">Default</option>
+                                    <option value="name_asc">Name A-Z</option>
+                                    <option value="name_desc">Name Z-A</option>
+                                    <option value="price_asc">Price Low to High</option>
+                                    <option value="price_desc">Price High to Low</option>
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="featured">Featured First</option>
+                                    <option value="popularity">Most Popular</option>
                                 </select>
                             </div>
                         </div>
@@ -50,69 +71,153 @@
                                 <div class="col-lg-12">
                                     <div class="mb-3">
                                         <h4>Categories</h4>
-                                        <ul class="list-unstyled fruite-categorie">
-                                            <li>
-                                                <div class="d-flex justify-content-between fruite-name">
-                                                    <a href="#"><i class="fas fa-apple-alt me-2"></i>Apples</a>
-                                                    <span>(3)</span>
+
+                                        <!-- Loading state for categories -->
+                                        <div v-if="categoriesLoading" class="text-center py-3">
+                                            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                <span class="visually-hidden">Loading categories...</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Dynamic Categories as Dropdowns -->
+                                        <div v-else class="fruite-categorie">
+                                            <!-- All Products option -->
+                                            <div class="mb-3 pt-2" style="border-top: 1px solid #eee;">
+                                                <div
+                                                    :class="{ 'text-primary fw-bold': selectedCategoryId === null }"
+                                                    class="d-flex justify-content-between align-items-center fruite-name"
+                                                    style="cursor: pointer; padding: 8px 12px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;"
+                                                    @click="clearCategoryFilter()">
+
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-list me-2"></i>
+                                                        <span>All Products</span>
+                                                    </div>
+
+                                                    <span class="text-muted">({{ totalProductsCount }})</span>
                                                 </div>
-                                            </li>
-                                            <li>
-                                                <div class="d-flex justify-content-between fruite-name">
-                                                    <a href="#"><i class="fas fa-apple-alt me-2"></i>Oranges</a>
-                                                    <span>(5)</span>
+                                            </div>
+                                            <template v-for="category in categories" :key="category.id">
+
+
+                                                <!-- Main Category (Level 1) - Dropdown Toggle -->
+                                                <div class="mb-2">
+                                                    <div
+                                                        :class="{ 'text-primary fw-bold': selectedCategoryId === category.id }"
+                                                        class="d-flex justify-content-between align-items-center fruite-name category-header"
+                                                        style="cursor: pointer; padding: 8px 12px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;"
+                                                        @click="toggleCategory(category.id)">
+
+                                                        <div class="d-flex align-items-center">
+                                                            <!-- Expand/Collapse Icon -->
+                                                            <i :class="[
+                                                                'me-2',
+                                                                category.children && category.children.length > 0
+                                                                    ? (expandedCategories.includes(category.id) ? 'fas fa-chevron-down' : 'fas fa-chevron-right')
+                                                                    : 'fas fa-circle'
+                                                            ]" style="font-size: 10px; opacity: 0.7;"></i>
+
+                                                            <!-- Category Icon -->
+                                                            <i :class="getCategoryIcon(category.name)" class="me-2"></i>
+
+                                                            <!-- Category Name -->
+                                                            <span
+                                                                :class="{ 'text-primary fw-bold': selectedCategoryId === category.id }"
+                                                                class="category-name"
+                                                                @click.stop="filterByCategory(category.id)">
+                                                                {{ category.name }}
+                                                            </span>
+                                                        </div>
+
+                                                        <!-- Total Products Count -->
+                                                        <span class="text-muted">({{
+                                                                category.total_products_count || 0
+                                                            }})</span>
+                                                    </div>
+
+                                                    <!-- Subcategories (Level 2) - Collapsible -->
+                                                    <div v-if="category.children && category.children.length > 0"
+                                                         v-show="expandedCategories.includes(category.id)"
+                                                         class="subcategories-container"
+                                                         style="margin-left: 20px; margin-top: 8px; border-left: 2px solid #dee2e6; padding-left: 15px;">
+
+                                                        <div v-for="subcategory in category.children"
+                                                             :key="subcategory.id"
+                                                             class="mb-1">
+                                                            <div :class="{ 'text-primary fw-bold': selectedCategoryId === subcategory.id }"
+                                                                 class="d-flex justify-content-between align-items-center fruite-name subcategory-item"
+                                                                 @click="filterByCategory(subcategory.id)">
+
+                                                                <div class="d-flex align-items-center">
+                                                                    <i class="fas fa-circle me-2" style="font-size: 6px; opacity: 0.6;"></i>
+                                                                    <span class="text-sm">{{ subcategory.name }}</span>
+                                                                </div>
+
+                                                                <span class="text-muted small">({{ subcategory.products_count || 0 }})</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </li>
-                                            <li>
-                                                <div class="d-flex justify-content-between fruite-name">
-                                                    <a href="#"><i class="fas fa-apple-alt me-2"></i>Strawbery</a>
-                                                    <span>(2)</span>
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div class="d-flex justify-content-between fruite-name">
-                                                    <a href="#"><i class="fas fa-apple-alt me-2"></i>Banana</a>
-                                                    <span>(8)</span>
-                                                </div>
-                                            </li>
-                                            <li>
-                                                <div class="d-flex justify-content-between fruite-name">
-                                                    <a href="#"><i class="fas fa-apple-alt me-2"></i>Pumpkin</a>
-                                                    <span>(5)</span>
-                                                </div>
-                                            </li>
-                                        </ul>
+                                            </template>
+
+
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
                                     <div class="mb-3">
-                                        <h4 class="mb-2">Price</h4>
-                                        <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="500" value="0" oninput="amount.value=rangeInput.value">
-                                        <output id="amount" name="amount" min-velue="0" max-value="500" for="rangeInput">0</output>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
-                                    <div class="mb-3">
-                                        <h4>Additional</h4>
-                                        <div class="mb-2">
-                                            <input type="radio" class="me-2" id="Categories-1" name="Categories-1" value="Beverages">
-                                            <label for="Categories-1"> Organic</label>
+                                        <h4 class="mb-2">Price Range</h4>
+
+                                        <!-- Dual Range Slider Container -->
+                                        <div class="price-range-container mb-3">
+                                            <div class="price-slider-wrapper">
+                                                <!-- Background track -->
+                                                <div class="price-track-bg"></div>
+
+                                                <!-- Active range track -->
+                                                <div class="price-track-active" :style="rangeTrackStyle"></div>
+
+                                                <!-- Min Price Slider -->
+                                                <input
+                                                    id="minPriceRange"
+                                                    v-model.number="priceRange.min"
+                                                    @input="handleMinRangeChange"
+                                                    type="range"
+                                                    min="0"
+                                                    max="100"
+                                                    step="1"
+                                                    class="price-range-input price-range-min">
+
+                                                <!-- Max Price Slider -->
+                                                <input
+                                                    id="maxPriceRange"
+                                                    v-model.number="priceRange.max"
+                                                    @input="handleMaxRangeChange"
+                                                    type="range"
+                                                    min="0"
+                                                    max="100"
+                                                    step="1"
+                                                    class="price-range-input price-range-max">
+                                            </div>
+
+                                            <!-- Price Display Only -->
+                                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                                <span class="price-display">
+                                                    ${{ priceRange.min }}
+                                                </span>
+                                                <span class="text-muted mx-2">to</span>
+                                                <span class="price-display">
+                                                    ${{ priceRange.max }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div class="mb-2">
-                                            <input type="radio" class="me-2" id="Categories-2" name="Categories-1" value="Beverages">
-                                            <label for="Categories-2"> Fresh</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="radio" class="me-2" id="Categories-3" name="Categories-1" value="Beverages">
-                                            <label for="Categories-3"> Sales</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="radio" class="me-2" id="Categories-4" name="Categories-1" value="Beverages">
-                                            <label for="Categories-4"> Discount</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input type="radio" class="me-2" id="Categories-5" name="Categories-1" value="Beverages">
-                                            <label for="Categories-5"> Expired</label>
+
+                                        <!-- Clear Price Filter -->
+                                        <div v-if="(priceRange.min > 0) || (priceRange.max < 100)" class="text-center">
+                                            <button @click="clearPriceFilter" class="btn btn-outline-danger btn-sm">
+                                                <i class="fas fa-times me-1"></i>
+                                                Clear Price Filter
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -121,8 +226,10 @@
                                     <div v-for="featuredProduct in featuredProducts" :key="featuredProduct.id">
                                         <div class="d-flex align-items-center justify-content-start mb-2">
                                             <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                <img :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`" style="object-fit: contain"
-                                                     class="img-fluid rounded h-100" alt="">
+                                                <img
+                                                    :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                    alt=""
+                                                    class="img-fluid rounded h-100" style="object-fit: contain">
                                             </div>
                                             <div>
                                                 <h6 class="mb-2">{{ featuredProduct.name || 'Fruits' }}</h6>
@@ -133,23 +240,22 @@
                                                     <i class="fa fa-star text-secondary"></i>
                                                     <i class="fa fa-star"></i>
                                                 </div>
-                                                <div class="d-flex mb-2">
-                                                    <h5 class="fw-bold me-2">2.99 $</h5>
-                                                    <h5 class="text-danger text-decoration-line-through">4.11 $</h5>
+                                                <div v-if="featuredProduct.sale_price" class="d-flex mb-2 align-items-center">
+                                                    <h5  class="fw-bold me-2 mb-0">${{ featuredProduct.sale_price }} / kg</h5>
+                                                    <h6 class="text-danger text-decoration-line-through mb-0">${{ featuredProduct.price }}/ kg</h6>
+                                                </div>
+                                                <div v-else class="d-flex mb-2">
+                                                    <h5  class="fw-bold me-2">${{ featuredProduct.price }} / kg</h5>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-
-
-<!--                                    <div class="d-flex justify-content-center my-4">-->
-<!--                                        <a href="#" class="btn border border-secondary px-4 py-3 rounded-pill text-primary w-100">Vew More</a>-->
-<!--                                    </div>-->
                                 </div>
                                 <div class="col-lg-12">
                                     <div class="position-relative">
                                         <img src="images/img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
-                                        <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
+                                        <div class="position-absolute"
+                                             style="top: 50%; right: 10px; transform: translateY(-50%);">
                                             <h3 class="text-secondary fw-bold">Fresh <br> Fruits <br> Banner</h3>
                                         </div>
                                     </div>
@@ -157,6 +263,60 @@
                             </div>
                         </div>
                         <div class="col-lg-9">
+                            <!-- ✅ ADD: Search & Filter indicators -->
+                            <div v-if="searchQuery || selectedCategoryId || sortBy || priceRange.min > 0 || priceRange.max < 100" class="mb-4">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="text-muted">Active filters:</span>
+
+                                    <!-- Search filter -->
+                                    <span v-if="searchQuery" class="badge bg-primary">
+                                        <i class="fas fa-search me-1"></i>
+                                        Search: "{{ searchQuery }}"
+                                        <button @click="clearSearch" class="btn btn-sm p-0 text-white ms-1">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
+
+                                    <!-- Category filter -->
+                                    <span v-if="selectedCategoryId" class="badge bg-secondary">
+                                        <i class="fas fa-tag me-1"></i>
+                                        Category: {{ getCategoryName(selectedCategoryId) }}
+                                        <button @click="clearCategoryFilter" class="btn btn-sm p-0 text-white ms-1">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
+
+                                    <!-- Sorting indicator -->
+                                    <span v-if="sortBy" class="badge bg-info">
+                                        <i class="fas fa-sort me-1"></i>
+                                        Sort: {{ getSortLabel(sortBy) }}
+                                        <button @click="clearSorting" class="btn btn-sm p-0 text-white ms-1">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
+
+                                    <!-- Sorting indicator -->
+                                    <span v-if="priceRange.min > 0 || priceRange.max < 100" class="badge bg-success">
+                                        <i class="fas fa-dollar-sign me-1"></i>
+                                        Price range: ${{ getSortLabel(priceRange.min) }} <i class="	fas fa-arrow-right"></i> ${{ getSortLabel(priceRange.max)}}
+                                        <button @click="clearPriceRange" class="btn btn-sm p-0 text-white ms-1">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
+                                    <!-- Clear all filters -->
+                                    <button @click="clearAllFilters" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-times me-1"></i>
+                                        Clear All
+                                    </button>
+                                </div>
+                            </div>                            <!-- Loading indicator for search -->
+                            <div v-if="isSearching" class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                    <span class="visually-hidden">Searching...</span>
+                                </div>
+                                <small class="text-muted ms-2">Searching products...</small>
+                            </div>
+
                             <!-- Debug Info -->
 
 
@@ -191,9 +351,10 @@
                                          class="col-md-6 col-lg-6 col-xl-4">
                                         <div class="rounded position-relative fruite-item ">
                                             <div class="fruite-img border-secondary" style="border: 1px solid #000;">
-                                                <img  :src="`/${product.media?.find(m => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
-                                                      class="img-fluid w-100 rounded-top"
-                                                      :alt="product.name"
+                                                <img
+                                                    :alt="product.name"
+                                                    :src="`/${product.media?.find(m => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                    class="img-fluid w-100 rounded-top"
                                                 >
                                             </div>
                                             <div class="text-white bg-secondary px-3 py-1 rounded position-absolute"
@@ -202,14 +363,17 @@
                                             </div>
                                             <div class="p-4 border border-secondary border-top-0 rounded-bottom">
                                                 <h4>{{ product.name }}</h4>
-                                                <p>{{ product.description?.substring(0, 100) || 'Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt' }}...</p>
+                                                <p>{{
+                                                        product.description?.substring(0, 100) || 'Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt'
+                                                    }}...</p>
                                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                                     <p class="text-dark fs-5 fw-bold mb-0">
-                                                        <span v-if="product.sale_price">${{ product.sale_price }}</span>
-                                                        <span v-else>${{ product.price }}</span>
-                                                        / kg
+                                                        <div  v-if="product.sale_price"> <span class="text-danger">${{ product.sale_price }} / kg</span>  &nbsp; <span class="text-decoration-line-through opacity-75 fs-6"> ${{ product.price }}/ kg</span></div>
+                                                        <span v-else>${{ product.price }} / kg</span>
+
                                                     </p>
-                                                    <a href="#" class="btn border border-secondary rounded-pill px-3 text-primary">
+                                                    <a class="btn border border-secondary rounded-pill px-3 text-primary"
+                                                       href="#">
                                                         <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
                                                     </a>
                                                 </div>
@@ -219,10 +383,12 @@
                                 </template>
 
                                 <!-- Pagination -->
-                                <div class="col-12" v-if="!loading && !error && Array.isArray(products) && products.length > 0 && pagination.last_page > 1">
+                                <div
+                                    v-if="!loading && !error && Array.isArray(products) && products.length > 0 && pagination.last_page > 1"
+                                    class="col-12">
                                     <div class="pagination d-flex justify-content-center mt-5">
 
-                                        <!-- ✅ Previous Button -->
+                                        <!--  Previous Button -->
                                         <a href="#"
                                            @click.prevent="goToPrevPage()"
                                            :class="['rounded', 'me-1', { 'disabled text-muted': pagination.current_page === 1 }]"
@@ -230,7 +396,7 @@
                                             &laquo;
                                         </a>
 
-                                        <!-- ✅ First Page -->
+                                        <!--  First Page -->
                                         <a href="#"
                                            v-if="pagination.current_page > 4"
                                            @click.prevent="goToFirstPage()"
@@ -239,14 +405,14 @@
                                             First
                                         </a>
 
-                                        <!-- ✅ Dots if needed -->
+                                        <!-- Dots if needed -->
                                         <span v-if="pagination.current_page > 4"
                                               class="rounded me-1"
                                               style="padding: 8px 12px; border: 1px solid #ddd;">
-            ...
-        </span>
+                                            ...
+                                        </span>
 
-                                        <!-- ✅ Page Numbers (show 5 pages around current) -->
+                                        <!-- Page Numbers -->
                                         <template v-for="page in getVisiblePages()" :key="page">
                                             <a href="#"
                                                @click.prevent="changePage(page)"
@@ -256,14 +422,13 @@
                                             </a>
                                         </template>
 
-                                        <!-- ✅ Dots if needed -->
                                         <span v-if="pagination.current_page < pagination.last_page - 3"
                                               class="rounded me-1"
                                               style="padding: 8px 12px; border: 1px solid #ddd;">
-            ...
-        </span>
+                                            ...
+                                        </span>
 
-                                        <!-- ✅ Last Page -->
+                                        <!--  Last Page -->
                                         <a href="#"
                                            v-if="pagination.current_page < pagination.last_page - 3"
                                            @click.prevent="goToLastPage()"
@@ -272,7 +437,7 @@
                                             {{ pagination.last_page }}
                                         </a>
 
-                                        <!-- ✅ Next Button -->
+                                        <!--  Next Button -->
                                         <a href="#"
                                            @click.prevent="goToNextPage()"
                                            :class="['rounded', { 'disabled text-muted': pagination.current_page === pagination.last_page }]"
@@ -281,7 +446,7 @@
                                         </a>
                                     </div>
 
-                                    <!-- ✅ Pagination Info -->
+                                    <!--  Pagination Info -->
                                     <div class="text-center mt-3">
                                         <small class="text-muted">
                                             Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }}
@@ -313,16 +478,25 @@
                     </div>
                     <div class="col-lg-6">
                         <div class="position-relative mx-auto">
-                            <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number" placeholder="Your Email">
-                            <button type="submit" class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white" style="top: 0; right: 0;">Subscribe Now</button>
+                            <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" placeholder="Your Email"
+                                   type="number">
+                            <button
+                                class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white"
+                                style="top: 0; right: 0;"
+                                type="submit">Subscribe Now
+                            </button>
                         </div>
                     </div>
                     <div class="col-lg-3">
                         <div class="d-flex justify-content-end pt-3">
-                            <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-twitter"></i></a>
-                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-youtube"></i></a>
-                            <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
+                                class="fab fa-twitter"></i></a>
+                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
+                                class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
+                                class="fab fa-youtube"></i></a>
+                            <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i
+                                class="fab fa-linkedin-in"></i></a>
                         </div>
                     </div>
                 </div>
@@ -384,7 +558,8 @@
                     <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
                     <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlink, ***/-->
                     <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
-                    Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
+                    Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
+                    class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
                 </div>
             </div>
         </div>
@@ -395,10 +570,11 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head } from '@inertiajs/vue3';
+import {Head} from '@inertiajs/vue3';
 import Menu from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
-import axios  from "axios";
+import axios from "axios";
+
 export default {
     components: {
         AuthenticatedLayout,
@@ -406,10 +582,24 @@ export default {
         Head,
         Search,
     },
-    data(){
+    data() {
         return {
             products: [],
+            categories: [],
             featuredProducts: [],
+            selectedCategoryId: null,
+            expandedCategories: [],           // ✅ Track expanded categories
+            categoriesLoading: false,
+            totalProductsCount: 0,
+            searchQuery: '',                  // ✅ ADD: Search query
+            searchTimeout: null,              // ✅ ADD: Debounce timeout
+            isSearching: false,              // ✅ ADD: Search loading state
+            sortBy: '',                      // ✅ ADD: Sorting option
+            priceRange: {                    // ✅ ADD: Price range with default values
+                min: 0,
+                max: 100
+            },
+            priceTimeout: null,
             pagination: {
                 current_page: 1,
                 last_page: 1,
@@ -422,23 +612,58 @@ export default {
             error: null,
         }
     },
-    async mounted(){
+    async mounted() {
         try {
             await Promise.all([
                 this.fetchProducts(),
+                this.fetchCategories(),
                 this.fetchFeaturedProducts()
             ]);
         } catch (error) {
             console.error('❌ Error in mounted:', error);
         }
     },
+    computed: {
+        // ✅ ADD: Calculate range track fill style
+        rangeTrackStyle() {
+            const min = this.priceRange.min;
+            const max = this.priceRange.max;
+            const left = (min / 100) * 100;
+            const width = ((max - min) / 100) * 100;
+
+            return {
+                left: `${left}%`,
+                width: `${width}%`
+            };
+        }
+    },
     methods: {
         async fetchProducts(page = 1) {
+            console.log('2')
             try {
-                const response = await axios.get(`http://127.0.0.1:8000/api/products?page=${page}`);
-                this.products = response.data.data;
+                this.loading = true;
 
-                this.pagination = {
+                let url = `http://127.0.0.1:8000/api/products?page=${page}`;
+
+                // Add category filter
+                if (this.selectedCategoryId) {
+                    url += `&category_id=${this.selectedCategoryId}`;
+                }
+                if (this.searchQuery && this.searchQuery.trim()) {
+                    url += `&search=${encodeURIComponent(this.searchQuery.trim())}`;
+                }
+                if (this.sortBy) {
+                    url += `&sort=${this.sortBy}`;
+                }
+                if (this.priceRange.min > 0) {
+                    url += `&price_min=${this.priceRange.min}`;
+                }
+                if (this.priceRange.max < 100) {
+                    url += `&price_max=${this.priceRange.max}`;
+                }
+
+                const response = await axios.get(url);
+                this.products = response.data.data;                this.pagination = {
                     current_page: response.data.current_page || 1,
                     last_page: response.data.last_page || 1,
                     per_page: response.data.per_page || 9,
@@ -446,8 +671,24 @@ export default {
                     from: response.data.from || 0,
                     to: response.data.to || 0
                 }
-
                 console.log(response.data)
+
+                this.totalProductsCount = response.data.total || 0; // Update total products count
+
+
+            } catch (error) {
+                console.error('API Error:', error); // Debug
+                this.error = 'Failed to load products: ' + error.message;
+                this.products = []; // Ensure products is always an array
+            } finally {
+                this.loading = false;
+                this.isSearching = false; // ✅ ADD: Stop search loading
+            }
+        },
+        async fetchCategories() {
+            try {
+                const response = await axios.get(`http://127.0.0.1:8000/api/categories`);
+                this.categories = response.data.data;
 
             } catch (error) {
                 console.error('API Error:', error); // Debug
@@ -472,7 +713,6 @@ export default {
             if (page >= 1 && page <= this.pagination.last_page && page !== this.pagination.current_page) {
                 await this.fetchProducts(page);
 
-                // ✅ Scroll to top of products section
                 this.$nextTick(() => {
                     document.querySelector('.col-lg-9')?.scrollIntoView({
                         behavior: 'smooth',
@@ -482,7 +722,92 @@ export default {
             }
         },
 
-        // ✅ Helper methods for pagination
+        async filterByCategory(categoryId) {
+            console.log('1')
+            this.selectedCategoryId = categoryId;
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+
+            // Scroll to products section
+            this.$nextTick(() => {
+                document.querySelector('.col-lg-9')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        },
+
+        async clearCategoryFilter() {
+            this.selectedCategoryId = null;
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+        },
+
+        getCategoryIcon(categoryName) {
+            const icons = {
+                'Fresh Fruits': 'fas fa-apple-alt',
+                'Fresh Vegetables': 'fas fa-carrot',
+                'Dried Products': 'fas fa-seedling',
+                'Jam Products': 'fas fa-jar',
+                'Berries': 'fas fa-berry',
+                'Citrus': 'fas fa-lemon',
+                'Stone Fruits': 'fas fa-peach',
+                'Tropical': 'fas fa-palm-tree',
+                'Others': 'fas fa-apple-alt'
+            };
+
+            return icons[categoryName] || 'fas fa-apple-alt';
+        },
+
+        handleMinRangeChange() {
+            // Ensure min doesn't exceed max
+            if (parseInt(this.priceRange.min) >= parseInt(this.priceRange.max)) {
+                this.priceRange.min = this.priceRange.max - 1;
+            }
+            this.debouncePriceFilter();
+        },
+
+        handleMaxRangeChange() {
+            // Ensure max doesn't go below min
+            if (parseInt(this.priceRange.max) <= parseInt(this.priceRange.min)) {
+                this.priceRange.max = parseInt(this.priceRange.min) + 1;
+            }
+            this.debouncePriceFilter();
+        },
+
+        debouncePriceFilter() {
+            if (this.priceTimeout) {
+                clearTimeout(this.priceTimeout);
+            }
+
+            this.priceTimeout = setTimeout(() => {
+                this.applyPriceFilter();
+            }, 800);
+        },
+
+        async applyPriceFilter() {
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+        },
+
+        async clearPriceFilter() {
+            this.priceRange.min = 0;
+            this.priceRange.max = 100;
+            await this.applyPriceFilter();
+        },
+
+
+        toggleCategory(categoryId) {
+            const index = this.expandedCategories.indexOf(categoryId);
+            if (index > -1) {
+                // Collapse category
+                this.expandedCategories.splice(index, 1);
+            } else {
+                // Expand category
+                this.expandedCategories.push(categoryId);
+            }
+        },
+
         async goToFirstPage() {
             await this.changePage(1);
         },
@@ -524,6 +849,106 @@ export default {
             }
 
             return pages;
+        },
+
+        // Handle search with debounce
+        handleSearch() {
+            // Clear existing timeout
+            if (this.searchTimeout) {
+                clearTimeout(this.searchTimeout);
+            }
+
+            this.isSearching = true;
+
+            // Set new timeout for debounced search
+            this.searchTimeout = setTimeout(() => {
+                this.performSearch();
+            }, 500); // Wait 500ms after user stops typing
+        },
+
+        // Perform search
+        async performSearch() {
+            console.log('🔍 Searching for:', this.searchQuery);
+            this.pagination.current_page = 1; // Reset to first page
+            await this.fetchProducts(1);
+        },
+
+        //  Clear search
+        async clearSearch() {
+            this.searchQuery = '';
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+        },
+
+        // Get category name by ID
+        getCategoryName(categoryId) {
+            const findCategory = (categories, id) => {
+                for (const category of categories) {
+                    if (category.id === id) return category.name;
+                    if (category.children && category.children.length > 0) {
+                        const found = findCategory(category.children, id);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
+            return findCategory(this.categories, categoryId) || 'Unknown';
+        },
+
+        // Clear all filters
+        async clearAllFilters() {
+            this.searchQuery = '';
+            this.selectedCategoryId = null;
+            this.sortBy = '';
+            this.priceRange.min = 0;
+            this.priceRange.max = 100;
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+        },
+
+        //  Apply sorting
+        async applySorting() {
+            console.log('🔄 Applying sort:', this.sortBy);
+            this.pagination.current_page = 1; // Reset to first page
+            await this.fetchProducts(1);
+
+            // Scroll to products section
+            this.$nextTick(() => {
+                document.querySelector('.col-lg-9')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
+        },
+
+        // Get sort label for display
+        getSortLabel(sortValue) {
+            const labels = {
+                'name_asc': 'Name A-Z',
+                'name_desc': 'Name Z-A',
+                'price_asc': 'Price Low to High',
+                'price_desc': 'Price High to Low',
+                'newest': 'Newest First',
+                'oldest': 'Oldest First',
+                'featured': 'Featured First',
+                'popularity': 'Most Popular'
+            };
+            return labels[sortValue] || sortValue;
+        },
+
+        //  Clear sorting
+        async clearSorting() {
+            this.sortBy = '';
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
+        },
+        //  Clear price range
+        async clearPriceRange() {
+            this.priceRange.min = 0;
+            this.priceRange.max = 100;
+            this.pagination.current_page = 1;
+            await this.fetchProducts(1);
         }
     }
 }
