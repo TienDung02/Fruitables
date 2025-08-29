@@ -222,6 +222,36 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
+                                    <div class="mb-3">
+                                        <h4>Additional</h4>
+                                        <div class="mb-2">
+                                            <input id="Categories-1" class="me-2" name="Categories-1" type="radio"
+                                                   value="Beverages">
+                                            <label for="Categories-1"> Organic</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input id="Categories-2" class="me-2" name="Categories-1" type="radio"
+                                                   value="Beverages">
+                                            <label for="Categories-2"> Fresh</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input id="Categories-3" class="me-2" name="Categories-1" type="radio"
+                                                   value="Beverages">
+                                            <label for="Categories-3"> Sales</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input id="Categories-4" class="me-2" name="Categories-1" type="radio"
+                                                   value="Beverages">
+                                            <label for="Categories-4"> Discount</label>
+                                        </div>
+                                        <div class="mb-2">
+                                            <input id="Categories-5" class="me-2" name="Categories-1" type="radio"
+                                                   value="Beverages">
+                                            <label for="Categories-5"> Expired</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-12">
                                     <h4 class="mb-3">Featured products</h4>
                                     <div v-for="featuredProduct in featuredProducts" :key="featuredProduct.id">
                                         <div class="d-flex align-items-center justify-content-start mb-2">
@@ -357,6 +387,11 @@
                                                     class="img-fluid w-100 rounded-top"
                                                 >
                                             </div>
+                                                <!-- Nút trái tim thêm vào wishlist -->
+                                                <button class="btn btn-outline-danger position-absolute" style="top:10px; right:10px; z-index:2;" @click="toggleWishlist(product.id)" title="Thêm vào yêu thích">
+                                                    <i v-if="isInWishlist(product.id)" class="fa fa-heart" style="color: #f00"></i>
+                                                    <i v-else class="far fa-heart" style="color: #f00"></i>
+                                                </button>
                                             <div class="text-white bg-secondary px-3 py-1 rounded position-absolute"
                                                  style="top: 10px; left: 10px;">
                                                 {{ product.category?.name || 'Fruits' }}
@@ -370,12 +405,12 @@
                                                     <p class="text-dark fs-5 fw-bold mb-0">
                                                         <div  v-if="product.sale_price"> <span class="text-danger">${{ product.sale_price }} / kg</span>  &nbsp; <span class="text-decoration-line-through opacity-75 fs-6"> ${{ product.price }}/ kg</span></div>
                                                         <span v-else>${{ product.price }} / kg</span>
-
                                                     </p>
-                                                    <a class="btn border border-secondary rounded-pill px-3 text-primary"
-                                                       href="#">
-                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
-                                                    </a>
+                                                    <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="addToCart(product)" :disabled="addToCartLoading[product.id]">
+                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i>
+                                                        <span v-if="addToCartLoading[product.id]">Đang thêm...</span>
+                                                        <span v-else>Thêm vào giỏ hàng</span>
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -570,11 +605,11 @@
 
 <script>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head} from '@inertiajs/vue3';
+import {Head, router } from '@inertiajs/vue3';
 import Menu from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
 import axios from "axios";
-
+axios.defaults.withCredentials = true;
 export default {
     components: {
         AuthenticatedLayout,
@@ -582,20 +617,27 @@ export default {
         Head,
         Search,
     },
+    props: {
+        auth: Object,
+        csrf_token: String,
+    },
     data() {
         return {
             products: [],
             categories: [],
             featuredProducts: [],
+            wishlistIds: [], // Danh sách id sản phẩm trong wishlist
+            wishlistProducts: [], // Danh sách sản phẩm wishlist từ database
+            user: null, // Thông tin user, nếu có
             selectedCategoryId: null,
-            expandedCategories: [],           // ✅ Track expanded categories
+            expandedCategories: [],           //  Track expanded categories
             categoriesLoading: false,
             totalProductsCount: 0,
-            searchQuery: '',                  // ✅ ADD: Search query
-            searchTimeout: null,              // ✅ ADD: Debounce timeout
-            isSearching: false,              // ✅ ADD: Search loading state
-            sortBy: '',                      // ✅ ADD: Sorting option
-            priceRange: {                    // ✅ ADD: Price range with default values
+            searchQuery: '',                  // Search query
+            searchTimeout: null,              // Debounce timeout
+            isSearching: false,              // Search loading state
+            sortBy: '',                      // Sorting option
+            priceRange: {                    // Price range with default values
                 min: 0,
                 max: 100
             },
@@ -610,9 +652,14 @@ export default {
             },
             loading: true,
             error: null,
+            addToCartLoading: {} // Track loading state for add to cart buttons
         }
     },
     async mounted() {
+        console.log('🔑 Auth prop:', this.auth);
+        // Lấy user từ prop auth
+        this.user = this.auth?.user || null;
+
         try {
             await Promise.all([
                 this.fetchProducts(),
@@ -621,6 +668,60 @@ export default {
             ]);
         } catch (error) {
             console.error('❌ Error in mounted:', error);
+        }
+
+        // Nếu đã đăng nhập, thực hiện merge wishlist từ localStorage vào database
+        if (this.user) {
+            // Đảm bảo CSRF cookie trước khi gọi API
+            console.log('user', this.user);
+            try {
+                await axios.get('/sanctum/csrf-cookie');
+                // Lấy wishlist từ localStorage nếu có
+                const localWishlistIds = localStorage.getItem('wishlistIds');
+                let merged = false;
+                if (localWishlistIds) {
+                    const ids = JSON.parse(localWishlistIds);
+                    for (const productId of ids) {
+                        try {
+                            await axios.post('/api/wishlist', { product_id: productId }, {
+                                headers: { 'X-XSRF-TOKEN': this.csrf_token || (this.$page && this.$page.props && this.$page.props.csrf_token) || '' }
+                            });
+                            merged = true;
+                        } catch (error) {
+                            if (error.response && error.response.status === 409) {
+                                // Đã có trong database, không cần thêm
+                            } else {
+                                console.error('Lỗi khi merge wishlist:', error);
+                            }
+                        }
+                    }
+                    // Xóa wishlist local sau khi merge
+                    localStorage.removeItem('wishlistIds');
+                    localStorage.removeItem('wishlistProducts');
+                    if (merged) {
+                        this.showNotification('Đã đồng bộ sản phẩm yêu thích khi đăng nhập!', 'success');
+                    }
+                }
+                // Lấy lại wishlist từ database
+                const res = await axios.get('/api/wishlist');
+                this.wishlistProducts = res.data;
+                this.wishlistIds = res.data.map(item => item.id);
+                // Lưu wishlist đã merge vào localStorage
+                localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
+                localStorage.setItem('wishlistProducts', JSON.stringify(this.wishlistProducts));
+            } catch (e) {
+                console.error('❌ Wishlist error:', e);
+                this.wishlistIds = [];
+                this.wishlistProducts = [];
+                localStorage.removeItem('wishlistIds');
+                localStorage.removeItem('wishlistProducts');
+            }
+        } else {
+            // Nếu chưa đăng nhập, lấy wishlist từ localStorage
+            const localIds = localStorage.getItem('wishlistIds');
+            const localProducts = localStorage.getItem('wishlistProducts');
+            this.wishlistIds = localIds ? JSON.parse(localIds) : [];
+            this.wishlistProducts = localProducts ? JSON.parse(localProducts) : [];
         }
     },
     computed: {
@@ -643,7 +744,7 @@ export default {
             try {
                 this.loading = true;
 
-                let url = `http://127.0.0.1:8000/api/products?page=${page}`;
+                let url = `/api/products?page=${page}`;
 
                 // Add category filter
                 if (this.selectedCategoryId) {
@@ -663,7 +764,8 @@ export default {
                 }
 
                 const response = await axios.get(url);
-                this.products = response.data.data;                this.pagination = {
+                this.products = response.data.data;
+                this.pagination = {
                     current_page: response.data.current_page || 1,
                     last_page: response.data.last_page || 1,
                     per_page: response.data.per_page || 9,
@@ -687,7 +789,7 @@ export default {
         },
         async fetchCategories() {
             try {
-                const response = await axios.get(`http://127.0.0.1:8000/api/categories`);
+                const response = await axios.get(`/api/categories`);
                 this.categories = response.data.data;
 
             } catch (error) {
@@ -700,7 +802,7 @@ export default {
         },
         async fetchFeaturedProducts() {
             try {
-                const response = await axios.get('http://127.0.0.1:8000/api/products/featured');
+                const response = await axios.get('/api/products/featured');
                 this.featuredProducts = response.data;
             } catch (error) {
                 console.error('API Error:', error); // Debug
@@ -949,8 +1051,106 @@ export default {
             this.priceRange.max = 100;
             this.pagination.current_page = 1;
             await this.fetchProducts(1);
+        },
+        isInWishlist(productId) {
+            return this.wishlistIds.includes(productId);
+        },
+        async toggleWishlist(productId) {
+            if (this.user) {
+                const token = this.csrf_token || (this.$page && this.$page.props && this.$page.props.csrf_token) || '';
+                if (!token) {
+                    this.showNotification('Không lấy được CSRF token, vui lòng tải lại trang!', 'error');
+                    return;
+                }
+                if (this.isInWishlist(productId)) {
+                    try {
+                        await axios.delete(`/api/wishlist/${productId}`, {
+                            headers: { 'X-XSRF-TOKEN': token }
+                        });
+                        this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
+                    } catch (error) {
+                        this.showNotification('Xóa khỏi yêu thích thất bại!', 'error');
+                        console.error(error);
+                    }
+                } else {
+                    try {
+                        await axios.post('/api/wishlist', { product_id: productId }, {
+                            headers: { 'X-XSRF-TOKEN': token }
+                        });
+                        this.wishlistIds.push(productId);
+                    } catch (error) {
+                        if (error.response && error.response.status === 409) {
+                            this.showNotification('Sản phẩm đã có trong danh sách yêu thích!', 'warning');
+                        } else {
+                            this.showNotification('Thêm vào yêu thích thất bại!', 'error');
+                        }
+                        console.error(error);
+                    }
+                }
+                // Đồng bộ lại localStorage
+                localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
+                // Lấy lại chi tiết sản phẩm từ database
+                try {
+                    const res = await axios.get('/api/wishlist');
+                    this.wishlistProducts = res.data;
+                    localStorage.setItem('wishlistProducts', JSON.stringify(this.wishlistProducts));
+                } catch {
+                    this.wishlistProducts = [];
+                }
+            } else {
+                let wishlistProducts = [];
+                const localProducts = localStorage.getItem('wishlistProducts');
+                if (localProducts) {
+                    wishlistProducts = JSON.parse(localProducts);
+                }
+                if (this.isInWishlist(productId)) {
+                    this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
+                    wishlistProducts = wishlistProducts.filter(p => p.id !== productId);
+                } else {
+                    this.wishlistIds.push(productId);
+                    const product = this.products.find(p => p.id === productId);
+                    if (product && !wishlistProducts.some(p => p.id === productId)) {
+                        wishlistProducts.push(product);
+                    }
+                }
+                localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
+                localStorage.setItem('wishlistProducts', JSON.stringify(wishlistProducts));
+                this.wishlistProducts = wishlistProducts;
+            }
+        },
+        showNotification(message, type) {
+            console.log(`Notification (${type}): ${message}`);
+            alert(message);
+        },
+        async addToCart(product) {
+            this.addToCartLoading[product.id] = true;
+            try {
+                if (!this.user) {
+                    this.showNotification('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
+                    return;
+                }
+
+                const response = await axios.post('/api/cart', {
+                    product_id: product.id,
+                    quantity: 1
+                });
+
+                // Xử lý giỏ hàng sau khi thêm thành công
+                this.updateCart(response.data);
+
+                // Thông báo thành công
+                this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+
+            } catch (error) {
+                console.error('Add to cart error:', error);
+                // Thông báo lỗi
+                this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
+
+            } finally {
+                this.addToCartLoading[product.id] = false;
+            }
         }
-    }
+    },
 }
 </script>
 

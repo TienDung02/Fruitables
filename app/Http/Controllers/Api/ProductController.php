@@ -28,9 +28,6 @@ class ProductController extends Controller
             //apply ordering
             $this->applyOrdering($query, $request);
 
-            //apply priceRange
-            $this->priceRange($query, $request);
-
             $products = $query->paginate(9);
 
             return response()->json([
@@ -56,7 +53,6 @@ class ProductController extends Controller
     private function applySearchFilter($query, $request)
     {
         if ($request->has('search') && $request->search) {
-
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'LIKE', "%{$searchTerm}%")
@@ -84,20 +80,10 @@ class ProductController extends Controller
             }
         }
     }
-    private function priceRange($query, $request)
-    {
-        if ($request->has('price_min') && $request->price_min !== null) {
-            $query->where('price', '>', $request->price_min);
-        }
-
-        if ($request->has('price_max') && $request->price_max !== null) {
-            $query->where('price', '<', $request->price_max);
-        }
-    }
 
     private function applyOrdering($query, $request)
     {
-        $sortBy = $request->get('sort', 'newest');
+        $sortBy = $request->get('sort_by', 'newest');
 
         switch ($sortBy) {
             case 'name_asc':

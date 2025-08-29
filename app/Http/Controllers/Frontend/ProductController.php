@@ -17,7 +17,11 @@ class ProductController extends Controller
      */
     public function index(Request $request): Response
     {
-        return Inertia::render('Frontend/Products/Index');
+        return Inertia::render('Frontend/Products/Index', [
+            'auth' => [
+                'user' => auth()->user(),
+            ],
+            'csrf_token' => csrf_token(),
+        ]);
     }
 }
-

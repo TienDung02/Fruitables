@@ -55,12 +55,12 @@
                                         Cart
                                     </Link>
                                 </li>
-<!--                                <li>-->
-<!--                                    <Link :href="route('wishlist.index')" class="dropdown-item">-->
-<!--                                        <i class="fas fa-heart me-2"></i>-->
-<!--                                        Wishlist-->
-<!--                                    </Link>-->
-<!--                                </li>-->
+                                <li>
+                                    <Link :href="route('wishlist.index')" class="dropdown-item">
+                                        <i class="fas fa-heart me-2"></i>
+                                        Wishlist
+                                    </Link>
+                                </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <Link

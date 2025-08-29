@@ -21,7 +21,12 @@ class CartController extends Controller
             ->where('user_id', auth()->id())
             ->get();
 
-        $total = $cartItems->sum('total');
+        // Tính tổng tiền: dùng sale_price nếu có, ngược lại dùng price
+        $total = $cartItems->reduce(function ($carry, $item) {
+            $product = $item->Products;
+            $price = $product->sale_price ?? $product->price;
+            return $carry + ($price * $item->quantity);
+        }, 0);
 
         return response()->json([
             'success' => true,
@@ -36,41 +41,39 @@ class CartController extends Controller
     /**
      * Add Products to cart.
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
-        $validated = $request->validate([
+        // 1. Validate dữ liệu đầu vào
+        $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1',
         ]);
 
-        $product = Product::findOrFail($validated['product_id']);
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!'], 401);
+        }
 
-        // Check if item already exists in cart
-        $cartItem = Cart::where('user_id', auth()->id())
-            ->where('product_id', $product->id)
+        // 2. Tìm kiếm hoặc tạo mới item trong giỏ hàng
+        $cartItem = Cart::where('user_id', $user->id)
+            ->where('product_id', $request->product_id)
             ->first();
 
         if ($cartItem) {
-            // Update quantity
-            $cartItem->quantity += $validated['quantity'];
+            // Nếu sản phẩm đã tồn tại, tăng số lượng
+            $cartItem->quantity += $request->quantity;
             $cartItem->save();
         } else {
-            // Create new cart item
+            // Nếu sản phẩm chưa có, tạo mới
             Cart::create([
-                'user_id' => auth()->id(),
-                'product_id' => $product->id,
-                'quantity' => $validated['quantity'],
-                'price' => $product->effective_price
+                'user_id' => $user->id,
+                'product_id' => $request->product_id,
+                'quantity' => $request->quantity,
             ]);
         }
 
-        $cartCount = Cart::where('user_id', auth()->id())->sum('quantity');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product added to cart successfully!',
-            'cart_count' => $cartCount
-        ]);
+        // 3. Trả về phản hồi thành công
+        return response()->json(['message' => 'Đã thêm sản phẩm vào giỏ hàng thành công!'], 200);
     }
 
     /**

@@ -955,3 +955,25 @@
     }
 }
 /*** Login Page End ***/
+.wishlist-stats {
+    background: linear-gradient(135deg, #fff 0%, #f8fff5 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 2px solid #e5f1d6;
+    box-shadow: 0 4px 20px rgba(139, 195, 74, 0.08);
+}
+.stat-item {
+    text-align: center;
+}
+.stat-number {
+    font-size: 1.5rem;
+    font-weight: bolder;
+    color: #5c9113;
+}
+.stat-label {
+    color: #8da479;
+    font-size: 1.5rem;
+    font-weight: bolder;
+    margin-bottom: 0.5rem;
+}

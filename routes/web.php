@@ -1,14 +1,15 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Frontend\CartController;
+use App\Http\Controllers\Frontend\CategoryController;
+use App\Http\Controllers\Frontend\ProductController;
+use App\Http\Controllers\Frontend\WishlistController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Frontend\CategoryController;
-use App\Http\Controllers\Frontend\ProductController;
-use App\Http\Controllers\Frontend\CartController;
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -19,7 +20,8 @@ Route::get('/', function () {
 });
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::get('/cart', [CartController::class, 'index'])->middleware('auth')->name('cart.index');
+Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
 Route::get('/home', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
