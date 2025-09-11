@@ -17,20 +17,16 @@ class Product extends Model
         'short_description',
         'price',
         'sale_price',
-        'sku',
         'stock_quantity',
         'category_id',
-        'weight',
+        'unit', // Thêm đơn vị
         'is_featured',
-        'is_active',
-        'meta_title',
-        'meta_description'
+        'is_active'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
-        'weight' => 'decimal:2',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -66,6 +62,7 @@ class Product extends Model
     {
         return $this->hasMany(ProductMedia::class)->ordered();
     }
+
 
     /**
      * Get the reviews for the Products.
@@ -191,5 +188,13 @@ class Product extends Model
     public function getHasReviewsAttribute(): bool
     {
         return $this->reviews_count > 0;
+    }
+
+    /**
+     * Get the variants for the Product.
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
     }
 }

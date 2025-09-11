@@ -10,6 +10,8 @@ class DriedProductFactory extends Factory
 {
     protected $model = \App\Models\Product::class;
 
+
+
     public function definition(): array
     {
         // Berries subcategory
@@ -35,29 +37,52 @@ class DriedProductFactory extends Factory
         $categorySlug = 'other-dried-fruits'; // default
         if (in_array($name, $berries)) {
             $categorySlug = 'dried-berries';
+            $ingredient = "Made from fresh, carefully selected " . rtrim($name, 's') . " berries from ABC farm in Lam Dong province.";
+            $feature = "Chewy or crispy texture, mildly sweet, easy to eat. No preservatives, safe for health.";
+            $benefit = "Rich in fiber, vitamins, and minerals. A healthy snack alternative to regular snacks.";
         } elseif (in_array($name, $citrus)) {
             $categorySlug = 'dried-citrus';
+            $ingredient = "Made from fresh, carefully selected " . $name . " from ABC farm in Lam Dong province.";
+            $feature = "Chewy or crispy texture, mildly sweet and tangy, easy to eat. No preservatives, safe for health.";
+            $benefit = "Provides fiber, vitamin C, and minerals. Great for snacking and baking.";
         } elseif (in_array($name, $stone)) {
             $categorySlug = 'dried-stone-fruits';
+            $ingredient = "Made from fresh, carefully selected " . rtrim($name, 's') . " stone fruits from ABC farm in Lam Dong province.";
+            $feature = "Chewy or crispy texture, mildly sweet, easy to eat. No preservatives, safe for health.";
+            $benefit = "High in fiber, vitamins, and minerals. A healthy snack for all ages.";
         } elseif (in_array($name, $tropical)) {
             $categorySlug = 'dried-tropical';
+            $ingredient = "Made from fresh, carefully selected " . $name . " from ABC farm in Lam Dong province.";
+            $feature = "Chewy or crispy texture, tropical flavor, mildly sweet, easy to eat. No preservatives, safe for health.";
+            $benefit = "Rich in fiber, vitamins, and minerals. A healthy snack alternative to regular snacks.";
+        } else {
+            $ingredient = "Made from fresh, carefully selected " . $name . " from ABC farm in Lam Dong province.";
+            $feature = "Chewy or crispy texture, mildly sweet, easy to eat. No preservatives, safe for health.";
+            $benefit = "Rich in fiber, vitamins, and minerals. A healthy snack alternative to regular snacks.";
         }
+
+        $packaging = "Available in bags/boxes: 100g, 200g, 500g, 1kg (each size has its own price).";
+        $storage = "Store in a cool, dry place. Seal tightly after opening. Shelf life 6–12 months.";
+
+        $description = "Ingredients & Origin\n" .
+            "$ingredient\n" .
+            "Highlighted Features\n" .
+            "$feature\n" .
+            "Benefits\n" .
+            "$benefit\n" .
+            "Packaging\n" .
+            "$packaging\n" .
+            "Storage & Shelf Life\n" .
+            "$storage";
 
         return [
             'name' => 'Dried ' . ucfirst($name),
             'slug' => Str::slug('dried-' . $name),
-            'description' => "Premium dried {$name} with no added sugars or preservatives. Naturally dehydrated to preserve maximum nutrition and flavor. Perfect for healthy snacking, baking, and cooking. Rich in vitamins, minerals, and antioxidants.",
+            'description' => $description,
             'short_description' => "Natural dried {$name} - no additives, pure nutrition",
-            'price' => $price,
-            'sale_price' => $this->faker->boolean(20) ? $price * 0.85 : null,
-            'sku' => 'DRD-' . strtoupper($this->faker->bothify('??###')),
-            'stock_quantity' => $this->faker->numberBetween(20, 100),
             'category_id' => Category::where('slug', $categorySlug)->first()?->id ?? 1,
-            'weight' => $this->faker->randomFloat(2, 0.25, 1.0),
             'is_featured' => $this->faker->boolean(25),
             'is_active' => true,
-            'meta_title' => "Dried {$name} - Premium Quality Natural",
-            'meta_description' => "Buy premium dried {$name} online. No additives, naturally dehydrated, rich in nutrients.",
         ];
     }
 
@@ -90,5 +115,19 @@ class DriedProductFactory extends Factory
         ];
 
         return $folderMap[$name] ?? 'dried/Others/' . $name;
+    }
+    public function withVariants()
+    {
+        return $this->afterCreating(function ($product) {
+            // Tạo nhiều biến thể cho sản phẩm dried
+            $sizes = ['100g', '200g', '500g', '1kg'];
+            foreach ($sizes as $size) {
+                \App\Models\ProductVariant::factory()->create([
+                    'product_id' => $product->id,
+                    'unit' => 'Pack',
+                    'size' => $size,
+                ]);
+            }
+        });
     }
 }

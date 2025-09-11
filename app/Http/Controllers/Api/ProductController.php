@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -16,7 +17,7 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Product::with(['category', 'media'])
+            $query = Product::with(['category', 'media', 'variants'])
                 ->where('is_active', true);
 
             //apply search filter
@@ -134,7 +135,7 @@ class ProductController extends Controller
 
     public function featured()
     {
-        $topRatedProducts = Product::with(['category', 'media'])
+        $topRatedProducts = Product::with(['category', 'media', 'variants'])
             ->withAvg('approvedReviews', 'rating')
             ->withCount('approvedReviews')
             ->whereHas('approvedReviews') // Chỉ lấy products có ít nhất 1 review

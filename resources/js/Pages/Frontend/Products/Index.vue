@@ -293,7 +293,7 @@
                             </div>
                         </div>
                         <div class="col-lg-9">
-                            <!-- ✅ ADD: Search & Filter indicators -->
+                            <!-- Search & Filter indicators -->
                             <div v-if="searchQuery || selectedCategoryId || sortBy || priceRange.min > 0 || priceRange.max < 100" class="mb-4">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
                                     <span class="text-muted">Active filters:</span>
@@ -379,40 +379,43 @@
                                 <template v-else-if="Array.isArray(products) && products.length > 0">
                                     <div v-for="product in products" :key="product.id"
                                          class="col-md-6 col-lg-6 col-xl-4">
-                                        <div class="rounded position-relative fruite-item ">
-                                            <div class="fruite-img border-secondary" style="border: 1px solid #000;">
-                                                <img
-                                                    :alt="product.name"
-                                                    :src="`/${product.media?.find(m => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
-                                                    class="img-fluid w-100 rounded-top"
-                                                >
-                                            </div>
+                                        <div class="rounded position-relative fruite-item " >
+                                                <div class="fruite-img border-secondary" style="border: 1px solid #000;">
+                                                    <img
+                                                        :alt="product.name"
+                                                        :src="`/${product.media?.find(m => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                        class="img-fluid w-100 rounded-top"
+                                                    >
+                                                </div>
                                                 <!-- Nút trái tim thêm vào wishlist -->
                                                 <button class="btn btn-outline-danger position-absolute" style="top:10px; right:10px; z-index:2;" @click="toggleWishlist(product.id)" title="Thêm vào yêu thích">
                                                     <i v-if="isInWishlist(product.id)" class="fa fa-heart" style="color: #f00"></i>
                                                     <i v-else class="far fa-heart" style="color: #f00"></i>
                                                 </button>
-                                            <div class="text-white bg-secondary px-3 py-1 rounded position-absolute"
-                                                 style="top: 10px; left: 10px;">
-                                                {{ product.category?.name || 'Fruits' }}
-                                            </div>
-                                            <div class="p-4 border border-secondary border-top-0 rounded-bottom">
-                                                <h4>{{ product.name }}</h4>
-                                                <p>{{
-                                                        product.description?.substring(0, 100) || 'Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt'
-                                                    }}...</p>
-                                                <div class="d-flex justify-content-between flex-lg-wrap">
-                                                    <p class="text-dark fs-5 fw-bold mb-0">
-                                                        <div  v-if="product.sale_price"> <span class="text-danger">${{ product.sale_price }} / kg</span>  &nbsp; <span class="text-decoration-line-through opacity-75 fs-6"> ${{ product.price }}/ kg</span></div>
-                                                        <span v-else>${{ product.price }} / kg</span>
-                                                    </p>
-                                                    <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="addToCart(product)" :disabled="addToCartLoading[product.id]">
-                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i>
-                                                        <span v-if="addToCartLoading[product.id]">Đang thêm...</span>
-                                                        <span v-else>Thêm vào giỏ hàng</span>
-                                                    </button>
+                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute"
+                                                     style="top: 10px; left: 10px;">
+                                                    {{ product.category?.name || 'Fruits' }}
                                                 </div>
-                                            </div>
+
+                                            <Link :href="route('detail.index', product.id)">
+                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                                                    <h4>{{ product.name }}</h4>
+                                                    <p>{{
+                                                            product.short_description?.substring(0, 100) || 'Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt'
+                                                        }}...</p>
+                                                    <div class="d-flex justify-content-between flex-lg-wrap">
+                                                        <p class="text-dark fs-5 fw-bold mb-0">
+                                                            <div  v-if="product.variants[0].sale_price"> <span class="text-danger">${{ product.variants[0].sale_price }} / {{ product.variants[0].unit }}</span>  &nbsp; <span class="text-decoration-line-through opacity-75 fs-6"> ${{ product.variants[0].price }}/ {{ product.variants[0].unit }}</span></div>
+                                                            <span v-else>${{ product.variants[0].price }} / {{ product.variants[0].unit }}</span>
+                                                        </p>
+                                                        <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="addToCart(product)" :disabled="addToCartLoading[product.id]">
+                                                            <i class="fa fa-shopping-bag me-2 text-primary"></i>
+                                                            <span v-if="addToCartLoading[product.id]">Đang thêm...</span>
+                                                            <span v-else>Add to cart</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </Link>
                                         </div>
                                     </div>
                                 </template>
@@ -609,6 +612,8 @@ import {Head, router } from '@inertiajs/vue3';
 import Menu from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
 import axios from "axios";
+import { useCartStore } from '@/stores/cart';
+import  { Link } from '@inertiajs/vue3';
 axios.defaults.withCredentials = true;
 export default {
     components: {
@@ -616,6 +621,7 @@ export default {
         Menu,
         Head,
         Search,
+        Link,
     },
     props: {
         auth: Object,
@@ -652,12 +658,14 @@ export default {
             },
             loading: true,
             error: null,
-            addToCartLoading: {} // Track loading state for add to cart buttons
+            addToCartLoading: {},
         }
     },
     async mounted() {
+
         console.log('🔑 Auth prop:', this.auth);
         // Lấy user từ prop auth
+
         this.user = this.auth?.user || null;
 
         try {
@@ -723,9 +731,13 @@ export default {
             this.wishlistIds = localIds ? JSON.parse(localIds) : [];
             this.wishlistProducts = localProducts ? JSON.parse(localProducts) : [];
         }
+
     },
     computed: {
-        // ✅ ADD: Calculate range track fill style
+        // Calculate range track fill style
+        cartStore() {
+            return useCartStore();
+        },
         rangeTrackStyle() {
             const min = this.priceRange.min;
             const max = this.priceRange.max;
@@ -773,7 +785,7 @@ export default {
                     from: response.data.from || 0,
                     to: response.data.to || 0
                 }
-                console.log(response.data)
+                console.log('dataa', response.data)
 
                 this.totalProductsCount = response.data.total || 0; // Update total products count
 
@@ -1122,6 +1134,7 @@ export default {
             console.log(`Notification (${type}): ${message}`);
             alert(message);
         },
+
         async addToCart(product) {
             this.addToCartLoading[product.id] = true;
             try {
@@ -1129,23 +1142,12 @@ export default {
                     this.showNotification('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
                     return;
                 }
-
-                const response = await axios.post('/api/cart', {
-                    product_id: product.id,
-                    quantity: 1
-                });
-
-                // Xử lý giỏ hàng sau khi thêm thành công
-                this.updateCart(response.data);
-
-                // Thông báo thành công
+                // Sử dụng store để thêm vào giỏ hàng và cập nhật count
+                await this.cartStore.addToCart(product.id, 1);
                 this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
-
             } catch (error) {
                 console.error('Add to cart error:', error);
-                // Thông báo lỗi
                 this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
-
             } finally {
                 this.addToCartLoading[product.id] = false;
             }

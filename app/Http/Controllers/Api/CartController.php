@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
 class CartController extends Controller
 {
     /**
@@ -17,23 +18,33 @@ class CartController extends Controller
      */
     public function index(): JsonResponse
     {
-        $cartItems = Cart::with('Products', 'Products.Categories', 'Products.media')
-            ->where('user_id', auth()->id())
-            ->get();
-
-        // Tính tổng tiền: dùng sale_price nếu có, ngược lại dùng price
-        $total = $cartItems->reduce(function ($carry, $item) {
-            $product = $item->Products;
-            $price = $product->sale_price ?? $product->price;
-            return $carry + ($price * $item->quantity);
-        }, 0);
-
+        $user = auth()->user();
+        $sessionId = session()->getId();
+        $cart = null;
+        if ($user) {
+            $cart = \App\Models\Cart::where('user_id', $user->id)->where('status', 'active')->first();
+        } else {
+            $cart = \App\Models\Cart::where('session_id', $sessionId)->where('status', 'active')->first();
+        }
+        $items = [];
+        $total = 0;
+        $count = 0;
+        if ($cart) {
+            $items = \App\Models\CartItem::with('productVariant.product.media')
+                ->where('cart_id', $cart->id)
+                ->get();
+            $total = $items->reduce(function ($carry, $item) {
+                $price = $item->price;
+                return $carry + ($price * $item->quantity);
+            }, 0);
+            $count = $items->sum('quantity');
+        }
         return response()->json([
             'success' => true,
             'data' => [
-                'items' => $cartItems,
+                'items' => $items,
                 'total' => $total,
-                'count' => $cartItems->sum('quantity')
+                'count' => $count
             ]
         ]);
     }
@@ -43,76 +54,104 @@ class CartController extends Controller
      */
     public function store(Request $request)
     {
-        // 1. Validate dữ liệu đầu vào
         $request->validate([
-            'product_id' => 'required|exists:products,id',
+            'productVariant_id' => 'required|exists:product_variants,id', // Sửa 'products' thành 'product_variants'
             'quantity' => 'required|integer|min:1',
         ]);
-
         $user = auth()->user();
-        if (!$user) {
-            return response()->json(['message' => 'Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!'], 401);
+        $sessionId = session()->getId();
+        if (!$user && !$sessionId) {
+            return response()->json(['message' => 'Bạn cần đăng nhập hoặc có session để thêm sản phẩm vào giỏ hàng!'], 401);
         }
-
-        // 2. Tìm kiếm hoặc tạo mới item trong giỏ hàng
-        $cartItem = Cart::where('user_id', $user->id)
-            ->where('product_id', $request->product_id)
+        Log::info('id', $request->all());
+        // Tìm hoặc tạo cart
+        $cart = \App\Models\Cart::firstOrCreate([
+            'user_id' => $user ? $user->id : null,
+            'session_id' => $user ? null : $sessionId,
+            'status' => 'active',
+        ]);
+        // Tìm hoặc tạo cart_item
+        $cartItem = \App\Models\CartItem::where('cart_id', $cart->id)
+            ->where('productVariant_id', $request->productVariant_id)
             ->first();
-
+//        Log::info($cartItem->id);
+        $product = \App\Models\ProductVariant::find($request->productVariant_id);
+        $price = $product->sale_price ?? $product->price;
         if ($cartItem) {
-            // Nếu sản phẩm đã tồn tại, tăng số lượng
             $cartItem->quantity += $request->quantity;
+            Log::info($cartItem->quantity);
+            $cartItem->price = $price;
             $cartItem->save();
         } else {
-            // Nếu sản phẩm chưa có, tạo mới
-            Cart::create([
-                'user_id' => $user->id,
-                'product_id' => $request->product_id,
+            \App\Models\CartItem::create([
+                'cart_id' => $cart->id,
+                'productVariant_id' => $request->productVariant_id,
                 'quantity' => $request->quantity,
+                'price' => $price,
             ]);
         }
-
-        // 3. Trả về phản hồi thành công
+        // Tính lại tổng số lượng và tổng giá trị giỏ hàng
+        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)->get();
+        $totalQuantity = $cartItems->sum('quantity');
+        $totalPrice = $cartItems->reduce(function ($carry, $item) {
+            return $carry + ($item->quantity * $item->price);
+        }, 0);
+        $cart->update([
+            'total_quantity' => $totalQuantity,
+            'total_price' => $totalPrice,
+        ]);
         return response()->json(['message' => 'Đã thêm sản phẩm vào giỏ hàng thành công!'], 200);
     }
 
     /**
      * Update cart item quantity.
      */
-    public function update(Request $request, Cart $cart): JsonResponse
+    public function update(\App\Models\CartItem $cartItem, Request $request): JsonResponse
     {
         $validated = $request->validate([
             'quantity' => 'required|integer|min:1'
         ]);
 
-        // Ensure user owns this cart item
-        if ($cart->user_id !== auth()->id()) {
+        // Kiểm tra quyền sở hữu
+        if ($cartItem->cart->user_id !== auth()->id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $cart->update($validated);
+        $cartItem->update($validated);
 
         return response()->json([
             'success' => true,
-            'message' => 'Cart updated successfully!',
-            'total' => $cart->total
+            'message' => 'Cart item updated successfully!',
+            'item' => $cartItem
         ]);
     }
 
     /**
      * Remove cart item.
      */
-    public function destroy(Cart $cart): JsonResponse
+    public function destroy(\App\Models\CartItem $cartItem): JsonResponse
     {
-        // Ensure user owns this cart item
-        if ($cart->user_id !== auth()->id()) {
+        // Kiểm tra quyền sở hữu
+        if ($cartItem->cart->user_id !== auth()->id()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized'
             ], 403);
         }
 
-        $cart->delete();
+        $cart = $cartItem->cart;
+        $cartItem->delete();
+
+        // Cập nhật lại tổng số lượng và tổng giá trị giỏ hàng
+        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)->get();
+        $totalQuantity = $cartItems->sum('quantity');
+        $totalPrice = $cartItems->reduce(function ($carry, $item) {
+            return $carry + ($item->quantity * $item->price);
+        }, 0);
+        $cart->update([
+            'total_quantity' => $totalQuantity,
+            'total_price' => $totalPrice,
+        ]);
 
         return response()->json([
             'success' => true,
@@ -125,7 +164,8 @@ class CartController extends Controller
      */
     public function count(): JsonResponse
     {
-        $count = Cart::where('user_id', auth()->id())->sum('quantity');
+//        dd(auth()->id());
+        $count = Cart::where('user_id', auth()->id())->sum('total_quantity');
 
         return response()->json(['count' => $count]);
     }

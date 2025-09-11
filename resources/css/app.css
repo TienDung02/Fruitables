@@ -1,5 +1,5 @@
-@import './bootstrap.min.css';
-@import './style.css';
+@import '../../public/lib/css/bootstrap.min.css';
+@import '../../public/lib/css/style.css';
 
 
 @import url('https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css');

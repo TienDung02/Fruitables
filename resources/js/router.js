@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import  categories from '@/pages/Frontend/Categories/Index.vue';
-import  products from '@/pages/Frontend/Products/Index.vue';
+import  categories from '@/Pages/Frontend/Categories/Index.vue';
+import  products from '@/Pages/Frontend/Products/Index.vue';
 
 const routes = [
     {

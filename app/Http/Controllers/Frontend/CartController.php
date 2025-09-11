@@ -19,15 +19,11 @@ class CartController extends Controller
             return redirect()->route('login');
         }
 
-        // Gọi API lấy dữ liệu giỏ hàng
-//        $response = Http::withToken(auth()->user()->api_token ?? null)
-//            ->get(route('api.cart.index'));
-//        $cartData = $response->json('data');
-
         return Inertia::render('Frontend/Cart/Index', [
             'auth' => [
                 'user' => auth()->user(),
             ],
+            'csrf_token' => csrf_token(),
         ]);
     }
 }

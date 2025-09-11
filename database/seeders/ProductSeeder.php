@@ -12,16 +12,12 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // ✅ ĐÚNG: Gọi trực tiếp FreshProductFactory
-        (new FreshProductFactory())->count(20)->create();
+        (new FreshProductFactory())->withVariants()->count(20)->create();
 
-        // ✅ ĐÚNG: Gọi trực tiếp DriedProductFactory  
-        (new DriedProductFactory())->count(15)->create();
+        (new DriedProductFactory())->withVariants()->count(15)->create();
 
-        // ✅ ĐÚNG: Gọi trực tiếp JamProductFactory
-        (new JamProductFactory())->count(12)->create();
+        (new JamProductFactory())->withVariants()->count(12)->create();
 
-        // ✅ Set some as featured randomly
         Product::inRandomOrder()->limit(8)->update(['is_featured' => true]);
     }
 }

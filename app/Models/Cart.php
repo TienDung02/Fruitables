@@ -9,18 +9,19 @@ class Cart extends Model
 {
     protected $fillable = [
         'user_id',
-        'product_id',
-        'quantity',
-        'price'
+        'status',
+        'total_price',
+        'total_quantity',
+        'session_id',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'quantity' => 'integer',
+        'total_price' => 'decimal:2',
+        'total_quantity' => 'integer',
     ];
 
     /**
-     * Get the user that owns the cart item.
+     * Get the user that owns the cart.
      */
     public function user(): BelongsTo
     {
@@ -28,18 +29,10 @@ class Cart extends Model
     }
 
     /**
-     * Get the Products that belongs to the cart item.
+     * Get the cart items for this cart.
      */
-    public function product(): BelongsTo
+    public function items()
     {
-        return $this->belongsTo(Product::class);
-    }
-
-    /**
-     * Get the total price for this cart item
-     */
-    public function getTotalAttribute()
-    {
-        return $this->quantity * $this->price;
+        return $this->hasMany(CartItem::class);
     }
 }

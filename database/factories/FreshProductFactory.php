@@ -10,6 +10,8 @@ class FreshProductFactory extends Factory
 {
     protected $model = \App\Models\Product::class;
 
+
+
     public function definition(): array
     {
         $freshProducts = [
@@ -18,28 +20,47 @@ class FreshProductFactory extends Factory
         ];
 
         $name = $this->faker->randomElement($freshProducts);
-        $price = $this->faker->randomFloat(2, 5, 35);
-
         $vegetables = ['broccoli', 'carrot', 'cucumber', 'tomato'];
         $isVegetable = in_array($name, $vegetables);
+
+        // Origin & Quality
+        $origin = "Sourced from ABC farm in Lam Dong province, carefully selected from reputable growing regions. Guaranteed fresh, safe, and free from harmful chemicals.";
+
+        // Highlighted Features
+        if ($isVegetable) {
+            $features = "Natural color, crisp texture, mild flavor. Rich in vitamins and minerals, great for health.";
+            $benefits = "Provides daily nutrition and energy. Ideal for direct consumption, salads, or cooking.";
+        } else {
+            // Fruit
+            $features = "Natural color, sweet or mildly tart flavor depending on variety. Rich in vitamins, minerals, and antioxidants.";
+            $benefits = "Boosts daily energy and nutrition. Perfect for eating fresh, making juice, salads, or cooking.";
+        }
+
+        // Selling Method
+        $selling = "Sold by kilogram, customers can choose the quantity they need.";
+
+        // Storage & Shelf Life
+        $storage = "Store in a cool, ventilated place or in the refrigerator. Best consumed within a few days of delivery for optimal freshness.";
+
+        $description = "Origin & Quality\n" .
+            "$origin\n" .
+            "Highlighted Features\n" .
+            "$features\n" .
+            "Benefits\n" .
+            "$benefits\n" .
+            "Selling Method\n" .
+            "$selling\n" .
+            "Storage & Shelf Life\n" .
+            "$storage";
 
         return [
             'name' => 'Fresh ' . ucfirst($name),
             'slug' => Str::slug('fresh-' . $name),
-            'description' => "Farm-fresh {$name} harvested at peak ripeness. " .
-                ($isVegetable ? "Grown using sustainable farming practices without harmful pesticides. Perfect for healthy cooking and nutritious meals."
-                    : "Naturally sweet and packed with vitamins, minerals, and antioxidants. Perfect for snacking, smoothies, and desserts."),
+            'description' => $description,
             'short_description' => "Farm-fresh {$name} - naturally grown, peak quality",
-            'price' => $price,
-            'sale_price' => $this->faker->boolean(25) ? $price * 0.9 : null,
-            'sku' => ($isVegetable ? 'VEG-' : 'FRT-') . strtoupper($this->faker->bothify('??###')),
-            'stock_quantity' => $this->faker->numberBetween(30, 150),
             'category_id' => Category::where('slug', $isVegetable ? 'fresh-vegetables' : 'fresh-fruits')->first()?->id ?? 1,
-            'weight' => $this->faker->randomFloat(2, 0.2, 3.0),
             'is_featured' => $this->faker->boolean(30),
             'is_active' => true,
-            'meta_title' => "Fresh {$name} - Organic & Natural",
-            'meta_description' => "Buy fresh organic {$name} online. Farm-to-table quality, naturally grown.",
         ];
     }
 
@@ -47,5 +68,16 @@ class FreshProductFactory extends Factory
     {
         $name = str_replace(['fresh-', 'fresh '], '', strtolower($productName));
         return "fruit/{$name}";
+    }
+
+    public function withVariants()
+    {
+        return $this->afterCreating(function ($product) {
+            \App\Models\ProductVariant::factory()->create([
+                'product_id' => $product->id,
+                'unit' => 'kg',
+                'size' => 'kg',
+            ]);
+        });
     }
 }

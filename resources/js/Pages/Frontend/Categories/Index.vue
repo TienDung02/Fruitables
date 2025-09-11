@@ -1,4 +1,4 @@
-<!-- filepath: resources/js/pages/Frontend/Categories/Index.vue -->
+<!-- filepath: resources/js/Pages/Frontend/Categories/Index.vue -->
 <template>
     <div>
         <h1>HELLO FROM VUE COMPONENT!</h1>

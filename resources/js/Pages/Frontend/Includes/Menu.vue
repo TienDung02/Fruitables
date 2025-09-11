@@ -4,13 +4,20 @@
         <div class="container topbar bg-primary d-none d-lg-block">
             <div class="d-flex justify-content-between">
                 <div class="top-info ps-2">
-                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">123 Street, New York</a></small>
-                    <small class="me-3"><i class="fas fa-envelope me-2 text-secondary"></i><a href="#" class="text-white">Email@Example.com</a></small>
+                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">Dormitory Area A, Ho Chi Minh City National University</a></small>
+                    <small class="me-3"><i class="fas fa-envelope me-2 text-secondary"></i><a href="#" class="text-white">nongtiendung2309@gmail.com</a></small>
                 </div>
-                <div class="top-link pe-2">
-                    <a href="#" class="text-white"><small class="text-white mx-2">Privacy Policy</small>/</a>
-                    <a href="#" class="text-white"><small class="text-white mx-2">Terms of Use</small>/</a>
-                    <a href="#" class="text-white"><small class="text-white ms-2">Sales and Refunds</small></a>
+                <div v-if="!authStore.isLoggedIn">
+                    <Link :href="route('login')" class="signup-link text-white mx-2 hover:text-gray-900">
+                        Login
+                    </Link>
+                    /
+                    <Link :href="route('register')" class="signup-link text-white mx-2 hover:text-gray-900">
+                        Register
+                    </Link>
+                </div>
+                <div v-else>
+                    Chào mừng, {{ authStore.user.name }}
                 </div>
             </div>
         </div>
@@ -39,15 +46,15 @@
                     <div class="d-flex m-3 me-0">
                         <a href="#" class="position-relative me-4 my-auto">
                             <i class="fa fa-shopping-bag fa-2x"></i>
-                            <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">3</span>
+                            <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">{{ cartStore?.count || 0 }}</span>
                         </a>
-                        <div class="dropdown">
-                            <a href="#" class="my-auto dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <div class="dropdown" @click.stop>
+                            <a href="#" class="my-auto dropdown-toggle" @click.prevent="toggleDropdown">
                                 <i class="fas fa-user fa-2x"></i>
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-<!--                                <li><Link class="dropdown-item"><i class="fas fa-user-edit me-2"></i>Profile</Link></li>-->
-<!--                                <li><Link  class="dropdown-item"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</Link></li>-->
+                            <ul class="dropdown-menu dropdown-menu-end" :class="{ show: isDropdownOpen }">
+                                <!--                                <li><Link class="dropdown-item"><i class="fas fa-user-edit me-2"></i>Profile</Link></li>-->
+                                <!--                                <li><Link  class="dropdown-item"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</Link></li>-->
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <Link :href="route('cart.index')" class="dropdown-item">
@@ -72,7 +79,6 @@
                                         <i class="fas fa-sign-out-alt me-2"></i> Logout
                                     </Link>
                                 </li>
-
                             </ul>
                         </div>
                     </div>
@@ -85,10 +91,67 @@
 
 <script>
 import  { Link } from '@inertiajs/vue3';
+import axios from 'axios';
+import { useCartStore } from '@/stores/cart';
+import { useAuthStore  } from '@/stores/auth';
+import { ref, onMounted, onBeforeUnmount } from 'vue';
 export default {
+    setup() {
+        const authStore = useAuthStore();
+        const isDropdownOpen = ref(false);
+        const toggleDropdown = () => {
+            isDropdownOpen.value = !isDropdownOpen.value;
+        };
+        const closeDropdown = () => {
+            isDropdownOpen.value = false;
+        };
+        // Đóng dropdown khi click ra ngoài
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.dropdown')) {
+                closeDropdown();
+            }
+        };
+        onMounted(() => {
+            document.addEventListener('click', handleClickOutside);
+        });
+        onBeforeUnmount(() => {
+            document.removeEventListener('click', handleClickOutside);
+        });
+        return {
+            authStore,
+            isDropdownOpen,
+            toggleDropdown,
+            closeDropdown,
+        };
+    },
+    created() {
+        this.authStore.checkAuth();
+    },
     components: {
         Link,
     },
+    props: {
+        auth: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        }
+    },
+    computed: {
+        cartStore() {
+            return useCartStore();
+        }
+    },
+    async mounted() {
+
+        try {
+            await this.cartStore.fetchCartCount();
+        } catch (error) {
+            console.error('❌ Error in mounted:', error);
+        }
+    },
+    methods: {
+    }
 }
 </script>
 

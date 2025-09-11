@@ -10,6 +10,8 @@ class JamProductFactory extends Factory
 {
     protected $model = \App\Models\Product::class;
 
+
+
     public function definition(): array
     {
         // Berry jams
@@ -26,35 +28,50 @@ class JamProductFactory extends Factory
 
         $allJams = array_merge($berry, $citrus, $stone, $tropical);
         $name = $this->faker->randomElement($allJams);
-        $price = $this->faker->randomFloat(2, 8, 25); // Jam products price range
 
         // Determine category based on jam type
         $categorySlug = 'berry-jams'; // default
         if (in_array($name, $berry)) {
             $categorySlug = 'berry-jams';
+            $ingredient = ucfirst($name) . " fruit";
+            $highlight = "Sweet and delicate flavor, preserves the unique aroma of " . ucfirst($name) . ".";
         } elseif (in_array($name, $citrus)) {
             $categorySlug = 'citrus-jams';
+            $ingredient = ucfirst($name) . " fruit";
+            $highlight = "Mildly sour, aromatic typical of citrus fruits.";
         } elseif (in_array($name, $stone)) {
             $categorySlug = 'stone-fruit-jams';
+            $ingredient = ucfirst($name) . " fruit";
+            $highlight = "Mildly sweet, preserves the unique aroma of stone fruits.";
         } elseif (in_array($name, $tropical)) {
             $categorySlug = 'tropical-jams';
+            $ingredient = ucfirst($name) . " fruit";
+            $highlight = "Tropical flavor, delicious and unique to tropical fruits.";
+        } else {
+            $ingredient = ucfirst($name) . " fruit";
+            $highlight = "Unique flavor of " . ucfirst($name) . ".";
         }
+
+        $description = "Ingredients & Origin\n" .
+            "Made from fresh, natural {$ingredient}, no preservatives, sourced from ABC farm in Lam Dong province.\n" .
+            "Highlighted Features\n" .
+            "{$highlight}\nSmooth texture, easy to spread on bread and pastries.\n" .
+            "Benefits\n" .
+            "Rich in vitamins, suitable for breakfast, dessert, or as a cooking ingredient.\n" .
+            "Packaging\n" .
+            "Multiple options: 100g, 200g, 500g, 1kg (each jar size has its own price).\n" .
+            "Storage & Shelf Life\n" .
+            "Store in a cool, dry place; best kept refrigerated after opening.\n" .
+            "Shelf life 6–12 months depending on type.";
 
         return [
             'name' => ucfirst($name) . ' Jam',
             'slug' => Str::slug($name . '-jam'),
-            'description' => "Artisanal {$name} jam made from carefully selected premium fruits. Slow-cooked in small batches to preserve natural flavors and nutrients. Contains real fruit pieces and no artificial preservatives. Perfect for breakfast, desserts, and gourmet cooking.",
+            'description' => $description,
             'short_description' => "Premium {$name} jam - artisanal, small batch",
-            'price' => $price,
-            'sale_price' => $this->faker->boolean(15) ? $price * 0.88 : null,
-            'sku' => 'JAM-' . strtoupper($this->faker->bothify('??###')),
-            'stock_quantity' => $this->faker->numberBetween(25, 80),
             'category_id' => Category::where('slug', $categorySlug)->first()?->id ?? 1,
-            'weight' => $this->faker->randomFloat(2, 0.25, 0.75), // Jam jars weight
-            'is_featured' => $this->faker->boolean(20),
+            'is_featured' => $this->faker->boolean(18),
             'is_active' => true,
-            'meta_title' => "{$name} Jam - Artisanal Premium Quality",
-            'meta_description' => "Premium {$name} jam made from selected fruits. No preservatives, small batch artisanal.",
         ];
     }
 
@@ -86,5 +103,19 @@ class JamProductFactory extends Factory
         ];
 
         return $folderMap[$name] ?? 'jam/Berry/' . $name;
+    }
+    public function withVariants()
+    {
+        return $this->afterCreating(function ($product) {
+            // Tạo nhiều biến thể cho sản phẩm jam
+            $sizes = ['100g', '200g', '500g', '1kg'];
+            foreach ($sizes as $size) {
+                \App\Models\ProductVariant::factory()->create([
+                    'product_id' => $product->id,
+                    'unit' => 'Jar',
+                    'size' => $size,
+                ]);
+            }
+        });
     }
 }

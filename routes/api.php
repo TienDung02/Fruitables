@@ -28,9 +28,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Cart management
     Route::get('cart', [CartController::class, 'index']);
-    Route::put('cart/{cart}', [CartController::class, 'update']);
+    Route::put('cart/{cartItem}', [CartController::class, 'update']);
     Route::post('cart', [CartController::class, 'store']);
-    Route::delete('cart/{cart}', [CartController::class, 'destroy']);
+    Route::delete('cart/{cartItem}', [CartController::class, 'destroy']);
     Route::delete('cart', [CartController::class, 'clear']);
     Route::get('cart/count', [CartController::class, 'count']);
 
@@ -58,4 +58,3 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('orders', [OrderController::class, 'adminIndex']);
     Route::put('orders/{order}/status', [OrderController::class, 'updateStatus']);
 });
-
