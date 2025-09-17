@@ -17,16 +17,20 @@ class Product extends Model
         'short_description',
         'price',
         'sale_price',
+        'sku',
         'stock_quantity',
         'category_id',
-        'unit', // Thêm đơn vị
+        'weight',
         'is_featured',
-        'is_active'
+        'is_active',
+        'meta_title',
+        'meta_description'
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
         'sale_price' => 'decimal:2',
+        'weight' => 'decimal:2',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -60,9 +64,15 @@ class Product extends Model
      */
     public function media(): HasMany
     {
-        return $this->hasMany(ProductMedia::class)->ordered();
+        return $this->hasMany(ProductMedia::class);
     }
-
+    /**
+     * Get the variants files for the Products.
+     */
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
 
     /**
      * Get the reviews for the Products.
@@ -188,13 +198,5 @@ class Product extends Model
     public function getHasReviewsAttribute(): bool
     {
         return $this->reviews_count > 0;
-    }
-
-    /**
-     * Get the variants for the Product.
-     */
-    public function variants(): HasMany
-    {
-        return $this->hasMany(ProductVariant::class);
     }
 }

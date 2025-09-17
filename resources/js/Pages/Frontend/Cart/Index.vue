@@ -20,8 +20,25 @@
                 <div v-else>
                     <div class="table-responsive">
                         <table class="table">
+                            <colgroup>
+                                <col width="100">
+                                <col width="200">
+                                <col >
+                                <col width="150">
+                                <col width="150">
+                                <col width="180">
+                                <col width="180">
+                                <col width="100">
+                            </colgroup>
                             <thead>
                             <tr>
+                                <th scope="col" class="text-center">
+                                    <input
+                                        type="checkbox" class="form-check-input"
+                                        :checked="isAllSelected"
+                                        @change="toggleAllSelection"
+                                    />
+                                </th>
                                 <th scope="col">Products</th>
                                 <th scope="col">Name</th>
                                 <th scope="col">size</th>
@@ -33,12 +50,18 @@
                             </thead>
                             <tbody>
                             <tr v-for="item in cartItems" :key="item.id">
+                                <td class="position-relative" v-if="item.selected === 1">
+                                    <input type="checkbox" class="center-position bg-primary form-check-input"  checked @click="handleCheckboxItem(item)">
+                                </td>
+                                <td class="position-relative" v-else>
+                                    <input type="checkbox" class="center-position" @click="handleCheckboxItem(item)">
+                                </td>
                                 <th scope="row">
                                     <div class="d-flex align-items-center">
                                         <img
-                                            :alt="item.product_variant.name"
+                                            :alt="item.product_variant.product.name"
                                             :src="`/${item.product_variant.product.media?.find(m => m.is_primary)?.file_path || item.product_variant.media?.[0]?.file_path || 'products/default.jpg'}`"
-                                            class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px;" >
+                                            class="img-fluid me-5 rounded-circle" style="width: 80px; height: 80px; object-fit: contain" >
                                     </div>
                                 </th>
                                 <td>
@@ -48,7 +71,7 @@
                                     <p class="mb-0 mt-4">{{ item.product_variant.size == 'kg' ? '1kg' :  item.product_variant.size}}</p>
                                 </td>
                                 <td>
-                                    <p class="mb-0 mt-4">${{  item.product_variant.price }}</p>
+                                    <p class="mb-0 mt-4">${{  item.product_variant.sale_price ?? item.product_variant.price }}</p>
                                 </td>
                                 <td>
                                     <div class="input-group quantity mt-4" style="width: 100px;">
@@ -79,33 +102,40 @@
                         </table>
                     </div>
                 </div>
-                <div class="mt-5">
-                    <input type="text" class="border-0 border-bottom rounded me-5 py-3 mb-4" placeholder="Coupon Code" style=" text-indent: 15px;w">
-                    <button class="btn border-secondary rounded-pill px-4 py-3 text-primary" type="button">Apply Coupon</button>
-                </div>
-                <div class="row g-4 justify-content-end">
-                    <div class="col-8"></div>
-                    <div class="col-sm-8 col-md-7 col-lg-6 col-xl-4">
-                        <div class="bg-light rounded">
-                            <div class="p-4">
-                                <h1 class="display-6 mb-4">Cart <span class="fw-normal">Total</span></h1>
-                                <div class="d-flex justify-content-between mb-4">
-                                    <h5 class="mb-0 me-4">Subtotal:</h5>
-                                    <p class="mb-0">$96.00</p>
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <h5 class="mb-0 me-4">Shipping</h5>
-                                    <div class="">
-                                        <p class="mb-0">Flat rate: $3.00</p>
+
+                <div class=" g-4 mt-5 justify-content-end">
+                    <div class=" border-top">
+                        <input type="text" class="border-0 border-bottom rounded me-5 py-3 mb-2" placeholder="Coupon Code" style=" text-indent: 15px;w">
+                        <button class="btn border-secondary rounded-pill px-4 py-2 my-2 text-primary" type="button">Apply Coupon</button>
+                    </div>
+                    <div class="row d-flex rounded bg-light">
+                        <div class="col-8 d-flex">
+                            <div class="d-flex align-items-center ms-4 me-4">
+                                <input class="fs-5 form-check-input mt-0" style="font-size: 20px;"
+                                    type="checkbox"
+                                    :checked="isAllSelected"
+                                    @change="toggleAllSelection"
+                                />
+                                <h5 class="mb-0 ms-3">Select all ({{this.productSelected}})</h5>
+                            </div>
+                            <div class="d-flex align-items-center ms-4 me-4 fs-5">Delete</div>
+                            <div class="d-flex align-items-center ms-4 me-4 fs-5">Move to wishlist</div>
+                        </div>
+                        <div class="col-4 rounded d-flex row">
+                            <div class="col-6">
+                                <div class="p-2">
+                                    <div class="d-flex justify-content-between ">
+                                        <h5 class="mb-0 me-4">Total ({{ this.productSelected }} items):</h5>
+                                        <p class="mb-0">${{ this.totalPriceSelected }}</p>
                                     </div>
                                 </div>
-                                <p class="mb-0 text-end">Shipping to Ukraine.</p>
+                                <div class="py-2  border-top d-flex justify-content-end">
+                                    <p class="mb-0 ps-4 me-4">Saved:</p>
+                                    <p class="mb-0 pe-4">${{ totalSave }}</p>
+                                </div>
                             </div>
-                            <div class="py-4 mb-4 border-top border-bottom d-flex justify-content-between">
-                                <h5 class="mb-0 ps-4 me-4">Total</h5>
-                                <p class="mb-0 pe-4">$99.00</p>
-                            </div>
-                            <button class="btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase mb-4 ms-4" type="button">Proceed Checkout</button>
+                            <div class="col-1"></div>
+                            <button class="col-5 btn border-secondary rounded-pill px-4 py-3 text-primary text-uppercase my-3" @click="handleCheckout()" type="button">Proceed Checkout</button>
                         </div>
                     </div>
                 </div>
@@ -218,9 +248,11 @@ import Menu from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
 import axios from 'axios';
 import { useCartStore } from '@/stores/cart';
+import { Checkbox } from '@/Components/ui/checkbox/index.js';
 axios.defaults.withCredentials = true;
 export default {
     components: {
+        Checkbox,
         Menu,
         Head,
         Search,
@@ -228,11 +260,17 @@ export default {
     props: {
         auth: Object,
     },
+    setup(){
+
+    },
     data() {
         return {
             cartItems: [],
             cartTotal: 0,
             cartCount: 0,
+            productSelected: 0,
+            totalPriceSelected: 0,
+            totalSave: 0,
             loading: true,
             error: null,
         };
@@ -242,143 +280,230 @@ export default {
         cartStore() {
             return useCartStore();
         },
-    },
-    async mounted() {
-        if (!this.auth || !this.auth.user) {
-            console.log('1');
-
-            router.visit('/login');
-            return;
-        }else {
-            console.log('2');
-
+        isAllSelected() {
+            return this.cartItems.every(item => item.selected === 1);
         }
-        await axios.get('/sanctum/csrf-cookie');
-        await this.fetchCart();
     },
-    methods: {
-        async fetchCart() {
-            this.loading = true;
-            try {
-                const res = await axios.get('/api/cart');
-
-                const data = res.data?.data;
-                this.cartItems = data?.items || [];
-                this.cartTotal = data?.total || 0;
-                this.cartCount = data?.count || 0;
-
-                console.log('cartItems', this.cartItems);
-                // Cập nhật store sau khi fetch
-                this.cartStore.setCartCount(this.cartCount);
-                this.cartStore.setCartItems(this.cartItems);
-            } catch (error) {
-                this.error = 'Không thể lấy dữ liệu giỏ hàng!';
-            } finally {
-                this.loading = false;
+        async mounted() {
+            if (this.auth && this.auth.user) {
+                await this.syncCart();
             }
+
+            await axios.get('/sanctum/csrf-cookie');
+            await this.fetchCart();
+            await this.getTotalPriceSelected();
         },
-        getCartLocal() {
-            const cart = localStorage.getItem('cart');
-            return cart ? JSON.parse(cart) : [];
+        methods: {
+            async fetchCart() {
+                this.loading = true;
+                try {
+                    let res;
+                    if (this.auth && this.auth.user) {
+                        // User is logged in, get from database
+                        res = await axios.get('/api/cart');
+                    } else {
+                        // User not logged in, get from session
+                        res = await axios.get('/api/session/cart');
+                    }
+
+                    const data = res.data?.data;
+                    const itemsFromAPI = data?.items || [];
+
+                    // Lấy selected từ API, không gán mặc định 1
+                    this.cartItems = itemsFromAPI;
+                    console.log('cartItems', this.cartItems);
+                    this.cartTotal = data?.total || 0;
+                    this.cartCount = data?.count || 0;
+
+                    this.cartStore.setCartCount(this.cartCount);
+                    this.cartStore.setCartItems(this.cartItems);
+
+                } catch (error) {
+                    this.error = 'Không thể lấy dữ liệu giỏ hàng!';
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+        async toggleAllSelection() {
+            const newSelectedValue = this.isAllSelected ? 0 : 1;
+            for (const item of this.cartItems) {
+                item.selected = newSelectedValue;
+                if (!this.auth || !this.auth.user) {
+                    // Cập nhật selected vào session
+                    await axios.put('/api/session/cart', {
+                        productVariant_id: item.productVariant_id,
+                        quantity: item.quantity,
+                        selected: item.selected
+                    });
+                }
+            }
+            await this.getTotalPriceSelected();
         },
-        setCartLocal(cart) {
-            localStorage.setItem('cart', JSON.stringify(cart));
+
+        getTotalPriceSelected() {
+            console.log('this.cartitem', this.cartItems);
+            this.totalPriceSelected = this.cartItems
+                .filter(item => item.selected === 1)
+                .reduce((total, item) => total + item.product_variant.price * item.quantity, 0)
+                .toFixed(2);
+
+            const salePrice = this.cartItems
+                .filter(item => item.selected === 1)
+                .reduce((total, item) => total + (item.product_variant.sale_price ?? item.product_variant.price) * item.quantity, 0)
+                .toFixed(2);
+
+            this.productSelected = this.cartItems
+                .filter(item => item.selected === 1).length;
+
+            this.totalSave = this.formatPrice(this.totalPriceSelected - salePrice);
         },
+
         formatPrice(price) {
             if (price === undefined || price === null) {
                 return '$0.00';
             }
-            return `$${price.toFixed(2)}`;
+            return `${price.toFixed(2)}`;
         },
-        async mergeCart() {
-            // Lấy cart từ localStorage
-            const localCart = this.getCartLocal();
-            // Lấy cart từ database
-            await this.fetchCart();
-            // Merge 2 cart
-            const merged = [...this.cartItems];
-            localCart.forEach(localItem => {
-                const found = merged.find(item => item.product_id === localItem.product_id);
-                if (found) {
-                    found.quantity += localItem.quantity;
-                } else {
-                    merged.push(localItem);
-                }
-            });
-            // Cập nhật lại cho cả localStorage và database
-            this.cartItems = merged;
-            this.setCartLocal(merged);
-            await this.updateCartServer(merged);
+
+        async syncCart() {
+            try {
+                const response = await axios.post('/api/cart/sync');
+                console.log('Giỏ hàng đã được đồng bộ.');
+            } catch (error) {
+                console.error('Không thể đồng bộ giỏ hàng:', error);
+            }
         },
+
         async updateCartServer(itemId, quantity) {
             try {
                 await axios.put(`/api/cart/${itemId}`, {
                     quantity: quantity
                 });
-
                 await this.fetchCart();
-
             } catch (error) {
                 console.error('Lỗi khi cập nhật giỏ hàng:', error);
                 this.error = 'Không thể cập nhật giỏ hàng!';
             }
         },
+
         async handleQuantityChange(item, delta) {
             if (!this.auth || !this.auth.user) {
-                // Chưa đăng nhập, cập nhật localStorage
-                const cart = this.getCartLocal();
-                const found = cart.find(i => i.product_id === item.product_id);
-                if (found) {
-                    found.quantity = Math.max(1, found.quantity + delta);
-                }
-                this.setCartLocal(cart);
-                this.cartItems = cart;
-                // Cập nhật store khi chưa đăng nhập
-                this.cartStore.setCartCount(cart.reduce((sum, i) => sum + i.quantity, 0));
-                this.cartStore.setCartItems(cart);
-            } else {
-                // Đã đăng nhập, cập nhật cả localStorage và database
-                const cart = [...this.cartItems];
-                console.log(delta);
-                const found = cart.find(i => i.product_id === item.product_id);
-                if (found) {
-                    found.quantity = Math.max(1, found.quantity + delta);
-                }
+                // User not logged in, update session
+                try {
+                    const newQuantity = Math.max(1, item.quantity + delta);
+                    await axios.put('/api/session/cart', {
+                        productVariant_id: item.productVariant_id,
+                        quantity: newQuantity,
+                        selected: item.selected // gửi cả selected
+                    });
 
-                this.setCartLocal(cart);
+                    // Update local item
+                    const found = this.cartItems.find(i => i.productVariant_id === item.productVariant_id);
+                    if (found) {
+                        found.quantity = newQuantity;
+                    }
+
+                    // Update store
+                    this.cartStore.setCartCount(this.cartItems.reduce((sum, i) => sum + i.quantity, 0));
+                    this.cartStore.setCartItems(this.cartItems);
+                } catch (error) {
+                    console.error('Lỗi khi cập nhật giỏ hàng:', error);
+                }
+            } else {
+                // User logged in, update database
+                const found = this.cartItems.find(i => i.id === item.id);
+                if (found) {
+                    found.quantity = Math.max(1, found.quantity + delta);
+                }
                 await this.updateCartServer(item.id, found.quantity);
-                // Cập nhật store sau khi đã đăng nhập
-                this.cartStore.setCartCount(cart.reduce((sum, i) => sum + i.quantity, 0));
-                this.cartStore.setCartItems(cart);
+                // Update store
+                this.cartStore.setCartCount(this.cartItems.reduce((sum, i) => sum + i.quantity, 0));
+                this.cartStore.setCartItems(this.cartItems);
             }
+            await this.getTotalPriceSelected();
         },
+
         async handleDeleteItem(item) {
             if (!this.auth || !this.auth.user) {
-                // Chưa đăng nhập, xóa khỏi localStorage
-                let cart = this.getCartLocal();
-                cart = cart.filter(i => i.product_id !== item.product_id);
-                this.setCartLocal(cart);
-                this.cartItems = cart;
-                // Cập nhật store
-                this.cartStore.setCartCount(cart.reduce((sum, i) => sum + i.quantity, 0));
-                this.cartStore.setCartItems(cart);
+                // User not logged in, remove from session
+                try {
+                    await axios.delete('/api/session/cart', {
+                        data: { productVariant_id: item.productVariant_id }
+                    });
+
+                    // Update local items
+                    this.cartItems = this.cartItems.filter(i => i.productVariant_id !== item.productVariant_id);
+
+                    // Update store
+                    this.cartStore.setCartCount(this.cartItems.reduce((sum, i) => sum + i.quantity, 0));
+                    this.cartStore.setCartItems(this.cartItems);
+                } catch (error) {
+                    this.error = 'Không thể xóa sản phẩm khỏi giỏ hàng!';
+                }
             } else {
-                // Đã đăng nhập, xóa khỏi database
+                // User logged in, remove from database
                 try {
                     await axios.delete(`/api/cart/${item.id}`);
                     await this.fetchCart();
-                    // Cập nhật lại localStorage
-                    let cart = this.getCartLocal();
-                    cart = cart.filter(i => i.product_id !== item.product_id);
-                    this.setCartLocal(cart);
-                    // Cập nhật store
+                    // Update store
                     this.cartStore.setCartCount(this.cartCount);
                     this.cartStore.setCartItems(this.cartItems);
                 } catch (error) {
                     this.error = 'Không thể xóa sản phẩm khỏi giỏ hàng!';
                 }
             }
+            await this.getTotalPriceSelected();
         },
+
+        async handleCheckboxItem(item) {
+            const found = this.cartItems.find(i =>
+                this.auth?.user ? i.id === item.id : i.productVariant_id === item.productVariant_id
+            );
+            if (found) {
+                found.selected = found.selected === 1 ? 0 : 1;
+                if (!this.auth || !this.auth.user) {
+                    // Cập nhật selected vào session
+                    await axios.put('/api/session/cart', {
+                        productVariant_id: found.productVariant_id,
+                        quantity: found.quantity,
+                        selected: found.selected
+                    });
+                }
+            }
+            await this.getTotalPriceSelected();
+        },
+        async handleCheckout() {
+            // Lọc ra các sản phẩm đã được chọn
+            const selectedItems = this.cartItems.filter(item => item.selected === 1);
+
+            if (selectedItems.length === 0) {
+                alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+                return;
+            }
+
+            try {
+                this.loading = true;
+
+                // Gửi API với chỉ những sản phẩm đã chọn
+                const response = await axios.post('/api/cart/checkout', { items: selectedItems });
+                console.log('Checkout response:', response.data);
+                const checkoutId = response.data.checkout_id;
+                console.log('checkoutId:', checkoutId);
+                if (!checkoutId) {
+                    alert('Không lấy được mã đơn hàng, vui lòng thử lại!');
+                    return;
+                }
+                // Chỉ chuyển hướng nếu checkoutId hợp lệ
+                this.$inertia.visit(`/checkout/${checkoutId}`);
+            } catch (error) {
+                console.error("Lỗi khi tạo đơn hàng:", error);
+                alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+            } finally {
+                this.loading = false;
+            }
+        },
+
     },
 };
 </script>

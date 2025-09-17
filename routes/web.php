@@ -6,6 +6,7 @@ use App\Http\Controllers\Frontend\CategoryController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\WishlistController;
 use App\Http\Controllers\Frontend\ProductDetailController;
+use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -21,9 +22,10 @@ Route::get('/', function () {
 });
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/cart', [CartController::class, 'index'])->middleware('auth')->name('cart.index');
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
 Route::get('/detail/{id}', [ProductDetailController::class, 'index'])->name('detail.index');
+Route::get('/checkout/{checkoutId}', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::get('/home', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');

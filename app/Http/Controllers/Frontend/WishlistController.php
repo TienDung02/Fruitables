@@ -8,8 +8,10 @@ class WishlistController extends Controller
 {
     public function index()
     {
-        // You can pass wishlist data here later
-        return Inertia::render('Frontend/Wishlist/Index');
+        return Inertia::render('Frontend/Wishlist/Index', [
+            'auth' => [
+                'user' => auth()->user(),
+            ],
+        ]);
     }
 }
-

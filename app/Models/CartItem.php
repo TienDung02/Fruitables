@@ -32,7 +32,7 @@ class CartItem extends Model
      */
     public function productVariant(): BelongsTo
     {
-        return $this->belongsTo(ProductVariant::class, 'productVariant_id', 'id');
+        return $this->belongsTo(ProductVariant::class, 'productVariant_id');
     }
 }
 

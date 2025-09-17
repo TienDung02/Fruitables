@@ -3,15 +3,14 @@
     <Search />
     <!-- Single Page Header start -->
     <div class="container-fluid page-header py-5">
-        <h1 class="text-center text-white display-6">Shop</h1>
+        <h1 class="text-center text-white display-6">Wishlist</h1>
         <ol class="breadcrumb justify-content-center mb-0">
             <li class="breadcrumb-item"><a href="#">Home</a></li>
             <li class="breadcrumb-item"><a href="#">Pages</a></li>
-            <li class="breadcrumb-item active text-white">Shop</li>
+            <li class="breadcrumb-item active text-white">Wishlist</li>
         </ol>
     </div>
     <!-- Single Page Header End -->
-
 
     <!-- Fruits Shop Start-->
     <div class="container-fluid fruite py-5">
@@ -31,81 +30,22 @@
                     <div class="col-md-4">
                         <div class="stat-item">
                             <p class="stat-label">Tổng giá trị</p>
-                            <span class="stat-number" id="totalValue">${{ this.totalValue }}</span>
+                            <span class="stat-number" id="totalValue">${{ totalValue }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-item">
                             <p class="stat-label">Tiết kiệm được</p>
-                            <span class="stat-number" id="savedAmount">${{ this.saveValue }}</span>
+                            <span class="stat-number" id="savedAmount">${{ saveValue }}</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-
             <div class="row g-4">
                 <div class="col-lg-12">
-
                     <div class="row g-4">
                         <div class="col-lg-12">
-                            <!-- Search & Filter indicators -->
-                            <div v-if="searchQuery || selectedCategoryId || sortBy || priceRange.min > 0 || priceRange.max < 100" class="mb-4">
-                                <div class="d-flex flex-wrap align-items-center gap-2">
-                                    <span class="text-muted">Active filters:</span>
-
-                                    <!-- Search filter -->
-                                    <span v-if="searchQuery" class="badge bg-primary">
-                                        <i class="fas fa-search me-1"></i>
-                                        Search: "{{ searchQuery }}"
-                                        <button @click="clearSearch" class="btn btn-sm p-0 text-white ms-1">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </span>
-
-                                    <!-- Category filter -->
-                                    <span v-if="selectedCategoryId" class="badge bg-secondary">
-                                        <i class="fas fa-tag me-1"></i>
-                                        Category: {{ getCategoryName(selectedCategoryId) }}
-                                        <button @click="clearCategoryFilter" class="btn btn-sm p-0 text-white ms-1">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </span>
-
-                                    <!-- Sorting indicator -->
-                                    <span v-if="sortBy" class="badge bg-info">
-                                        <i class="fas fa-sort me-1"></i>
-                                        Sort: {{ getSortLabel(sortBy) }}
-                                        <button @click="clearSorting" class="btn btn-sm p-0 text-white ms-1">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </span>
-
-                                    <!-- Sorting indicator -->
-                                    <span v-if="priceRange.min > 0 || priceRange.max < 100" class="badge bg-success">
-                                        <i class="fas fa-dollar-sign me-1"></i>
-                                        Price range: ${{ getSortLabel(priceRange.min) }} <i class="	fas fa-arrow-right"></i> ${{ getSortLabel(priceRange.max)}}
-                                        <button @click="clearPriceRange" class="btn btn-sm p-0 text-white ms-1">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </span>
-                                    <!-- Clear all filters -->
-                                    <button @click="clearAllFilters" class="btn btn-outline-danger btn-sm">
-                                        <i class="fas fa-times me-1"></i>
-                                        Clear All
-                                    </button>
-                                </div>
-                            </div>                            <!-- Loading indicator for search -->
-                            <div v-if="isSearching" class="text-center py-3">
-                                <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                    <span class="visually-hidden">Searching...</span>
-                                </div>
-                                <small class="text-muted ms-2">Searching products...</small>
-                            </div>
-
-                            <!-- Debug Info -->
-
-
                             <div class="row g-4 justify-content-center">
                                 <!-- Loading State -->
                                 <template v-if="loading">
@@ -127,7 +67,7 @@
                                 <!-- No Products -->
                                 <template v-else-if="!Array.isArray(products) || products.length === 0">
                                     <div class="col-12">
-                                        <div class="alert alert-warning">No products found</div>
+                                        <div class="alert alert-warning">No products found in your wishlist</div>
                                     </div>
                                 </template>
 
@@ -138,7 +78,7 @@
                                             <div class="fruite-img border-secondary" style="border: 1px solid #000; position: relative;">
                                                 <img
                                                     :alt="product.name"
-                                                    :src="`/${product.media?.find(m => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                    :src="`/${product.media?.find((m) => m.is_primary)?.file_path || product.media?.[0]?.file_path || 'products/default.jpg'}`"
                                                     class="img-fluid w-100 rounded-top"
                                                 >
                                                 <!-- Nút trái tim -->
@@ -155,9 +95,9 @@
                                                 <p>{{ product.description?.substring(0, 100) || 'Lorem ipsum dolor sit amet...' }}...</p>
                                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                                     <p class="text-dark fs-5 fw-bold mb-0">
-                                                        <span v-if="product.sale_price" class="text-danger">${{ product.sale_price }} / kg</span>
-                                                        <span v-if="product.sale_price" class="text-decoration-line-through opacity-75 fs-6">${{ product.price }} / kg</span>
-                                                        <span v-else>${{ product.price }} / kg</span>
+                                                        <span v-if="product.variants[0].sale_price" class="text-danger">${{ product.variants[0].sale_price }} / {{product.variants[0].size}}</span>
+                                                        <span v-if="product.variants[0].sale_price" class="text-decoration-line-through opacity-75 fs-6">${{ product.variants[0].price }} / {{product.variants[0].size}}</span>
+                                                        <span v-else>${{ product.variants[0].price }} / kg</span>
                                                     </p>
                                                     <a class="btn border border-secondary rounded-pill px-3 text-primary" href="#">
                                                         <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
@@ -167,80 +107,6 @@
                                         </div>
                                     </div>
                                 </template>
-
-                                <!-- Pagination -->
-<!--                                <div-->
-<!--                                    v-if="!loading && !error && Array.isArray(products) && products.length > 0 && pagination.last_page > 1"-->
-<!--                                    class="col-12">-->
-<!--                                    <div class="pagination d-flex justify-content-center mt-5">-->
-
-<!--                                        &lt;!&ndash;  Previous Button &ndash;&gt;-->
-<!--                                        <a href="#"-->
-<!--                                           @click.prevent="goToPrevPage()"-->
-<!--                                           :class="['rounded', 'me-1', { 'disabled text-muted': pagination.current_page === 1 }]"-->
-<!--                                           style="padding: 8px 12px; text-decoration: none; border: 1px solid #ddd;">-->
-<!--                                            &laquo;-->
-<!--                                        </a>-->
-
-<!--                                        &lt;!&ndash;  First Page &ndash;&gt;-->
-<!--                                        <a href="#"-->
-<!--                                           v-if="pagination.current_page > 4"-->
-<!--                                           @click.prevent="goToFirstPage()"-->
-<!--                                           class="rounded me-1"-->
-<!--                                           style="padding: 8px 12px; text-decoration: none; border: 1px solid #ddd;">-->
-<!--                                            First-->
-<!--                                        </a>-->
-
-<!--                                        &lt;!&ndash; Dots if needed &ndash;&gt;-->
-<!--                                        <span v-if="pagination.current_page > 4"-->
-<!--                                              class="rounded me-1"-->
-<!--                                              style="padding: 8px 12px; border: 1px solid #ddd;">-->
-<!--                                            ...-->
-<!--                                        </span>-->
-
-<!--                                        &lt;!&ndash; Page Numbers &ndash;&gt;-->
-<!--                                        <template v-for="page in getVisiblePages()" :key="page">-->
-<!--                                            <a href="#"-->
-<!--                                               @click.prevent="changePage(page)"-->
-<!--                                               :class="['rounded', 'me-1', { 'active bg-primary text-white': page === pagination.current_page }]"-->
-<!--                                               style="padding: 8px 12px; text-decoration: none; border: 1px solid #ddd;">-->
-<!--                                                {{ page }}-->
-<!--                                            </a>-->
-<!--                                        </template>-->
-
-<!--                                        <span v-if="pagination.current_page < pagination.last_page - 3"-->
-<!--                                              class="rounded me-1"-->
-<!--                                              style="padding: 8px 12px; border: 1px solid #ddd;">-->
-<!--                                            ...-->
-<!--                                        </span>-->
-
-<!--                                        &lt;!&ndash;  Last Page &ndash;&gt;-->
-<!--                                        <a href="#"-->
-<!--                                           v-if="pagination.current_page < pagination.last_page - 3"-->
-<!--                                           @click.prevent="goToLastPage()"-->
-<!--                                           class="rounded me-1"-->
-<!--                                           style="padding: 8px 12px; text-decoration: none; border: 1px solid #ddd;">-->
-<!--                                            {{ pagination.last_page }}-->
-<!--                                        </a>-->
-
-<!--                                        &lt;!&ndash;  Next Button &ndash;&gt;-->
-<!--                                        <a href="#"-->
-<!--                                           @click.prevent="goToNextPage()"-->
-<!--                                           :class="['rounded', { 'disabled text-muted': pagination.current_page === pagination.last_page }]"-->
-<!--                                           style="padding: 8px 12px; text-decoration: none; border: 1px solid #ddd;">-->
-<!--                                            &raquo;-->
-<!--                                        </a>-->
-<!--                                    </div>-->
-
-<!--                                    &lt;!&ndash;  Pagination Info &ndash;&gt;-->
-<!--                                    <div class="text-center mt-3">-->
-<!--                                        <small class="text-muted">-->
-<!--                                            Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }}-->
-<!--                                            of {{ pagination.total || 0 }} products-->
-<!--                                            (Page {{ pagination.current_page }} of {{ pagination.last_page }})-->
-<!--                                        </small>-->
-<!--                                    </div>-->
-<!--                                </div>-->
                             </div>
                         </div>
                     </div>
@@ -249,7 +115,6 @@
         </div>
     </div>
     <!-- Fruits Shop End-->
-
 
     <!-- Footer Start -->
     <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
@@ -325,7 +190,7 @@
                         <p>Email: Example@gmail.com</p>
                         <p>Phone: +0123 4567 8910</p>
                         <p>Payment Accepted</p>
-                        <img src="images/img/payment.png" class="img-fluid" alt="">
+                        <img src="/images/img/payment.png" class="img-fluid" alt="">
                     </div>
                 </div>
             </div>
@@ -341,9 +206,6 @@
                     <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
                 </div>
                 <div class="col-md-6 my-auto text-center text-md-end text-white">
-                    <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
-                    <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlink, ***/-->
-                    <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
                     Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
                     class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
                 </div>
@@ -351,7 +213,6 @@
         </div>
     </div>
     <!-- Copyright End -->
-
 </template>
 
 <script lang="ts">
@@ -364,196 +225,193 @@ export default {
         MenuComponent,
         Search,
     },
+    props: {
+        auth: {
+            type: Object,
+            required: false,
+            default: () => ({})
+        }
+    },
     data() {
         return {
             products: [],
-            wishlistIds: [0],
+            wishlistIds: [],
             user: null,
             loading: true,
             error: null,
-            selectedCategoryId: null,
-            expandedCategories: [],
-            categoriesLoading: false,
-            totalProductsCount: 0,
-            searchQuery: '',
-            searchTimeout: null,
-            isSearching: false,
-            sortBy: '',
-            priceRange: { min: 0, max: 100 },
-            priceTimeout: null,
             totalValue: 0,
             saveValue: 0,
-            pagination: {
-                current_page: 1,
-                last_page: 1,
-                per_page: 9,
-                total: 0,
-                from: 0,
-                to: 0
-            },
         }
     },
     computed: {
-        totalOriginalPrice(): number {
+        totalOriginalPrice() {
             if (!Array.isArray(this.products)) return 0;
             return this.products.reduce((sum, p) => sum + (p.price || 0), 0);
         },
-        totalDiscountedPrice(): number {
+        totalDiscountedPrice() {
             if (!Array.isArray(this.products)) return 0;
             return this.products.reduce((sum, p) => sum + (p.sale_price || p.price || 0), 0);
         },
-        totalSavedAmount(): number {
+        totalSavedAmount() {
             return this.totalOriginalPrice - this.totalDiscountedPrice;
         },
     },
     async mounted() {
-        // Lấy user từ API hoặc props nếu có
-        try {
-            const userRes = await axios.get('/api/user');
-            this.user = userRes.data || null;
-        } catch {
-            this.user = null;
-        }
-        // Lấy wishlist từ localStorage
-        const localWishlistIds = localStorage.getItem('wishlistIds');
-        const localIds = localWishlistIds ? JSON.parse(localWishlistIds) : [];
+        // Get user from auth prop or API
+        this.user = this.auth?.user || null;
 
-        // Nếu đã đăng nhập, merge wishlist
-        if (this.user) {
-            // Lấy wishlist từ database
-            let dbIds = [];
-            try {
-                const res = await axios.get('/api/wishlist');
-                dbIds = res.data.map(p => p.id);
-            } catch {
-                dbIds = [];
-            }
-            // Merge 2 mảng id, loại bỏ trùng lặp
-            const mergedIds = Array.from(new Set([...localIds, ...dbIds]));
-            // Thêm các id từ local vào database nếu chưa có
-            for (const productId of mergedIds) {
-                if (!dbIds.includes(productId)) {
-                    try {
-                        await axios.post('/api/wishlist', { product_id: productId });
-                    } catch (e) {}
-                }
-            }
-            // Gán lại wishlistIds cho cả localStorage và state
-            this.wishlistIds = mergedIds;
-            localStorage.setItem('wishlistIds', JSON.stringify(mergedIds));
-            // Lấy chi tiết sản phẩm wishlist từ database
-            try {
-                const res = await axios.get('/api/wishlist');
-                this.products = res.data || [];
-                console.log('product', this.products);
+        // Initialize wishlist from session or database
+        await this.initializeWishlist();
 
-                // Đồng bộ lại localStorage wishlistProducts
-                localStorage.setItem('wishlistProducts', JSON.stringify(this.products));
-            } catch {
-                this.products = [];
-            }
-        } else {
-            // Nếu chưa đăng nhập, lấy wishlist từ localStorage
-            this.wishlistIds = localIds;
-            const localProducts = localStorage.getItem('wishlistProducts');
-            this.products = localProducts ? JSON.parse(localProducts) : [];
-            console.log('product', this.products);
-
-        }
-        await this.fetchWishlistTotalValue();
-        await this.fetchWishlistSaveValue();
         this.loading = false;
     },
     methods: {
+        async initializeWishlist() {
+            if (this.user) {
+                // User is logged in, sync session wishlist & cart to database first
+                try {
+                    await axios.get('/sanctum/csrf-cookie');
+                    await axios.post('/api/sync-session');
+
+                    // Get wishlist products from database
+                    const res = await axios.get('/api/wishlist');
+                    this.products = res.data || [];
+
+                    // Get wishlist IDs
+                    const idsRes = await axios.get('/api/wishlist/ids');
+                    this.wishlistIds = idsRes.data.data || [];
+                } catch (error) {
+                    console.error('❌ Wishlist sync error:', error);
+                    this.products = [];
+                    this.wishlistIds = [];
+                }
+            } else {
+                // User not logged in, get from session
+                try {
+                    const res = await axios.get('/api/session/wishlist');
+                    this.products = res.data.data || [];
+                    console.log('this.products', this.products)
+                    // Get wishlist IDs from session
+                    this.wishlistIds = this.products.map(p => p.id);
+                } catch (error) {
+                    console.error('❌ Session wishlist error:', error);
+                    this.products = [];
+                    this.wishlistIds = [];
+                }
+            }
+
+            await this.fetchWishlistTotalValue();
+            await this.fetchWishlistSaveValue();
+        },
+
         // Lấy chi tiết sản phẩm wishlist từ API (khi đã đăng nhập)
         async fetchWishlistProductsFromApi() {
             try {
-                const res = await axios.get('/api/wishlist');
-                this.products = res.data || [];
-
+                if (this.user) {
+                    const res = await axios.get('/api/wishlist');
+                    this.products = res.data || [];
+                } else {
+                    const res = await axios.get('/api/session/wishlist');
+                    this.products = res.data.data || [];
+                }
             } catch {
                 this.products = [];
                 this.error = 'Không thể tải sản phẩm yêu thích.';
             }
         },
+
         async fetchWishlistTotalValue() {
             this.totalValue = 0;
+            console.log('products', this.products);
             for (const product of this.products) {
-                this.totalValue += Number(product.price);
+                // console.log('product', product)
+                // console.log('product.variants', product.variants)
+                // console.log('product.variants[0].price', product.variants[0].price)
+
+                this.totalValue += Number(product.variants[0].price);
             }
             this.totalValue = Math.round(this.totalValue * 100) / 100;
-            console.log(this.totalValue)
         },
+
         async fetchWishlistSaveValue() {
             let totalvalue2 = 0;
             this.saveValue = 0;
             for (const product of this.products) {
-                if (product.sale_price) {
-                    totalvalue2 += Number(product.sale_price);
+                if (product.variants[0].sale_price) {
+                    totalvalue2 += Number(product.variants[0].sale_price);
                 } else {
-                    totalvalue2 += Number(product.price);
+                    totalvalue2 += Number(product.variants[0].price);
                 }
             }
             this.saveValue = this.totalValue - totalvalue2;
             this.saveValue = Math.round(this.saveValue * 100) / 100;
         },
-        async toggleWishlist(productId: number) {
+
+        async toggleWishlist(productId) {
             if (this.user) {
-                // Đã đăng nhập, thao tác với database
+                // User is logged in, use database API
                 if (this.isInWishlist(productId)) {
-                    await axios.delete(`/api/wishlist/${productId}`);
-                    this.wishlistIds = this.wishlistIds.filter((id: number) => id !== productId);
+                    try {
+                        await axios.delete(`/api/wishlist/${productId}`);
+                        this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
+                        this.products = this.products.filter(p => p.id !== productId);
+                        this.showNotification('Đã xóa khỏi danh sách yêu thích!', 'success');
+                    } catch (error) {
+                        this.showNotification('Xóa khỏi yêu thích thất bại!', 'error');
+                        console.error(error);
+                    }
                 } else {
-                    await axios.post('/api/wishlist', { product_id: productId });
-                    this.wishlistIds.push(productId);
+                    try {
+                        await axios.post('/api/wishlist', { product_id: productId });
+                        this.wishlistIds.push(productId);
+                        // Refresh products list
+                        await this.fetchWishlistProductsFromApi();
+                        this.showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+                    } catch (error) {
+                        this.showNotification('Thêm vào yêu thích thất bại!', 'error');
+                        console.error(error);
+                    }
                 }
-                // Đồng bộ lại localStorage
-                localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
-                // Lấy lại chi tiết sản phẩm từ database
-                await this.fetchWishlistProductsFromApi();
-                await this.fetchWishlistTotalValue();
-                await this.fetchWishlistSaveValue();
-                localStorage.setItem('wishlistProducts', JSON.stringify(this.products));
             } else {
-                // Chưa đăng nhập, thao tác với localStorage
+                // User not logged in, use session API
                 if (this.isInWishlist(productId)) {
-                    this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
-                    localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
-                    // Xóa sản phẩm khỏi localStorage wishlistProducts
-                    const localProducts = localStorage.getItem('wishlistProducts');
-                    if (localProducts) {
-                        const productsArr = JSON.parse(localProducts);
-                        const updatedProducts = productsArr.filter((p: any) => p.id !== productId);
-                        localStorage.setItem('wishlistProducts', JSON.stringify(updatedProducts));
-                        this.products = updatedProducts;
-                    } else {
-                        this.products = [];
+                    try {
+                        await axios.delete('/api/session/wishlist', {
+                            data: { product_id: productId }
+                        });
+                        this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
+                        this.products = this.products.filter(p => p.id !== productId);
+                        this.showNotification('Đã xóa khỏi danh sách yêu thích!', 'success');
+                    } catch (error) {
+                        this.showNotification('Xóa khỏi yêu thích thất bại!', 'error');
+                        console.error(error);
                     }
-                    await this.fetchWishlistTotalValue();
-                    await this.fetchWishlistSaveValue();
                 } else {
-                    this.wishlistIds.push(productId);
-                    localStorage.setItem('wishlistIds', JSON.stringify(this.wishlistIds));
-                    // Thêm sản phẩm vào localStorage wishlistProducts
-                    const product = this.products.find(p => p.id === productId);
-                    let productsArr = [];
-                    const localProducts = localStorage.getItem('wishlistProducts');
-                    if (localProducts) {
-                        productsArr = JSON.parse(localProducts);
+                    try {
+                        await axios.post('/api/session/wishlist', { product_id: productId });
+                        this.wishlistIds.push(productId);
+                        // Refresh products list
+                        await this.fetchWishlistProductsFromApi();
+                        this.showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+                    } catch (error) {
+                        this.showNotification('Thêm vào yêu thích thất bại!', 'error');
+                        console.error(error);
                     }
-                    if (product && !productsArr.some((p: any) => p.id === productId)) {
-                        productsArr.push(product);
-                        localStorage.setItem('wishlistProducts', JSON.stringify(productsArr));
-                        this.products = productsArr;
-                    }
-                    await this.fetchWishlistTotalValue();
-                    await this.fetchWishlistSaveValue();
                 }
             }
+
+            await this.fetchWishlistTotalValue();
+            await this.fetchWishlistSaveValue();
         },
-        isInWishlist(productId: number) {
+
+        isInWishlist(productId) {
             return this.wishlistIds.includes(productId);
         },
+
+        showNotification(message, type) {
+            console.log(`Notification (${type}): ${message}`);
+            alert(message);
+        }
     }
 }
 </script>

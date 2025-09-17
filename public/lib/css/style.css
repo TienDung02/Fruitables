@@ -1022,3 +1022,41 @@ li.list-size-product.active{
     color: #ffb524;
     font-weight: bolder;
 }
+.center-position{
+    top: 50%;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+.form-check-input[type=checkbox]{
+    scale: 1.25;
+}
+
+/* Ẩn nút radio mặc định */
+input[type='radio']:after {
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+    top: -2px;
+    left: -1px;
+    position: relative;
+    background-color: #fff;
+    content: '';
+    display: inline-block;
+    visibility: visible;
+    border: 2px solid #ffa500;
+}
+
+input[type='radio']:checked:after {
+    width: 15px;
+    height: 15px;
+    border-radius: 15px;
+    top: -2px;
+    left: -1px;
+    position: relative;
+    background-color: #8bc34a;
+    content: '';
+    display: inline-block;
+    visibility: visible;
+    border: 2px solid #ffa500;
+}

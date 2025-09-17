@@ -600,17 +600,23 @@ export default {
         },
         async addToCart() {
             try {
-                if (!this.user) {
-                    this.showNotification('Bạn cần đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
-                    return;
+                if (this.user) {
+                    await this.cartStore.addToCart(this.selectedVariantId, this.quantity);
+                    this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+                } else {
+                    // User not logged in, add to session
+                    await axios.post('/api/session/cart', {
+                        productVariant_id: this.selectedVariantId,
+                        quantity: this.quantity
+                    });
+
+                    // Update cart count
+                    await this.cartStore.fetchCartCount();
+                    this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
                 }
-                // Sử dụng store để thêm vào giỏ hàng và cập nhật count
-                await this.cartStore.addToCart(this.selectedVariantId, this.quantity);
-                this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
             } catch (error) {
-                console.error('Add to cart error:', error);
+                console.error('Lỗi khi thêm vào giỏ hàng:', error);
                 this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
-            } finally {
             }
         },
         decreaseQuantity() {

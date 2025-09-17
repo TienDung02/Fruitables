@@ -39,6 +39,7 @@ class CartController extends Controller
             }, 0);
             $count = $items->sum('quantity');
         }
+        Log::info('Cart items', $items->toArray());
         return response()->json([
             'success' => true,
             'data' => [
@@ -47,6 +48,10 @@ class CartController extends Controller
                 'count' => $count
             ]
         ]);
+    }
+    public function CartItem(){
+        $user = auth()->user();
+        return Cart::where('user_id', $user->id)->where('status', 'active')->first();
     }
 
     /**
@@ -96,6 +101,7 @@ class CartController extends Controller
         $totalPrice = $cartItems->reduce(function ($carry, $item) {
             return $carry + ($item->quantity * $item->price);
         }, 0);
+//        Log::info('total price', $totalPrice);
         $cart->update([
             'total_quantity' => $totalQuantity,
             'total_price' => $totalPrice,
@@ -119,12 +125,136 @@ class CartController extends Controller
 
         $cartItem->update($validated);
 
+        // Cập nhật lại tổng số lượng và tổng giá trị giỏ hàng
+        $cart = $cartItem->cart;
+        $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)->get();
+        $totalQuantity = $cartItems->sum('quantity');
+        $totalPrice = $cartItems->reduce(function ($carry, $item) {
+            return $carry + ($item->quantity * $item->price);
+        }, 0);
+        $cart->update([
+            'total_quantity' => $totalQuantity,
+            'total_price' => $totalPrice,
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Cart item updated successfully!',
             'item' => $cartItem
         ]);
     }
+
+    public function checkout(Request $request)
+    {
+//        dd($request->all());
+        Log::info($request->all());
+        $selectedItems = $request->input('items');
+        Log::info('selectedItems', $selectedItems);
+
+        $checkoutId = uniqid(); // Tạo một ID duy nhất
+        session()->put("checkout_data_{$checkoutId}", $selectedItems);
+
+        return response()->json(['checkout_id' => $checkoutId]);
+    }
+
+    public function syncCart(Request $request)
+    {
+        $user = auth()->user();
+
+        // Get session cart
+        $sessionCart = session('cart', []);
+
+        // Get or create user's cart
+        $userCart = Cart::firstOrCreate([
+            'user_id' => $user->id,
+            'status' => 'active'
+        ]);
+
+        // Sync session cart items with database
+        foreach ($sessionCart as $sessionItem) {
+            $dbItem = $userCart->items()->where('productVariant_id', $sessionItem['productVariant_id'])->first();
+
+            if ($dbItem) {
+                // If exists in both, take the maximum quantity
+                $maxQty = max($dbItem->quantity, $sessionItem['quantity']);
+                $dbItem->update(['quantity' => $maxQty]);
+            } else {
+                // If only in session, add to database
+                $productVariant = \App\Models\ProductVariant::find($sessionItem['productVariant_id']);
+                if ($productVariant) {
+                    $price = $productVariant->sale_price ?? $productVariant->price;
+                    $userCart->items()->create([
+                        'productVariant_id' => $sessionItem['productVariant_id'],
+                        'quantity' => $sessionItem['quantity'],
+                        'price' => $price,
+                    ]);
+                }
+            }
+        }
+
+        // Update cart totals
+        $cartItems = $userCart->items()->get();
+        $totalQuantity = $cartItems->sum('quantity');
+        $totalPrice = $cartItems->reduce(function ($carry, $item) {
+            return $carry + ($item->quantity * $item->price);
+        }, 0);
+
+        $userCart->update([
+            'total_quantity' => $totalQuantity,
+            'total_price' => $totalPrice,
+        ]);
+
+        // Sau khi sync, lấy lại cart từ database và lưu lại vào session
+        $sessionCartNew = [];
+        foreach ($cartItems as $cartItem) {
+            $sessionCartNew[] = [
+                'productVariant_id' => $cartItem->productVariant_id,
+                'quantity' => $cartItem->quantity,
+                'selected' => $cartItem->selected ?? 1 // Nếu có selected thì giữ lại, không thì mặc định là 1
+            ];
+        }
+        session(['cart' => $sessionCartNew]);
+
+        // Get updated cart items with relationships
+        $updatedItems = \App\Models\CartItem::with('productVariant.product.media')
+            ->where('cart_id', $userCart->id)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cart synced successfully',
+            'cart' => $updatedItems->toArray()
+        ]);
+    }
+
+    public function syncSessionToDatabase()
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        // Sync cart
+        $this->syncCart(request());
+
+        // Sync wishlist
+        $sessionWishlist = session('wishlist', []);
+        foreach ($sessionWishlist as $item) {
+            \App\Models\Wishlist::firstOrCreate([
+                'user_id' => $user->id,
+                'product_id' => $item['product_id']
+            ]);
+        }
+
+        // Clear session wishlist after sync
+        session()->forget('wishlist');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Session data synced to database successfully'
+        ]);
+    }
+
 
     /**
      * Remove cart item.

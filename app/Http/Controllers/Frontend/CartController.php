@@ -15,9 +15,9 @@ class CartController extends Controller
      */
     public function index()
     {
-        if (!auth()->check()) {
-            return redirect()->route('login');
-        }
+//        if (!auth()->check()) {
+//            return redirect()->route('login');
+//        }
 
         return Inertia::render('Frontend/Cart/Index', [
             'auth' => [

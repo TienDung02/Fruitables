@@ -36,9 +36,16 @@ class ProductFactory extends Factory
             'slug' => Str::slug($name),
             'description' => $this->faker->sentence(30) . ' Sản phẩm tươi ngon, chất lượng cao.',
             'short_description' => $this->faker->sentence(8),
-            'category_id' => $categoryId, // Use existing subcategory
+            'price' => $price,
+            'sale_price' => $salePrice,
+            'sku' => strtoupper($this->faker->bothify('??###')),
+            'stock_quantity' => $this->faker->numberBetween(10, 100),
+            'category_id' => $categoryId, // ✅ Use existing subcategory
+            'weight' => $this->faker->randomFloat(2, 0.1, 2.0),
             'is_featured' => $this->faker->boolean(20),
             'is_active' => true,
+            'meta_title' => $name . ' - Fresh & Organic',
+            'meta_description' => 'Buy fresh ' . strtolower($name) . ' online.',
         ];
     }
 
@@ -72,15 +79,5 @@ class ProductFactory extends Factory
         return $this->state(fn (array $attributes) => [
             'stock_quantity' => 0,
         ]);
-    }
-
-    public function configure()
-    {
-        return $this->afterCreating(function ($product) {
-            // Tạo biến thể mặc định cho mỗi sản phẩm
-            \App\Models\ProductVariant::factory()->create([
-                'product_id' => $product->id,
-            ]);
-        });
     }
 }
