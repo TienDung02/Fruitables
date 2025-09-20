@@ -70,14 +70,13 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
-                                    <Link
-                                        :href="route('logout')"
-                                        method="post"
-                                        as="button"
+                                    <button
+                                        @click="handleLogout"
                                         class="dropdown-item text-danger"
+                                        style="border: none; background: none; width: 100%; text-align: left;"
                                     >
                                         <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                    </Link>
+                                    </button>
                                 </li>
                             </ul>
                         </div>
@@ -90,69 +89,149 @@
 </template>
 
 <script>
-import  { Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useCartStore } from '@/stores/cart';
-import { useAuthStore  } from '@/stores/auth';
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+
 export default {
-    setup() {
-        const authStore = useAuthStore();
-        const isDropdownOpen = ref(false);
-        const toggleDropdown = () => {
-            isDropdownOpen.value = !isDropdownOpen.value;
-        };
-        const closeDropdown = () => {
-            isDropdownOpen.value = false;
-        };
-        // Đóng dropdown khi click ra ngoài
-        const handleClickOutside = (event) => {
-            if (!event.target.closest('.dropdown')) {
-                closeDropdown();
-            }
-        };
-        onMounted(() => {
-            document.addEventListener('click', handleClickOutside);
-        });
-        onBeforeUnmount(() => {
-            document.removeEventListener('click', handleClickOutside);
-        });
-        return {
-            authStore,
-            isDropdownOpen,
-            toggleDropdown,
-            closeDropdown,
-        };
-    },
-    created() {
-        this.authStore.checkAuth();
-    },
+    name: 'Menu',
     components: {
-        Link,
+        Link
     },
-    props: {
-        auth: {
-            type: Object,
-            required: false,
-            default: () => ({})
-        }
+    data() {
+        return {
+            isDropdownOpen: false
+        };
     },
     computed: {
+        authStore() {
+            return useAuthStore();
+        },
         cartStore() {
             return useCartStore();
+        },
+        flashMessages() {
+            return this.$page.props.flash || {};
         }
     },
-    async mounted() {
-
-        try {
-            await this.cartStore.fetchCartCount();
-        } catch (error) {
-            console.error('❌ Error in mounted:', error);
+    watch: {
+        // Watch for authentication changes to refresh cart count
+        'authStore.isLoggedIn': {
+            handler(newVal, oldVal) {
+                // Khi logout (từ true -> false) hoặc login (từ false -> true)
+                if (newVal !== oldVal) {
+                    // Đợi một chút để backend hoàn thành việc lưu session
+                    setTimeout(async () => {
+                        await this.cartStore.fetchCartCount();
+                        this.$forceUpdate(); // Force component update
+                    }, 150);
+                }
+            },
+            immediate: true
+        },
+        // Watch for flash messages to trigger menu reload
+        flashMessages: {
+            handler(newMessages) {
+                if (newMessages?.reload_menu || newMessages?.logout_success) {
+                    console.log('Reload menu signal detected!');
+                    // Force reload cart count sau khi logout
+                    setTimeout(async () => {
+                        console.log('Reloading menu after logout...');
+                        await this.authStore.checkAuth(); // Re-check auth status
+                        await this.cartStore.fetchCartCount();
+                        this.$forceUpdate(); // Force component update
+                    }, 100);
+                }
+            },
+            deep: true,
+            immediate: true
+        },
+        // Watch for page props changes (detect navigation after logout)
+        '$page.props': {
+            handler(newProps, oldProps) {
+                console.log('Page props changed:', { newProps, oldProps });
+                // If we detect logout success, reload immediately
+                if (newProps?.flash?.logout_success && !oldProps?.flash?.logout_success) {
+                    console.log('Logout success detected via page props!');
+                    setTimeout(async () => {
+                        await this.authStore.checkAuth();
+                        await this.cartStore.fetchCartCount();
+                        this.$forceUpdate();
+                    }, 50);
+                }
+            },
+            deep: true
         }
     },
     methods: {
+        toggleDropdown() {
+            this.isDropdownOpen = !this.isDropdownOpen;
+        },
+        closeDropdown() {
+            this.isDropdownOpen = false;
+        },
+        // Đóng dropdown khi click ra ngoài
+        handleClickOutside(event) {
+            if (!event.target.closest('.dropdown')) {
+                this.closeDropdown();
+            }
+        },
+        async handleLogout() {
+            try {
+
+                // Đóng dropdown trước
+                this.closeDropdown();
+
+                // Cập nhật auth store ngay lập tức
+                this.authStore.logout();
+
+                // Gọi logout API bằng Inertia
+                this.$inertia.post(route('logout'), {}, {
+                    preserveState: false,
+                    preserveScroll: false,
+                    onSuccess: () => {
+                        console.log('Logout successful, reloading menu...');
+                        // Force reload sau khi logout thành công
+                        setTimeout(async () => {
+                            await this.authStore.checkAuth();
+                            await this.cartStore.fetchCartCount();
+                            this.$forceUpdate();
+                        }, 100);
+                    },
+                    onError: (errors) => {
+                        console.error('Logout error:', errors);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Logout process error:', error);
+            }
+        }
+    },
+    async mounted() {
+        document.addEventListener('click', this.handleClickOutside);
+
+        // Khởi tạo auth store trước
+        await this.authStore.checkAuth();
+
+
+
+        // Fetch cart count khi component được mount
+        await this.cartStore.fetchCartCount();
+
+        // Kiểm tra nếu có flash message reload_menu ngay khi mount
+        if (this.flashMessages?.reload_menu) {
+            setTimeout(async () => {
+                console.log('Initial menu reload detected...');
+                await this.cartStore.fetchCartCount();
+            }, 100);
+        }
+    },
+    beforeUnmount() {
+        document.removeEventListener('click', this.handleClickOutside);
     }
-}
+};
 </script>
 
 <style lang="scss" scoped>

@@ -1,16 +1,21 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Frontend\CartController;
 use App\Http\Controllers\Frontend\CategoryController;
 use App\Http\Controllers\Frontend\ProductController;
 use App\Http\Controllers\Frontend\WishlistController;
 use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\CheckoutController;
+use App\Http\Controllers\Api\MoMoPaymentController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+// MoMo return URLs
+Route::get('/payment/momo/return', [MoMoPaymentController::class, 'handleReturn'])->name('payment.momo.return');
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -26,12 +31,12 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
 Route::get('/detail/{id}', [ProductDetailController::class, 'index'])->name('detail.index');
 Route::get('/checkout/{checkoutId}', [CheckoutController::class, 'index'])->name('checkout.index');
-Route::get('/home', function () {
+Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

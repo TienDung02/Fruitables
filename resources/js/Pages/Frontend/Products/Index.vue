@@ -222,36 +222,6 @@
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
-                                    <div class="mb-3">
-                                        <h4>Additional</h4>
-                                        <div class="mb-2">
-                                            <input id="Categories-1" class="me-2" name="Categories-1" type="radio"
-                                                   value="Beverages">
-                                            <label for="Categories-1"> Organic</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input id="Categories-2" class="me-2" name="Categories-1" type="radio"
-                                                   value="Beverages">
-                                            <label for="Categories-2"> Fresh</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input id="Categories-3" class="me-2" name="Categories-1" type="radio"
-                                                   value="Beverages">
-                                            <label for="Categories-3"> Sales</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input id="Categories-4" class="me-2" name="Categories-1" type="radio"
-                                                   value="Beverages">
-                                            <label for="Categories-4"> Discount</label>
-                                        </div>
-                                        <div class="mb-2">
-                                            <input id="Categories-5" class="me-2" name="Categories-1" type="radio"
-                                                   value="Beverages">
-                                            <label for="Categories-5"> Expired</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-lg-12">
                                     <h4 class="mb-3">Featured products</h4>
                                     <div v-for="featuredProduct in featuredProducts" :key="featuredProduct.id">
                                         <div class="d-flex align-items-center justify-content-start mb-2">
@@ -694,7 +664,6 @@ export default {
     },
     methods: {
         async fetchProducts(page = 1) {
-            console.log('2')
             try {
                 this.loading = true;
 
@@ -716,7 +685,6 @@ export default {
                 if (this.priceRange.max < 100) {
                     url += `&price_max=${this.priceRange.max}`;
                 }
-
                 const response = await axios.get(url);
                 this.products = response.data.data;
                 this.pagination = {
@@ -728,6 +696,7 @@ export default {
                     to: response.data.to || 0
                 }
                 console.log('dataa', response.data)
+                console.log('this.products', this.products)
 
                 this.totalProductsCount = response.data.total || 0; // Update total products count
 
@@ -831,19 +800,61 @@ export default {
             this.debouncePriceFilter();
         },
 
+        /**
+         * Debounced price filter - chờ user ngừng thay đổi giá rồi mới filter
+         * Giảm số lượng API calls khi user kéo slider
+         */
         debouncePriceFilter() {
+            // Clear timeout cũ nếu có
             if (this.priceTimeout) {
                 clearTimeout(this.priceTimeout);
             }
 
-            this.priceTimeout = setTimeout(() => {
-                this.applyPriceFilter();
+            // Hiển thị loading state
+            this.isSearching = true;
+
+            // Set timeout mới - chờ 800ms sau khi user ngừng thay đổi
+            this.priceTimeout = setTimeout(async () => {
+                try {
+                    console.log('🏷️ Applying price filter:', {
+                        min: this.priceRange.min,
+                        max: this.priceRange.max
+                    });
+
+                    await this.applyPriceFilter();
+                } catch (error) {
+                    console.error('Price filter error:', error);
+                    this.error = 'Failed to apply price filter';
+                } finally {
+                    this.isSearching = false;
+                }
             }, 800);
         },
 
+        /**
+         * Apply price filter - gọi API với khoảng giá mới
+         */
         async applyPriceFilter() {
+            // Validate price range
+            if (this.priceRange.min < 0) this.priceRange.min = 0;
+            if (this.priceRange.max > 100) this.priceRange.max = 100;
+            if (this.priceRange.min >= this.priceRange.max) {
+                this.priceRange.min = Math.max(0, this.priceRange.max - 1);
+            }
+
+            // Reset về trang đầu khi apply filter mới
             this.pagination.current_page = 1;
+
+            // Fetch products với price filter
             await this.fetchProducts(1);
+
+            // Scroll to products section để user thấy kết quả
+            this.$nextTick(() => {
+                document.querySelector('.col-lg-9')?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            });
         },
 
         async clearPriceFilter() {
@@ -965,7 +976,6 @@ export default {
 
         //  Apply sorting
         async applySorting() {
-            console.log('🔄 Applying sort:', this.sortBy);
             this.pagination.current_page = 1; // Reset to first page
             await this.fetchProducts(1);
 
@@ -1071,7 +1081,9 @@ export default {
             }
         },
         async initializeWishlist() {
+            console.log('Initializing wishlist...');
             if (this.user) {
+                console.log('🔐 User is logged in, syncing wishlist from database.');
                 // User is logged in, sync session wishlist to database first
                 try {
                     await axios.get('/sanctum/csrf-cookie');
@@ -1085,6 +1097,7 @@ export default {
                     this.wishlistIds = [];
                 }
             } else {
+                console.log('🔓 User not logged in, loading wishlist from session.');
                 // User not logged in, get from session (API will handle this)
                 try {
                     const res = await axios.get('/api/wishlist/ids');

@@ -17,7 +17,8 @@ class SessionController extends Controller
     public function getSessionCart(): JsonResponse
     {
         $sessionCart = session('cart', []);
-        Log::info('sessionCart', $sessionCart);
+        $sessionCart = $sessionCart ?? [];
+        Log::info('sessionCart', ['data' => $sessionCart]);
         $cartItems = [];
 
         if (!empty($sessionCart)) {
@@ -135,6 +136,90 @@ class SessionController extends Controller
     }
 
     /**
+     * Display checkout information when accessed via GET for session users
+     */
+    public function checkoutInfo(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'This endpoint requires POST method for checkout process (Session-based).',
+            'usage' => 'Send POST request with selected items to initiate checkout for session users',
+            'example' => [
+                'method' => 'POST',
+                'url' => '/api/session/cart/checkout',
+                'data' => [
+                    'items' => [
+                        // array of selected cart items
+                    ]
+                ]
+            ]
+        ], 200);
+    }
+
+    /**
+     * Process checkout for session users (non-authenticated)
+     */
+    public function checkout(Request $request): JsonResponse
+    {
+        Log::info('method checkout in SessionController called');
+        try {
+            // Kiểm tra nếu user đã đăng nhập thì từ chối và chuyển hướng
+            $user = auth()->user();
+            if ($user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authenticated users should use the cart checkout endpoint.',
+                    'redirect_to' => '/api/cart/checkout'
+                ], 403);
+            }
+
+            Log::info('Guest user session checkout process started', [
+                'method' => $request->method(),
+                'url' => $request->url(),
+                'data' => $request->all(),
+                'session_id' => session()->getId()
+            ]);
+
+            $selectedItems = $request->input('items');
+
+            if (!$selectedItems || !is_array($selectedItems)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No items selected for checkout'
+                ], 400);
+            }
+
+            Log::info('Selected items for guest session checkout', ['items' => $selectedItems, 'session_id' => session()->getId()]);
+
+            $checkoutId = uniqid('session_checkout_'); // Tạo ID với prefix khác để phân biệt
+            session()->put("checkout_data_{$checkoutId}", $selectedItems);
+
+            Log::info('Guest session checkout data stored', [
+                'checkout_id' => $checkoutId,
+                'session_key' => "checkout_data_{$checkoutId}",
+                'session_id' => session()->getId()
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'checkout_id' => $checkoutId,
+                'message' => 'Session checkout data prepared successfully for guest user',
+                'user_type' => 'guest'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in session checkout process', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during session checkout preparation'
+            ], 500);
+        }
+    }
+
+    /**
      * Remove item from session cart
      */
     public function removeFromSessionCart(Request $request): JsonResponse
@@ -170,6 +255,8 @@ class SessionController extends Controller
         ]);
 
         $sessionWishlist = session('wishlist', []);
+        $sessionWishlist = $sessionWishlist ?? [];
+        Log::info('sessionWishlist before update in updateSessionWishlistSelected()', ['data' => $sessionWishlist]);
         $productId = $request->product_id;
         $selected = $request->selected;
 
@@ -179,6 +266,7 @@ class SessionController extends Controller
 
         if ($existsIndex !== false) {
             $sessionWishlist[$existsIndex]['selected'] = $selected;
+            Log::info('sessionWishlist after update in updateSessionWishlistSelected()', ['data' => $sessionWishlist]);
             session(['wishlist' => $sessionWishlist]);
             return response()->json([
                 'success' => true,
@@ -202,6 +290,8 @@ class SessionController extends Controller
         ]);
 
         $sessionWishlist = session('wishlist', []);
+        $sessionWishlist = $sessionWishlist ?? [];
+        Log::info('sessionWishlist before update in addToSessionWishlist()', ['data' => $sessionWishlist]);
         $productId = $request->product_id;
         $selected = $request->has('selected') ? $request->selected : 1;
 
@@ -212,10 +302,12 @@ class SessionController extends Controller
 
         if ($existsIndex === false) {
             $sessionWishlist[] = ['product_id' => $productId, 'selected' => $selected];
+            Log::info('sessionWishlist after update in addToSessionWishlist()', ['data' => $sessionWishlist]);
             session(['wishlist' => $sessionWishlist]);
         } else {
             // Nếu đã tồn tại thì cập nhật selected
             $sessionWishlist[$existsIndex]['selected'] = $selected;
+            Log::info('sessionWishlist after update in addToSessionWishlist()', ['data' => $sessionWishlist]);
             session(['wishlist' => $sessionWishlist]);
         }
 
@@ -231,7 +323,9 @@ class SessionController extends Controller
     public function getSessionWishlist(): JsonResponse
     {
         $sessionWishlist = session('wishlist', []);
-        Log::info('sessionWishlist', $sessionWishlist);
+        // Đảm bảo $sessionWishlist luôn là mảng
+        $sessionWishlist = $sessionWishlist ?? [];
+        Log::info('sessionWishlist in getSessionWishlist()', ['data' => $sessionWishlist]);
         $wishlistItems = [];
 
         if (!empty($sessionWishlist)) {

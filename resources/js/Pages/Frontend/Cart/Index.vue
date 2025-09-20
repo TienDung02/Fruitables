@@ -109,7 +109,7 @@
                         <button class="btn border-secondary rounded-pill px-4 py-2 my-2 text-primary" type="button">Apply Coupon</button>
                     </div>
                     <div class="row d-flex rounded bg-light">
-                        <div class="col-8 d-flex">
+                        <div class="col-7 d-flex">
                             <div class="d-flex align-items-center ms-4 me-4">
                                 <input class="fs-5 form-check-input mt-0" style="font-size: 20px;"
                                     type="checkbox"
@@ -121,7 +121,7 @@
                             <div class="d-flex align-items-center ms-4 me-4 fs-5">Delete</div>
                             <div class="d-flex align-items-center ms-4 me-4 fs-5">Move to wishlist</div>
                         </div>
-                        <div class="col-4 rounded d-flex row">
+                        <div class="col-5 rounded d-flex row">
                             <div class="col-6">
                                 <div class="p-2">
                                     <div class="d-flex justify-content-between ">
@@ -285,9 +285,9 @@ export default {
         }
     },
         async mounted() {
-            if (this.auth && this.auth.user) {
-                await this.syncCart();
-            }
+            // if (this.auth && this.auth.user) {
+            //     await this.syncCart();
+            // }
 
             await axios.get('/sanctum/csrf-cookie');
             await this.fetchCart();
@@ -366,14 +366,14 @@ export default {
             return `${price.toFixed(2)}`;
         },
 
-        async syncCart() {
-            try {
-                const response = await axios.post('/api/cart/sync');
-                console.log('Giỏ hàng đã được đồng bộ.');
-            } catch (error) {
-                console.error('Không thể đồng bộ giỏ hàng:', error);
-            }
-        },
+        // async syncCart() {
+        //     try {
+        //         const response = await axios.post('/api/cart/sync');
+        //         console.log('Giỏ hàng đã được đồng bộ.');
+        //     } catch (error) {
+        //         console.error('Không thể đồng bộ giỏ hàng:', error);
+        //     }
+        // },
 
         async updateCartServer(itemId, quantity) {
             try {
@@ -476,7 +476,6 @@ export default {
         async handleCheckout() {
             // Lọc ra các sản phẩm đã được chọn
             const selectedItems = this.cartItems.filter(item => item.selected === 1);
-
             if (selectedItems.length === 0) {
                 alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
                 return;
@@ -484,21 +483,65 @@ export default {
 
             try {
                 this.loading = true;
+                // Đảm bảo có CSRF token
+                await axios.get('/sanctum/csrf-cookie');
+
+                console.log('Sending checkout request with items:', selectedItems);
+                console.log('User authentication status:', this.auth?.user ? 'authenticated' : 'guest');
+
+                // Chọn API endpoint phù hợp dựa vào trạng thái đăng nhập
+                const checkoutUrl = this.auth?.user
+                    ? '/api/cart/checkout'        // User đã đăng nhập
+                    : '/api/session/cart/checkout'; // User chưa đăng nhập
 
                 // Gửi API với chỉ những sản phẩm đã chọn
-                const response = await axios.post('/api/cart/checkout', { items: selectedItems });
+                const response = await axios.post(checkoutUrl, {
+                    items: selectedItems
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
                 console.log('Checkout response:', response.data);
+
+                if (!response.data.success) {
+                    alert(response.data.message || 'Có lỗi xảy ra khi tạo đơn hàng');
+                    return;
+                }
+
                 const checkoutId = response.data.checkout_id;
                 console.log('checkoutId:', checkoutId);
+                console.log('User type:', response.data.user_type || 'session-based');
+
                 if (!checkoutId) {
                     alert('Không lấy được mã đơn hàng, vui lòng thử lại!');
                     return;
                 }
+
                 // Chỉ chuyển hướng nếu checkoutId hợp lệ
                 this.$inertia.visit(`/checkout/${checkoutId}`);
+
             } catch (error) {
                 console.error("Lỗi khi tạo đơn hàng:", error);
-                alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+
+                if (error.response) {
+                    console.error("Error response:", error.response.data);
+                    console.error("Error status:", error.response.status);
+                    console.error("Error headers:", error.response.headers);
+
+                    if (error.response.status === 405) {
+                        alert("Lỗi method không được hỗ trợ. Vui lòng thử lại sau.");
+                    } else if (error.response.status === 401) {
+                        alert("Phiên làm việc đã hết hạn. Vui lòng tải lại trang và thử lại.");
+                    } else {
+                        alert(error.response.data.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                    }
+                } else {
+                    alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                }
             } finally {
                 this.loading = false;
             }

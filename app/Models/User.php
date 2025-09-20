@@ -59,4 +59,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(Review::class);
     }
+
+    /**
+     * Get the addresses for the user
+     */
+    public function addresses(): HasMany
+    {
+        return $this->hasMany(UserAddress::class);
+    }
+
+    /**
+     * Get the default billing address
+     */
+    public function defaultBillingAddress()
+    {
+        return $this->addresses()->billing()->default()->first();
+    }
+
+    /**
+     * Get the default shipping address
+     */
+    public function defaultShippingAddress()
+    {
+        return $this->addresses()->shipping()->default()->first();
+    }
 }

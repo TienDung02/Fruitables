@@ -7,6 +7,7 @@ use App\Models\Wishlist;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WishlistController extends Controller
 {
@@ -65,13 +66,19 @@ class WishlistController extends Controller
     // Sync wishlist from session to database when user logs in
     public function syncWishlist(Request $request)
     {
+        Log::info('syncWishlist have been called');
         $user = Auth::user();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
+        // Đảm bảo $sessionWishlist luôn là array
         $sessionWishlist = session('wishlist', []);
+        if (!is_array($sessionWishlist)) {
+            $sessionWishlist = [];
+        }
 
+        Log::info('sessionWishlist in syncWishlist()', $sessionWishlist);
         foreach ($sessionWishlist as $item) {
             \App\Models\Wishlist::firstOrCreate([
                 'user_id' => $user->id,
@@ -89,6 +96,7 @@ class WishlistController extends Controller
                 'selected' => collect($sessionWishlist)->firstWhere('product_id', $wishlistItem->product_id)['selected'] ?? 1
             ];
         }
+        Log::info('sessionWishlistNew after sync in syncWishlist()', $sessionWishlistNew);
         session(['wishlist' => $sessionWishlistNew]);
 
         // Get updated wishlist
@@ -111,7 +119,13 @@ class WishlistController extends Controller
         if ($user) {
             $wishlistIds = \App\Models\Wishlist::where('user_id', $user->id)->pluck('product_id');
         } else {
+            // Đảm bảo $sessionWishlist luôn là array
             $sessionWishlist = session('wishlist', []);
+            if (!is_array($sessionWishlist)) {
+                $sessionWishlist = [];
+            }
+
+            Log::info('sessionWishlist in getWishlistIds()', $sessionWishlist);
             $wishlistIds = collect($sessionWishlist)->pluck('product_id');
         }
 

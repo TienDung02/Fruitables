@@ -13,7 +13,19 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
+            $table->string('order_id', 50); // Khóa ngoại đến bảng orders
+            $table->unsignedBigInteger('product_variant_id');
+            $table->integer('quantity');
+            $table->decimal('price', 10, 2); // Giá tại thời điểm đặt hàng
             $table->timestamps();
+
+            // Foreign key constraints
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            $table->foreign('product_variant_id')->references('id')->on('product_variants')->onDelete('cascade');
+
+            // Indexes
+            $table->index('order_id');
+            $table->index('product_variant_id');
         });
     }
 

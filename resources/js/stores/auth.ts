@@ -26,7 +26,6 @@ export const useAuthStore = defineStore('auth', {
             } catch (error) {
                 this.user = null;
                 this.isLoggedIn = false;
-                console.error('Lỗi khi kiểm tra xác thực:', error);
             }
         },
 
@@ -40,7 +39,6 @@ export const useAuthStore = defineStore('auth', {
                 // Update cart count after sync
                 await cartStore.fetchCartCount();
 
-                console.log('Session data synced successfully');
             } catch (error) {
                 console.error('Lỗi khi đồng bộ session data:', error);
             }
@@ -54,6 +52,18 @@ export const useAuthStore = defineStore('auth', {
         logout() {
             this.user = null;
             this.isLoggedIn = false;
+            console.log('User logged out from store');
+        },
+
+        async login(credentials: { email: string; password: string }) {
+            try {
+                const response = await axios.post('/login', credentials);
+                await this.checkAuth(); // Reload user data after login
+                return response;
+            } catch (error) {
+                console.error('Login error:', error);
+                throw error;
+            }
         }
-    }
+    },
 });

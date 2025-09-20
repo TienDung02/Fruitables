@@ -9,15 +9,14 @@ class OrderItem extends Model
 {
     protected $fillable = [
         'order_id',
-        'product_id',
+        'product_variant_id', // Thay đổi từ product_id thành product_variant_id
         'quantity',
-        'price',
-        'total'
+        'price'
+        // Loại bỏ 'total' vì không có trong database
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
-        'total' => 'decimal:2',
         'quantity' => 'integer',
     ];
 
@@ -26,14 +25,30 @@ class OrderItem extends Model
      */
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 
     /**
-     * Get the Products that belongs to the order item.
+     * Get the product variant that belongs to the order item.
+     */
+    public function productVariant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class);
+    }
+
+    /**
+     * Get the product through product variant.
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_variant_id', 'id');
+    }
+
+    /**
+     * Calculate total for this item
+     */
+    public function getTotalAttribute()
+    {
+        return $this->price * $this->quantity;
     }
 }

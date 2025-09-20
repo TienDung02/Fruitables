@@ -8,22 +8,35 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    // Tắt auto-incrementing vì sử dụng string ID
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     protected $fillable = [
+        'id',
         'user_id',
-        'order_number',
         'status',
-        'total_amount',
-        'shipping_address',
-        'billing_address',
+        'subtotal',
+        'shipping_cost',
+        'total',
         'payment_method',
         'payment_status',
-        'notes'
+        'shipping_method',
+        'customer_info',
+        'notes',
+        'payment_request_id',
+        'payment_data',
+        'transaction_id',
+        'paid_at'
     ];
 
     protected $casts = [
-        'total_amount' => 'decimal:2',
-        'shipping_address' => 'array',
-        'billing_address' => 'array',
+        'subtotal' => 'decimal:2',
+        'shipping_cost' => 'decimal:2',
+        'total' => 'decimal:2',
+        'customer_info' => 'array',
+        'payment_data' => 'array',
+        'paid_at' => 'datetime',
     ];
 
     const STATUS_PENDING = 'pending';

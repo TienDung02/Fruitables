@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SessionController;
+use App\Http\Controllers\Api\UserAddressController;
+use App\Http\Controllers\Api\MoMoPaymentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +19,14 @@ Route::get('products/featured', [ProductController::class, 'featured']);
 Route::apiResource('categories', CategoryController::class);
 Route::apiResource('products', ProductController::class);
 
+// MoMo Payment routes (public - không cần auth)
+Route::prefix('payment/momo')->group(function () {
+    Route::post('create', [MoMoPaymentController::class, 'createPayment']);
+    Route::post('notify', [MoMoPaymentController::class, 'handleCallback']);
+    Route::get('check-status', [MoMoPaymentController::class, 'checkStatus']);
+    Route::post('regenerate-qr', [MoMoPaymentController::class, 'regenerateQR']);
+});
+
 // Session-based routes (for non-authenticated users)
 Route::prefix('session')->group(function () {
     Route::get('cart', [SessionController::class, 'getSessionCart']);
@@ -25,6 +35,8 @@ Route::prefix('session')->group(function () {
     Route::delete('cart', [SessionController::class, 'removeFromSessionCart']);
     Route::get('cart/count', [SessionController::class, 'getSessionCartCount']);
     Route::delete('cart/clear', [SessionController::class, 'clearSessionCart']);
+    Route::get('cart/checkout', [SessionController::class, 'checkoutInfo']);
+    Route::post('cart/checkout', [SessionController::class, 'checkout']);
 
     Route::get('wishlist', [SessionController::class, 'getSessionWishlist']);
     Route::post('wishlist', [SessionController::class, 'addToSessionWishlist']);
@@ -33,11 +45,8 @@ Route::prefix('session')->group(function () {
     Route::delete('wishlist/clear', [SessionController::class, 'clearSessionWishlist']);
 });
 
-Route::get('products/on-sale', [ProductController::class, 'onSale']);
-
-// Protected routes (requires authentication)
+// Authenticated routes
 Route::middleware('auth:sanctum')->group(function () {
-    // User info
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
@@ -46,6 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('cart', [CartController::class, 'index']);
     Route::put('cart/{cartItem}', [CartController::class, 'update']);
     Route::post('cart', [CartController::class, 'store']);
+    Route::get('cart/checkout', [CartController::class, 'checkoutInfo']); // Add GET method for info
     Route::post('cart/checkout', [CartController::class, 'checkout']);
     Route::delete('cart/{cartItem}', [CartController::class, 'destroy']);
     Route::delete('cart', [CartController::class, 'clear']);

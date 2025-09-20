@@ -15,15 +15,19 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
+        Log::info('Product index called with params: ', $request->all());
         try {
             $query = Product::with(['category', 'media', 'variants'])
-                ->where('is_active', true);
+                ->where('products.is_active', true); // Specify table name to avoid ambiguity
 
             //apply search filter
             $this->applySearchFilter($query, $request);
 
             //apply category filter
             $this->applyCategoryFilter($query, $request);
+
+            //apply price filter
+            $this->applyPriceFilter($query, $request);
 
             //apply ordering
             $this->applyOrdering($query, $request);
@@ -55,9 +59,9 @@ class ProductController extends Controller
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
-                $q->where('name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('short_description', 'LIKE', "%{$searchTerm}%")
+                $q->where('products.name', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('products.description', 'LIKE', "%{$searchTerm}%")
+                    ->orWhere('products.short_description', 'LIKE', "%{$searchTerm}%")
                     ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
                         $categoryQuery->where('name', 'LIKE', "%{$searchTerm}%");
                     });
@@ -74,32 +78,87 @@ class ProductController extends Controller
             if ($category && $category->children()->count() > 0) {
                 $subcategoryIds = $category->children()->pluck('id')->toArray();
                 $subcategoryIds[] = $categoryId;
-                $query->whereIn('category_id', $subcategoryIds);
+                $query->whereIn('products.category_id', $subcategoryIds);
             } else {
-                $query->where('category_id', $categoryId);
+                $query->where('products.category_id', $categoryId);
             }
+        }
+    }
+
+    private function applyPriceFilter($query, $request)
+    {
+        // Frontend gửi price_min và price_max
+        $priceMin = $request->get('price_min');
+        $priceMax = $request->get('price_max');
+
+        Log::info('Applying price filter:', [
+            'price_min' => $priceMin,
+            'price_max' => $priceMax
+        ]);
+
+        // Nếu có filter theo giá, lọc dựa trên variant đầu tiên của mỗi sản phẩm
+        if ($priceMin !== null || $priceMax !== null) {
+            $query->whereHas('variants', function($variantQuery) use ($priceMin, $priceMax) {
+                // Chỉ lấy variant đầu tiên (có thể sắp xếp theo created_at hoặc id)
+                $variantQuery->whereIn('id', function($subQuery) {
+                    $subQuery->selectRaw('MIN(id)')
+                             ->from('product_variants')
+                             ->groupBy('product_id');
+                });
+
+                if ($priceMin !== null && $priceMax !== null) {
+                    // Lọc theo cả min và max price của variant đầu tiên
+                    $variantQuery->where(function($q) use ($priceMin, $priceMax) {
+                        // Ưu tiên sale_price nếu có, không thì dùng price
+                        $q->whereRaw('COALESCE(sale_price, price) BETWEEN ? AND ?', [$priceMin, $priceMax]);
+                    });
+                } elseif ($priceMin !== null) {
+                    // Chỉ có min price
+                    $variantQuery->whereRaw('COALESCE(sale_price, price) >= ?', [$priceMin]);
+                } elseif ($priceMax !== null) {
+                    // Chỉ có max price
+                    $variantQuery->whereRaw('COALESCE(sale_price, price) <= ?', [$priceMax]);
+                }
+            });
+
+            Log::info('Price filter applied successfully (first variant only)');
         }
     }
 
     private function applyOrdering($query, $request)
     {
-        $sortBy = $request->get('sort_by', 'newest');
+        $sortBy = $request->get('sort', 'newest');
+        Log::info('sortBy parameter: ' . $sortBy);
 
         switch ($sortBy) {
             case 'name_asc':
-                $query->orderBy('name', 'asc');
+                $query->orderBy('products.name', 'asc');
                 break;
             case 'name_desc':
-                $query->orderBy('name', 'desc');
+                $query->orderBy('products.name', 'desc');
                 break;
             case 'price_asc':
-                $query->orderBy('price', 'asc');
+                Log::info('Sorting by price ascending (first variant)');
+                // Join với variant đầu tiên để sort theo giá của variant đó
+                $query->leftJoin('product_variants as pv_sort', function($join) {
+                    $join->on('products.id', '=', 'pv_sort.product_id')
+                         ->whereRaw('pv_sort.id = (SELECT MIN(id) FROM product_variants WHERE product_id = products.id)');
+                })
+                ->orderByRaw('COALESCE(pv_sort.sale_price, pv_sort.price) ASC')
+                ->select('products.*');
                 break;
             case 'price_desc':
-                $query->orderBy('price', 'desc');
+                Log::info('Sorting by price descending (first variant)');
+                // Join với variant đầu tiên để sort theo giá của variant đó
+                $query->leftJoin('product_variants as pv_sort', function($join) {
+                    $join->on('products.id', '=', 'pv_sort.product_id')
+                         ->whereRaw('pv_sort.id = (SELECT MIN(id) FROM product_variants WHERE product_id = products.id)');
+                })
+                ->orderByRaw('COALESCE(pv_sort.sale_price, pv_sort.price) DESC')
+                ->select('products.*');
                 break;
             case 'oldest':
-                $query->orderBy('created_at', 'asc');
+                $query->orderBy('products.created_at', 'asc');
                 break;
             case 'featured':
                 $query->withAvg('approvedReviews', 'rating')
@@ -110,11 +169,11 @@ class ProductController extends Controller
             case 'popularity':
                 $query->withCount('approvedReviews')
                       ->orderBy('approved_reviews_count', 'desc')
-                      ->orderBy('created_at', 'desc');
+                      ->orderBy('products.created_at', 'desc');
                 break;
             case 'newest':
             default:
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('products.created_at', 'desc');
                 break;
         }
 
@@ -123,9 +182,9 @@ class ProductController extends Controller
             $searchTerm = $request->search;
             $query->orderByRaw("
                 CASE
-                    WHEN name LIKE ? THEN 1
-                    WHEN short_description LIKE ? THEN 2
-                    WHEN description LIKE ? THEN 3
+                    WHEN products.name LIKE ? THEN 1
+                    WHEN products.short_description LIKE ? THEN 2
+                    WHEN products.description LIKE ? THEN 3
                     ELSE 4
                 END
             ", ["%{$searchTerm}%", "%{$searchTerm}%", "%{$searchTerm}%"]);

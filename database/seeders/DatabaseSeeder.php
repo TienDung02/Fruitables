@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ProductSeeder::class,
             ProductMediaSeeder::class, // ✅ THÊM: ProductMediaSeeder
             ReviewSeeder::class,
+            UserAddressSeeder::class, // ✅ THÊM: UserAddressSeeder
         ]);
     }
 }

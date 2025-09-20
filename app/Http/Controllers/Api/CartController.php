@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Cart;
 use App\Models\Product;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
@@ -144,25 +145,102 @@ class CartController extends Controller
         ]);
     }
 
+    /**
+     * Display checkout information when accessed via GET
+     */
+    public function checkoutInfo(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'This endpoint requires POST method for checkout process.',
+            'usage' => 'Send POST request with selected items to initiate checkout',
+            'example' => [
+                'method' => 'POST',
+                'url' => '/api/cart/checkout',
+                'data' => [
+                    'items' => [
+                        // array of selected cart items
+                    ]
+                ]
+            ]
+        ], 200);
+    }
+
     public function checkout(Request $request)
     {
-//        dd($request->all());
-        Log::info($request->all());
-        $selectedItems = $request->input('items');
-        Log::info('selectedItems', $selectedItems);
+        Log::info('method checkout in CartController called', ['request' => $request->all()]);
+        try {
+            $user = auth()->user();
 
-        $checkoutId = uniqid(); // Tạo một ID duy nhất
-        session()->put("checkout_data_{$checkoutId}", $selectedItems);
+            // Đảm bảo chỉ authenticated users mới được xử lý ở đây
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Authentication required. Please use session checkout endpoint for guests.',
+                    'redirect_to' => '/api/session/cart/checkout'
+                ], 401);
+            }
 
-        return response()->json(['checkout_id' => $checkoutId]);
+            Log::info('Authenticated user checkout request received', [
+                'method' => $request->method(),
+                'url' => $request->url(),
+                'data' => $request->all(),
+                'user_id' => $user->id,
+                'session_id' => session()->getId()
+            ]);
+
+            $selectedItems = $request->input('items');
+
+            if (!$selectedItems || !is_array($selectedItems)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No items selected for checkout'
+                ], 400);
+            }
+
+            Log::info('Selected items for authenticated checkout', ['items' => $selectedItems, 'user_id' => $user->id]);
+
+            // Tạo checkout ID với prefix cho authenticated user
+            $checkoutId = uniqid('user_checkout_');
+            session()->put("checkout_data_{$checkoutId}", $selectedItems);
+
+            Log::info('Authenticated checkout data stored in session', [
+                'checkout_id' => $checkoutId,
+                'session_key' => "checkout_data_{$checkoutId}",
+                'user_id' => $user->id
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'checkout_id' => $checkoutId,
+                'message' => 'Checkout data prepared successfully for authenticated user',
+                'user_type' => 'authenticated'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error in checkout process', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred during checkout preparation'
+            ], 500);
+        }
     }
 
     public function syncCart(Request $request)
     {
+        Log::info('method syncCart called', ['request' => $request->all()]);
         $user = auth()->user();
 
-        // Get session cart
+        // Get session cart - đảm bảo luôn là array
         $sessionCart = session('cart', []);
+
+        // Kiểm tra và đảm bảo $sessionCart là array
+        if (!is_array($sessionCart)) {
+            $sessionCart = [];
+        }
 
         // Get or create user's cart
         $userCart = Cart::firstOrCreate([
@@ -172,6 +250,7 @@ class CartController extends Controller
 
         // Sync session cart items with database
         foreach ($sessionCart as $sessionItem) {
+            Log::info('Syncing item', ['item' => $sessionItem]);
             $dbItem = $userCart->items()->where('productVariant_id', $sessionItem['productVariant_id'])->first();
 
             if ($dbItem) {
@@ -233,14 +312,13 @@ class CartController extends Controller
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
-
         // Sync cart
         $this->syncCart(request());
 
         // Sync wishlist
-        $sessionWishlist = session('wishlist', []);
+        $sessionWishlist = session('wishlist') ?? [];
         foreach ($sessionWishlist as $item) {
-            \App\Models\Wishlist::firstOrCreate([
+            Wishlist::firstOrCreate([
                 'user_id' => $user->id,
                 'product_id' => $item['product_id']
             ]);
