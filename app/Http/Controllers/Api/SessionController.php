@@ -8,7 +8,7 @@ use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Str;
 class SessionController extends Controller
 {
     /**
@@ -154,6 +154,37 @@ class SessionController extends Controller
             ]
         ], 200);
     }
+    public function cartDraft(Request $request): JsonResponse
+    {
+        $variantId = $request->input('variantId');
+
+        $product_variant = \App\Models\ProductVariant::with('product.media')
+            ->where('id', $variantId)
+            ->get(); // Collection
+
+        $variant = $product_variant->first(); // Lấy phần tử đầu tiên trong Collection
+
+        $quantity = $request->input('quantity');
+        $cart_id = (string) Str::uuid();
+        $id = Str::random(10);
+
+        return response()->json([
+            [
+                'cart_id'           => $id,
+                'created_at'        => now(),
+                'id'                => $id,
+                'price'             => $variant->price ?? $variant->sale_price,
+                'productVariant_id' => $variant->id,
+                'product_variant'   => $variant->toArray(),
+                'quantity'          => $quantity,
+                'selected'          => 1,
+                'updated_at'        => now(),
+            ]
+        ]);
+
+    }
+
+
 
     /**
      * Process checkout for session users (non-authenticated)

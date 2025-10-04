@@ -57,7 +57,8 @@ class AuthenticatedSessionController extends Controller
             $wishlistController = new \App\Http\Controllers\Api\WishlistController();
             $wishlistController->syncWishlist($request);
             Log::info('Wishlist synced successfully after login');
-
+            $wishlist = $request->session()->get('wishlist', []);
+            Log::info('Wishlist data after sync:', is_array($wishlist) ? $wishlist : ['data' => $wishlist]);
         } catch (\Exception $e) {
             Log::error('Error syncing data after login: ' . $e->getMessage());
         }
@@ -72,10 +73,7 @@ class AuthenticatedSessionController extends Controller
         $wishlist = $request->session()->get('wishlist', []);
         $cart = $request->session()->get('cart', []);
 
-        Log::info('Session data before logout:', [
-            'wishlist' => is_array($wishlist) ? $wishlist : ['data' => $wishlist],
-            'cart' => is_array($cart) ? $cart : ['data' => $cart]
-        ]);
+        Log::info('wishlist before logout:', is_array($wishlist) ? $wishlist : ['data' => $wishlist]);
 
         Auth::guard('web')->logout();
 

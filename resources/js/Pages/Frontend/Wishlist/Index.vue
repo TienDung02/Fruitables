@@ -270,8 +270,8 @@ export default {
             if (this.user) {
                 // User is logged in, sync session wishlist & cart to database first
                 try {
-                    await axios.get('/sanctum/csrf-cookie');
-                    await axios.post('/api/sync-session');
+                    // await axios.get('/sanctum/csrf-cookie');
+                    // await axios.post('/api/sync-session');
 
                     // Get wishlist products from database
                     const res = await axios.get('/api/wishlist');

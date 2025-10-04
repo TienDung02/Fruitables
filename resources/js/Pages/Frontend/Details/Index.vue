@@ -98,6 +98,11 @@
                                     <i class="fa fa-shopping-bag me-2 text-primary"></i>
                                     <span>Add to cart</span>
                                 </button>
+
+                                <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="buyNow()">
+                                    <i class="fa fa-shopping-bag me-2 text-primary"></i>
+                                    <span>buyNow</span>
+                                </button>
                             </div>
                             <div class="col-lg-12">
                                 <nav>
@@ -617,6 +622,87 @@ export default {
             } catch (error) {
                 console.error('Lỗi khi thêm vào giỏ hàng:', error);
                 this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
+            }
+        },
+        async buyNow() {
+            // Lọc ra các sản phẩm đã được chọn
+            // const selectedItems = this.cartItems.filter(item => item.selected === 1);
+            // if (selectedItems.length === 0) {
+            //     alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+            //     return;
+            // }
+            console.log('this this.selectedVariantId', this.selectedVariantId)
+            const response_cartDraft = await axios.post('/api/session/cart/draft', {
+                variantId: this.selectedVariantId,
+                quantity: this.quantity
+            });
+
+
+            console.log('Checkout response_cartDraft:', response_cartDraft.data);
+
+            try {
+                this.loading = true;
+                // Đảm bảo có CSRF token
+                await axios.get('/sanctum/csrf-cookie');
+
+                // console.log('Sending checkout request with items:', selectedItems);
+                console.log('User authentication status:', this.auth?.user ? 'authenticated' : 'guest');
+
+                // Chọn API endpoint phù hợp dựa vào trạng thái đăng nhập
+                const checkoutUrl = this.auth?.user
+                    ? '/api/cart/checkout'        // User đã đăng nhập
+                    : '/api/session/cart/checkout'; // User chưa đăng nhập
+
+                // Gửi API với chỉ những sản phẩm đã chọn
+                const response = await axios.post(checkoutUrl, {
+                    items: response_cartDraft.data
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                console.log('Checkout response:', response.data);
+
+                if (!response.data.success) {
+                    alert(response.data.message || 'Có lỗi xảy ra khi tạo đơn hàng');
+                    return;
+                }
+
+                const checkoutId = response.data.checkout_id;
+                console.log('checkoutId:', checkoutId);
+                console.log('User type:', response.data.user_type || 'session-based');
+
+                if (!checkoutId) {
+                    alert('Không lấy được mã đơn hàng, vui lòng thử lại!');
+                    // return;
+                }
+
+                // Chỉ chuyển hướng nếu checkoutId hợp lệ
+                this.$inertia.visit(`/checkout/${checkoutId}`);
+
+            } catch (error) {
+                console.error("Lỗi khi tạo đơn hàng:", error);
+
+                if (error.response) {
+                    console.error("Error response:", error.response.data);
+                    console.error("Error status:", error.response.status);
+                    console.error("Error headers:", error.response.headers);
+
+                    if (error.response.status === 405) {
+                        alert("Lỗi method không được hỗ trợ. Vui lòng thử lại sau.");
+                    } else if (error.response.status === 401) {
+                        alert("Phiên làm việc đã hết hạn. Vui lòng tải lại trang và thử lại.");
+                    } else {
+                        alert(error.response.data.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                    }
+                } else {
+                    alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                }
+            } finally {
+                this.loading = false;
             }
         },
         decreaseQuantity() {

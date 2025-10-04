@@ -61,7 +61,7 @@ class CartController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'productVariant_id' => 'required|exists:product_variants,id', // Sửa 'products' thành 'product_variants'
+            'productVariant_id' => 'required|exists:product_variants,id',
             'quantity' => 'required|integer|min:1',
         ]);
         $user = auth()->user();
@@ -70,19 +70,22 @@ class CartController extends Controller
             return response()->json(['message' => 'Bạn cần đăng nhập hoặc có session để thêm sản phẩm vào giỏ hàng!'], 401);
         }
         Log::info('id', $request->all());
+
         // Tìm hoặc tạo cart
         $cart = \App\Models\Cart::firstOrCreate([
             'user_id' => $user ? $user->id : null,
             'session_id' => $user ? null : $sessionId,
             'status' => 'active',
         ]);
+
         // Tìm hoặc tạo cart_item
         $cartItem = \App\Models\CartItem::where('cart_id', $cart->id)
             ->where('productVariant_id', $request->productVariant_id)
             ->first();
-//        Log::info($cartItem->id);
+
         $product = \App\Models\ProductVariant::find($request->productVariant_id);
         $price = $product->sale_price ?? $product->price;
+
         if ($cartItem) {
             $cartItem->quantity += $request->quantity;
             Log::info($cartItem->quantity);
@@ -96,17 +99,23 @@ class CartController extends Controller
                 'price' => $price,
             ]);
         }
+
         // Tính lại tổng số lượng và tổng giá trị giỏ hàng
         $cartItems = \App\Models\CartItem::where('cart_id', $cart->id)->get();
         $totalQuantity = $cartItems->sum('quantity');
         $totalPrice = $cartItems->reduce(function ($carry, $item) {
             return $carry + ($item->quantity * $item->price);
         }, 0);
-//        Log::info('total price', $totalPrice);
+
         $cart->update([
             'total_quantity' => $totalQuantity,
             'total_price' => $totalPrice,
         ]);
+
+        // Sử dụng SessionController để cập nhật session
+        $sessionController = new \App\Http\Controllers\Api\SessionController();
+        $sessionController->addToSessionCart($request);
+
         return response()->json(['message' => 'Đã thêm sản phẩm vào giỏ hàng thành công!'], 200);
     }
 
@@ -137,6 +146,14 @@ class CartController extends Controller
             'total_quantity' => $totalQuantity,
             'total_price' => $totalPrice,
         ]);
+
+        // Sử dụng SessionController để cập nhật session
+        $updateRequest = new Request([
+            'productVariant_id' => $cartItem->productVariant_id,
+            'quantity' => $validated['quantity']
+        ]);
+        $sessionController = new \App\Http\Controllers\Api\SessionController();
+        $sessionController->updateSessionCart($updateRequest);
 
         return response()->json([
             'success' => true,
@@ -324,8 +341,16 @@ class CartController extends Controller
             ]);
         }
 
-        // Clear session wishlist after sync
-        session()->forget('wishlist');
+        // Cập nhật lại session wishlist từ database thay vì xóa
+        $wishlistDb = Wishlist::where('user_id', $user->id)->get();
+        $sessionWishlistNew = [];
+        foreach ($wishlistDb as $wishlistItem) {
+            $sessionWishlistNew[] = [
+                'product_id' => $wishlistItem->product_id,
+                'selected' => collect($sessionWishlist)->firstWhere('product_id', $wishlistItem->product_id)['selected'] ?? 1
+            ];
+        }
+        session(['wishlist' => $sessionWishlistNew]);
 
         return response()->json([
             'success' => true,
@@ -348,6 +373,7 @@ class CartController extends Controller
         }
 
         $cart = $cartItem->cart;
+        $productVariantId = $cartItem->productVariant_id;
         $cartItem->delete();
 
         // Cập nhật lại tổng số lượng và tổng giá trị giỏ hàng
@@ -360,6 +386,13 @@ class CartController extends Controller
             'total_quantity' => $totalQuantity,
             'total_price' => $totalPrice,
         ]);
+
+        // Xóa khỏi session cart
+        $sessionCart = session('cart', []);
+        $sessionCart = array_filter($sessionCart, function($item) use ($productVariantId) {
+            return $item['productVariant_id'] != $productVariantId;
+        });
+        session(['cart' => array_values($sessionCart)]);
 
         return response()->json([
             'success' => true,

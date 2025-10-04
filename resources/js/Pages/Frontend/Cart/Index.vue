@@ -486,6 +486,7 @@ export default {
                 // Đảm bảo có CSRF token
                 await axios.get('/sanctum/csrf-cookie');
 
+                console.log('this.cartItems:', this.cartItems);
                 console.log('Sending checkout request with items:', selectedItems);
                 console.log('User authentication status:', this.auth?.user ? 'authenticated' : 'guest');
 

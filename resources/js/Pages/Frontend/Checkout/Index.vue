@@ -70,10 +70,19 @@
                     <div class="col-md-12 col-lg-6 col-xl-6">
                         <div class="table-responsive">
                             <table class="table">
+                                <colgroup>
+                                    <col width="120">
+                                    <col >
+                                    <col width="80">
+                                    <col width="90">
+                                    <col width="100">
+                                    <col width="100">
+                                </colgroup>
                                 <thead>
                                     <tr>
                                         <th scope="col">Products</th>
                                         <th scope="col">Name</th>
+                                        <th scope="col">Size</th>
                                         <th scope="col">Price</th>
                                         <th scope="col">Quantity</th>
                                         <th scope="col">Total</th>
@@ -85,12 +94,14 @@
                                             <div class="d-flex align-items-center mt-2">
                                                 <img :src="(item.product_variant?.product?.media?.[0]?.file_path ? '../' + item.product_variant.product.media[0].file_path : '/images/default-product.jpg')"
                                                      class="img-fluid rounded-circle"
-                                                     style="width: 90px; height: 90px;"
+                                                     style="width: 90px; height: 90px; object-fit: contain"
                                                      :alt="(item.product_variant?.product?.name) || 'Product'">
                                             </div>
                                         </th>
                                         <td class="py-5">{{ item.product_variant?.product?.name || 'Product Name' }}</td>
+                                        <td class="py-5">{{ item.product_variant?.size }}</td>
                                         <td class="py-5">${{ item.product_variant.sale_price ?? item.product_variant.price }}</td>
+<!--                                        <td class="py-5">$1</td>-->
                                         <td class="py-5">{{ item.quantity || 0 }}</td>
                                         <td class="py-5">${{  (((item.product_variant?.sale_price || item.product_variant?.price || item.price || 0)) * (item.quantity || 0)).toFixed(2) }}</td>
                                     </tr>

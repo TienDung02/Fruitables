@@ -224,31 +224,34 @@
                                 <div class="col-lg-12">
                                     <h4 class="mb-3">Featured products</h4>
                                     <div v-for="featuredProduct in featuredProducts" :key="featuredProduct.id">
-                                        <div class="d-flex align-items-center justify-content-start mb-2">
-                                            <div class="rounded me-4" style="width: 100px; height: 100px;">
-                                                <img
-                                                    :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`"
-                                                    alt=""
-                                                    class="img-fluid rounded h-100" style="object-fit: contain">
+                                        <Link :href="route('detail.index', featuredProduct.id)">
+
+                                            <div class="d-flex align-items-center justify-content-start mb-2" >
+                                                <div class="rounded me-4" style="width: 100px; height: 100px;">
+                                                    <img
+                                                        :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                        alt=""
+                                                        class="img-fluid rounded h-100" style="object-fit: contain">
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-2">{{ featuredProduct.name || 'Fruits' }}</h6>
+                                                    <div class="d-flex mb-2">
+                                                        <i class="fa fa-star text-secondary"></i>
+                                                        <i class="fa fa-star text-secondary"></i>
+                                                        <i class="fa fa-star text-secondary"></i>
+                                                        <i class="fa fa-star text-secondary"></i>
+                                                        <i class="fa fa-star"></i>
+                                                    </div>
+                                                    <div v-if="featuredProduct.variants[0].sale_price" class="d-flex mb-2 align-items-center">
+                                                        <h5  class=" me-2 mb-0">${{ featuredProduct.variants[0].sale_price }} / {{ featuredProduct.variants[0].size }}</h5>
+                                                        <h6 class="text-danger text-decoration-line-through mb-0">${{ featuredProduct.variants[0].price }}/ {{ featuredProduct.variants[0].size }}</h6>
+                                                    </div>
+                                                    <div v-else class="d-flex mb-2">
+                                                        <h5  class=" me-2">${{ featuredProduct.variants[0].price }} / {{ featuredProduct.variants[0].size }}</h5>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h6 class="mb-2">{{ featuredProduct.name || 'Fruits' }}</h6>
-                                                <div class="d-flex mb-2">
-                                                    <i class="fa fa-star text-secondary"></i>
-                                                    <i class="fa fa-star text-secondary"></i>
-                                                    <i class="fa fa-star text-secondary"></i>
-                                                    <i class="fa fa-star text-secondary"></i>
-                                                    <i class="fa fa-star"></i>
-                                                </div>
-                                                <div v-if="featuredProduct.sale_price" class="d-flex mb-2 align-items-center">
-                                                    <h5  class="fw-bold me-2 mb-0">${{ featuredProduct.sale_price }} / kg</h5>
-                                                    <h6 class="text-danger text-decoration-line-through mb-0">${{ featuredProduct.price }}/ kg</h6>
-                                                </div>
-                                                <div v-else class="d-flex mb-2">
-                                                    <h5  class="fw-bold me-2">${{ featuredProduct.price }} / kg</h5>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        </Link>
                                     </div>
                                 </div>
                                 <div class="col-lg-12">
@@ -641,7 +644,7 @@ export default {
         } catch (error) {
             console.error('❌ Error in mounted:', error);
         }
-
+        console.log(this.featuredProducts)
         // Initialize wishlist
         await this.initializeWishlist();
     },
@@ -772,13 +775,13 @@ export default {
             const icons = {
                 'Fresh Fruits': 'fas fa-apple-alt',
                 'Fresh Vegetables': 'fas fa-carrot',
-                'Dried Products': 'fas fa-seedling',
-                'Jam Products': 'fas fa-jar',
-                'Berries': 'fas fa-berry',
+                'Dried Products': 'fas fa-leaf',
+                'Jam Products': 'fas fa-prescription-bottle',
+                'Berries': 'fas fa-apple-alt',
                 'Citrus': 'fas fa-lemon',
-                'Stone Fruits': 'fas fa-peach',
-                'Tropical': 'fas fa-palm-tree',
-                'Others': 'fas fa-apple-alt'
+                'Stone Fruits': 'fas fa-seedling',
+                'Tropical': 'fas fa-umbrella-beach',
+                'Others': 'fas fa-box'
             };
 
             return icons[categoryName] || 'fas fa-apple-alt';

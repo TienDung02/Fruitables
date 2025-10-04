@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ProductMediaSeeder::class, // ✅ THÊM: ProductMediaSeeder
             ReviewSeeder::class,
             UserAddressSeeder::class, // ✅ THÊM: UserAddressSeeder
+            OrderSeeder::class, // ✅ THÊM: OrderSeeder
         ]);
     }
 }

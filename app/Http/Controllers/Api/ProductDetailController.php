@@ -96,6 +96,7 @@ class ProductDetailController extends Controller
         ]);
     }
 
+
     /**
      * Remove cart item.
      */

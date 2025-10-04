@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
+    use HasFactory;
+
     // Tắt auto-incrementing vì sử dụng string ID
     public $incrementing = false;
     protected $keyType = 'string';
@@ -40,6 +43,7 @@ class Order extends Model
     ];
 
     const STATUS_PENDING = 'pending';
+    const STATUS_CONFIRMED = 'confirmed'; // Thêm status confirmed theo migration
     const STATUS_PROCESSING = 'processing';
     const STATUS_SHIPPED = 'shipped';
     const STATUS_DELIVERED = 'delivered';
@@ -71,6 +75,8 @@ class Order extends Model
      */
     public static function generateOrderNumber(): string
     {
-        return 'ORD-' . date('Y') . '-' . str_pad(static::count() + 1, 6, '0', STR_PAD_LEFT);
+        $timestamp = now()->format('YmdHis');
+        $random = str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        return 'ORD-' . $timestamp . '-' . $random;
     }
 }

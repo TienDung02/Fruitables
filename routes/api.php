@@ -8,11 +8,19 @@ use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\UserAddressController;
 use App\Http\Controllers\Api\MoMoPaymentController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+// Dashboard routes
+Route::get('dashboard', [DashboardController::class, 'index']);
+Route::get('dashboard/data', [DashboardController::class, 'getDashboardData']);
+Route::get('dashboard/products/all', [DashboardController::class, 'allProducts']);
+Route::get('dashboard/products/featured', [DashboardController::class, 'featuredProducts']);
+Route::get('dashboard/products/bestsellers', [DashboardController::class, 'bestsellingProducts']);
 
-
+Route::get('products/bestsellers', [ProductController::class, 'bestsellers']);
 Route::get('products/featured', [ProductController::class, 'featured']);
 
 // Public routes
@@ -37,6 +45,7 @@ Route::prefix('session')->group(function () {
     Route::delete('cart/clear', [SessionController::class, 'clearSessionCart']);
     Route::get('cart/checkout', [SessionController::class, 'checkoutInfo']);
     Route::post('cart/checkout', [SessionController::class, 'checkout']);
+    Route::post('cart/draft', [SessionController::class, 'cartDraft']);
 
     Route::get('wishlist', [SessionController::class, 'getSessionWishlist']);
     Route::post('wishlist', [SessionController::class, 'addToSessionWishlist']);
@@ -73,8 +82,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('wishlist', [WishlistController::class, 'index']);
     Route::post('wishlist', [WishlistController::class, 'store']);
     Route::delete('wishlist/{id}', [WishlistController::class, 'destroy']);
-    Route::post('wishlist/sync', [WishlistController::class, 'syncWishlist']);
+//    Route::post('wishlist/sync', [WishlistController::class, 'syncWishlist']);
     Route::get('wishlist/ids', [WishlistController::class, 'getWishlistIds']);
+
+    // Profile API routes
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::put('profile', [ProfileController::class, 'update']);
+    Route::patch('profile/password', [ProfileController::class, 'changePassword']);
 });
 
 // Admin routes (requires admin role)

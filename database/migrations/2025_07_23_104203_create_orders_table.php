@@ -18,7 +18,7 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2);
             $table->decimal('shipping_cost', 8, 2)->default(0);
             $table->decimal('total', 10, 2);
-            $table->enum('payment_method', ['cod', 'momo', 'bank_transfer'])->default('cod');
+            $table->enum('payment_method', ['cod', 'momo', 'card'])->default('cod');
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->string('shipping_method', 100)->nullable(); // Giới hạn độ dài
             $table->json('customer_info'); // Lưu thông tin khách hàng dưới dạng JSON

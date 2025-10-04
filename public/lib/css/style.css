@@ -1060,3 +1060,370 @@ input[type='radio']:checked:after {
     visibility: visible;
     border: 2px solid #ffa500;
 }
+.fruite-item > a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+}
+.p-4.rounded.bg-light {
+     position: relative;
+     transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+ }
+.shopee-clone-body {
+    background-color: #f5f5f5;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    padding: 20px 0;
+}
+
+.shopee-clone-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Sidebar Styles */
+.shopee-clone-sidebar {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.shopee-clone-user-info {
+    display: flex;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #efefef;
+    margin-bottom: 20px;
+}
+
+.shopee-clone-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 12px;
+    object-fit: cover;
+}
+
+.shopee-clone-user-details {
+    flex: 1;
+}
+
+.shopee-clone-username {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 5px 0;
+    color: #333;
+}
+
+.shopee-clone-edit-profile {
+    font-size: 14px;
+    color: #888;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.shopee-clone-edit-profile:hover {
+    color: #ee4d2d;
+}
+
+/* Navigation Styles */
+.shopee-clone-nav {
+    padding: 0;
+}
+
+.shopee-clone-nav-section {
+    margin-bottom: 20px;
+}
+
+.shopee-clone-nav-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.shopee-clone-nav-icon {
+    font-size: 18px;
+    color: #4a90e2;
+}
+
+.shopee-clone-nav-list {
+    list-style: none;
+    padding-left: 28px;
+    margin: 0;
+}
+
+.shopee-clone-nav-item {
+    margin-bottom: 8px;
+}
+
+.shopee-clone-nav-link {
+    color: #555;
+    text-decoration: none;
+    font-size: 14px;
+    display: block;
+    padding: 5px 0;
+    transition: color 0.2s;
+    cursor: pointer;
+}
+
+.shopee-clone-nav-link:hover {
+    color: #ffb524;
+}
+
+.shopee-clone-nav-item.active .shopee-clone-nav-link {
+    color: #ffb524 !important;
+    font-weight: 500;
+}
+
+/* Main Content Styles */
+.shopee-clone-main-content {
+    padding-left: 20px;
+}
+
+.shopee-clone-content-card {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 2px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.shopee-clone-card-header {
+    border-bottom: 1px solid #efefef;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.shopee-clone-card-title {
+    font-size: 18px;
+    font-weight: 500;
+    color: #333;
+    margin: 0 0 5px 0;
+}
+
+.shopee-clone-card-subtitle {
+    font-size: 14px;
+    color: #888;
+    margin: 0;
+}
+
+/* Added tab content display styles */
+.shopee-clone-tab-content {
+    display: none;
+}
+
+.shopee-clone-tab-content.active {
+    display: block;
+}
+
+/* Form Styles */
+.shopee-clone-profile-form {
+    padding-right: 30px;
+}
+
+.shopee-clone-form-group {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.shopee-clone-form-label {
+    width: 150px;
+    text-align: right;
+    padding-right: 20px;
+    color: #555;
+    font-size: 14px;
+    margin: 0;
+}
+
+.shopee-clone-form-value {
+    flex: 1;
+    color: #333;
+    font-size: 14px;
+}
+
+.shopee-clone-form-value-with-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #333;
+    font-size: 14px;
+}
+
+.shopee-clone-change-link {
+    color: #4a90e2;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.shopee-clone-change-link:hover {
+    color: #ffb524;
+}
+
+.shopee-clone-form-input,
+.shopee-clone-form-select {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 2px;
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.shopee-clone-form-input:focus,
+.shopee-clone-form-select:focus {
+    border-color: #ffb524;
+    box-shadow: 0 0 0 2px rgba(238, 77, 45, 0.1);
+    outline: none;
+}
+
+.shopee-clone-gender-options {
+    flex: 1;
+}
+
+.shopee-clone-radio {
+    cursor: pointer;
+}
+
+.shopee-clone-radio:checked {
+    background-color: #ffb524;
+    border-color: #ffb524;
+}
+
+.shopee-clone-radio-label {
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+}
+
+.shopee-clone-save-btn {
+    background-color: #ffb524;
+    color: white;
+    border: none;
+    padding: 10px 40px;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.shopee-clone-save-btn:hover {
+    background-color: #ffb524;
+}
+
+/* Avatar Section Styles */
+.shopee-clone-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-left: 1px solid #efefef;
+    padding-left: 30px;
+}
+
+.shopee-clone-avatar-preview {
+    margin-bottom: 20px;
+}
+
+.shopee-clone-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+}
+
+.shopee-clone-upload-btn {
+    background-color: white;
+    color: #555;
+    border: 1px solid #ddd;
+    padding: 8px 30px;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    transition: border-color 0.2s;
+}
+
+.shopee-clone-upload-btn:hover {
+    border-color: #ffb524;
+    color: #ffb524;
+}
+
+.shopee-clone-avatar-note {
+    text-align: center;
+}
+
+.shopee-clone-avatar-note p {
+    font-size: 12px;
+    color: #999;
+    margin: 3px 0;
+}
+
+/* Added styles for order and notification lists */
+.shopee-clone-order-item,
+.shopee-clone-notification-item {
+    border: 1px solid #efefef;
+    padding: 20px;
+    margin-bottom: 15px;
+    border-radius: 2px;
+}
+
+.shopee-clone-order-item:hover,
+.shopee-clone-notification-item:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.shopee-clone-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+}
+
+.shopee-clone-empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+    .shopee-clone-sidebar {
+        margin-bottom: 20px;
+    }
+
+    .shopee-clone-main-content {
+        padding-left: 15px;
+    }
+
+    .shopee-clone-form-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .shopee-clone-form-label {
+        width: 100%;
+        text-align: left;
+        padding-right: 0;
+        margin-bottom: 8px;
+    }
+
+    .shopee-clone-avatar-section {
+        border-left: none;
+        border-top: 1px solid #efefef;
+        padding-left: 0;
+        padding-top: 30px;
+        margin-top: 30px;
+    }
+
+    .shopee-clone-profile-form {
+        padding-right: 0;
+    }
+}

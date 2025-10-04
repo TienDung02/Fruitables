@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
@@ -203,6 +204,71 @@ class ProductController extends Controller
             ->limit(4)
             ->get();
         return $topRatedProducts;
+    }
+
+    /**
+     * Get best-selling products (most sold products).
+     */
+    public function bestsellers(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 6);
+
+            // Lấy top product variants dựa trên tổng số lượng bán
+            $topVariants = ProductVariant::with(['orderItems', 'product', 'product.category', 'product.media'])
+                ->whereHas('orderItems') // ProductVariant có relation orderItems trực tiếp
+                ->where('is_active', true)
+                ->get()
+                ->map(function ($variant) {
+                    // Tính tổng số lượng bán cho variant này
+                    $totalSold = $variant->orderItems->sum('quantity');
+                    $totalOrders = $variant->orderItems->count();
+
+                    $variant->total_sold = $totalSold;
+                    $variant->total_orders = $totalOrders;
+
+                    return $variant;
+                })
+                ->sortByDesc('total_sold')
+                ->take($limit * 2); // Lấy nhiều hơn để đảm bảo có đủ unique products
+
+            // Group theo product và lấy product có tổng bán cao nhất
+            $bestsellingProducts = $topVariants
+                ->groupBy('product_id')
+                ->map(function ($variants) {
+                    // Tính tổng số lượng bán của tất cả variants của product này
+                    $totalSold = $variants->sum('total_sold');
+                    $totalOrders = $variants->sum('total_orders');
+
+                    $product = $variants->first()->product;
+
+                    // Load thêm variants relation nếu chưa có
+                    if (!$product->relationLoaded('variants')) {
+                        $product->load('variants');
+                    }
+
+                    $product->total_sold = $totalSold;
+                    $product->total_orders = $totalOrders;
+                    $product->bestselling_variants_count = $variants->count();
+
+                    return $product;
+                })
+                ->sortByDesc('total_sold')
+                ->take($limit)
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $bestsellingProducts
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch best-selling products',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
     /**
      * Store a newly created resource in storage.

@@ -31,16 +31,6 @@
                     <div class="navbar-nav mx-auto">
                         <Link :href="route('dashboard')" class="nav-item nav-link active">Home</Link>
                         <Link :href="route('products.index')" class="nav-item nav-link">Shop</Link>
-                        <a href="shop-detail.html" class="nav-item nav-link">Shop Detail</a>
-                        <div class="nav-item dropdown">
-                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Pages</a>
-                            <div class="dropdown-menu m-0 bg-secondary rounded-0">
-                                <a href="cart.html" class="dropdown-item">Cart</a>
-                                <a href="chackout.html" class="dropdown-item">Chackout</a>
-                                <a href="testimonial.html" class="dropdown-item">Testimonial</a>
-                                <a href="404.html" class="dropdown-item">404 Page</a>
-                            </div>
-                        </div>
                         <a href="contact.html" class="nav-item nav-link">Contact</a>
                     </div>
                     <div class="d-flex m-3 me-0">
@@ -56,6 +46,7 @@
                                 <!--                                <li><Link class="dropdown-item"><i class="fas fa-user-edit me-2"></i>Profile</Link></li>-->
                                 <!--                                <li><Link  class="dropdown-item"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</Link></li>-->
                                 <li><hr class="dropdown-divider"></li>
+
                                 <li>
                                     <Link :href="route('cart.index')" class="dropdown-item">
                                         <i class="fas fa-shopping-cart me-2"></i>
@@ -68,8 +59,14 @@
                                         Wishlist
                                     </Link>
                                 </li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
+                                <li v-if="authStore.isLoggedIn"><hr class="dropdown-divider"></li>
+                                <li v-if="authStore.isLoggedIn">
+                                    <Link :href="route('profile.index')" class="dropdown-item">
+                                        <i class="fas fa-user me-2"></i>
+                                        My Account
+                                    </Link>
+                                </li>
+                                <li v-if="authStore.isLoggedIn">
                                     <button
                                         @click="handleLogout"
                                         class="dropdown-item text-danger"
