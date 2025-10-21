@@ -12,16 +12,27 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-
+        // Create users first
         User::factory(10)->create();
 
         $this->call([
+            // Location data (provinces, districts, wards)
+            ProvinceSeeder::class,
+            DistrictSeeder::class,
+            WardSeeder::class,
+
+            // Product related
             CategorySeeder::class,
             ProductSeeder::class,
-            ProductMediaSeeder::class, // ✅ THÊM: ProductMediaSeeder
+            ProductMediaSeeder::class,
             ReviewSeeder::class,
-            UserAddressSeeder::class, // ✅ THÊM: UserAddressSeeder
-            OrderSeeder::class, // ✅ THÊM: OrderSeeder
+
+            // User related (depends on users and wards)
+            UserAddressSeeder::class,
+            UserNotificationSeeder::class,
+
+            // Order related (depends on users, products)
+            OrderSeeder::class,
         ]);
     }
 }

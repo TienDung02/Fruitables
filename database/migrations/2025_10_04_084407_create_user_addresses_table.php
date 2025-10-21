@@ -13,21 +13,19 @@ return new class extends Migration
     {
         Schema::create('user_addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('company_name')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('name');
+            $table->string('phone');
             $table->text('address');
-            $table->string('city');
-            $table->string('country');
-            $table->string('postcode');
-            $table->string('mobile');
-            $table->string('email');
-            $table->text('notes')->nullable();
+            $table->integer('ward_id')->nullable();
+            $table->foreign('ward_id')->references('id')->on('wards');
+            $table->enum('label', ['home', 'work', 'other'])->default('home');
             $table->boolean('is_default')->default(false);
-            $table->enum('type', ['billing', 'shipping', 'both'])->default('both');
             $table->timestamps();
         });
+
+
+
     }
 
     /**

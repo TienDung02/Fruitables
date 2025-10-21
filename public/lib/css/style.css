@@ -1233,6 +1233,9 @@ input[type='radio']:checked:after {
     align-items: center;
     margin-bottom: 25px;
 }
+.bg-body-secondary{
+    background-color: #6c757d1f !important;
+}
 
 .shopee-clone-form-label {
     width: 150px;
@@ -1427,3 +1430,91 @@ input[type='radio']:checked:after {
         padding-right: 0;
     }
 }
+.file-input-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.file-input-label {
+    display: inline-block;
+    padding: 8px 24px;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #495057;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.file-input-label:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+}
+
+.file-info {
+    font-size: 12px;
+    color: #6c757d;
+    line-height: 1.6;
+}
+/* Custom input */
+
+.input-custom {
+    /*height: 50px;*/
+    font-size: 16px;
+    padding: 11px 15px;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+    border-radius: 13px;
+    border: 2px solid #e5f1d6;
+}
+.placeholder-custom {
+    pointer-events: none;
+    position: absolute;
+    font-weight: 400;
+    top: 18px;
+    left: 8px;
+    padding: 0 8px;
+    background-color: white;
+    border-radius: 5px;
+    transition: transform 250ms cubic-bezier(0.4,0,0.2,1), opacity 250ms cubic-bezier(0.4,0,0.2,1);
+    color: grey;
+}
+
+.input-custom:not(:placeholder-shown).input-custom:not(:focus) + .placeholder-custom {
+    transform: scale(.75) translateY(-10px) translateX(-20%);
+    color: #CBD8E3;
+    transition: .2s ease;
+}
+
+.input-custom:focus + .placeholder-custom {
+    transform: scale(.75) translateY(-10px) translateX(20%);
+    color: #0088ff;
+    transition: .2s ease;
+}
+
+.input-custom:invalid:not(:placeholder-shown){
+    transition: .2s ease;
+    border-color:#F52C5C;
+}
+
+.input-custom:invalid:not(:placeholder-shown) + .placeholder-custom{
+    transition: .2s ease;
+    color:#F52C5C;
+}
+.input-custom:invalid:not(:placeholder-shown).input-custom:not(:focus) + .placeholder-custom {
+    transform: scale(.75) translateY(-36px) translateX(-15%);
+    color: #F52C5C;
+    transition: .2s ease;
+}
+/* End custom input */

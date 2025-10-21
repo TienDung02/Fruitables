@@ -20,7 +20,7 @@
             <div class="container py-5 row m-auto">
                 <div class="col-3">
                     <div class="shopee-clone-user-info">
-                        <img src="/images/img/User-avatar.png" alt="Avatar" class="shopee-clone-avatar">
+                        <img :src="profileForm.avatar ? '/' + profileForm.avatar : '/images/img/User-avatar.png'" alt="Avatar" class="shopee-clone-avatar">
                         <div class="shopee-clone-user-details">
                             <h6 class="shopee-clone-username">nguyenvana</h6>
                             <a href="#" class="shopee-clone-edit-profile">
@@ -46,9 +46,6 @@
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'password' }">
                                     <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('password')"><i class="bi bi-key shopee-clone-nav-icon me-2"></i>Change Password</a>
                                 </li>
-                                <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'privacy' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('privacy')"><i class="bi bi-shield-lock shopee-clone-nav-icon me-2"></i>Privacy Settings</a>
-                                </li>
                             </ul>
                         </div>
                     </nav>
@@ -67,30 +64,57 @@
 
                             <div class="row">
                                 <div class="col-md-8">
-                                    <form class="shopee-clone-profile-form">
+                                    <form class="shopee-clone-profile-form" @submit.prevent="updateProfile">
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label">Username</label>
-                                            <div class="shopee-clone-form-value">nguyenvana</div>
+                                            <div class="shopee-clone-form-value">{{ profileForm.username }} </div>
+<!--                                            <div class="shopee-clone-form-value">{{ profileForm.dob.month }} </div>-->
                                         </div>
 
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label">Name</label>
-                                            <input type="text" class="form-control shopee-clone-form-input" value="Nguyen Van A">
+                                            <input type="text" class="form-control shopee-clone-form-input" v-model="profileForm.full_name">
                                         </div>
 
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label">Email</label>
                                             <div class="shopee-clone-form-value-with-action">
-                                                <span>ng***a@gmail.com</span>
-                                                <a href="#" class="shopee-clone-change-link">Change</a>
+                                                <span>{{ showFullEmail ? auth?.user?.email : maskEmail(auth?.user?.email) }}</span>
+                                                <a href="#" class="shopee-clone-change-link" @click.prevent="toggleEmailVisibility">
+                                                    <i :class="showFullEmail ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                                                </a>
                                             </div>
                                         </div>
 
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label">Phone Number</label>
-                                            <div class="shopee-clone-form-value-with-action">
-                                                <span>*******789</span>
-                                                <a href="#" class="shopee-clone-change-link">Change</a>
+                                            <div class="shopee-clone-form-value-with-action" v-if="!isEditingPhone">
+                                                <span>{{ maskPhone(auth?.user?.phone) }}</span>
+                                                <a href="#" class="shopee-clone-change-link" @click.prevent="startEditPhone">Change</a>
+                                            </div>
+                                            <div v-else class="d-flex align-items-center gap-2">
+                                                <input
+                                                    type="text"
+                                                    class="form-control shopee-clone-form-input flex-grow-1"
+                                                    v-model="phoneForm.phone"
+                                                    placeholder="Enter new phone number"
+                                                >
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-primary"
+                                                    @click="savePhone"
+                                                    :disabled="isLoadingPhone"
+                                                >
+                                                    <span v-if="isLoadingPhone" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                                    Save
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-secondary"
+                                                    @click="cancelEditPhone"
+                                                >
+                                                    Cancel
+                                                </button>
                                             </div>
                                         </div>
 
@@ -98,53 +122,98 @@
                                             <label class="shopee-clone-form-label">Gender</label>
                                             <div class="shopee-clone-gender-options">
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input shopee-clone-radio" type="radio" name="gender" id="male" value="male">
+                                                    <input
+                                                        class="form-check-input shopee-clone-radio"
+                                                        type="radio"
+                                                        name="gender"
+                                                        id="male"
+                                                        value="male"
+                                                        v-model="profileForm.gender"
+                                                        :disabled="isGenderDisabled"
+                                                    >
                                                     <label class="form-check-label shopee-clone-radio-label" for="male">Male</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input shopee-clone-radio" type="radio" name="gender" id="female" value="female" checked>
+                                                    <input
+                                                        class="form-check-input shopee-clone-radio"
+                                                        type="radio"
+                                                        name="gender"
+                                                        id="female"
+                                                        value="female"
+                                                        v-model="profileForm.gender"
+                                                        :disabled="isGenderDisabled"
+                                                    >
                                                     <label class="form-check-label shopee-clone-radio-label" for="female">Female</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
-                                                    <input class="form-check-input shopee-clone-radio" type="radio" name="gender" id="other" value="other">
+                                                    <input
+                                                        class="form-check-input shopee-clone-radio"
+                                                        type="radio"
+                                                        name="gender"
+                                                        id="other"
+                                                        value="other"
+                                                        v-model="profileForm.gender"
+                                                        :disabled="isGenderDisabled"
+                                                    >
                                                     <label class="form-check-label shopee-clone-radio-label" for="other">Other</label>
                                                 </div>
                                             </div>
+                                            <small v-if="isGenderDisabled" class="text-muted">Gender cannot be changed once set</small>
                                         </div>
 
-                                        <div class="shopee-clone-form-group">
+                                        <div class="shopee-clone-form-group mb-3">
                                             <label class="shopee-clone-form-label">Date of Birth</label>
-                                            <div class="row g-2">
+                                            <div class="row g-2 w-75">
+                                                <!-- DAY -->
                                                 <div class="col-4">
-                                                    <select class="form-select shopee-clone-form-select">
-                                                        <option>1</option>
-                                                        <option>2</option>
-                                                        <option selected>15</option>
-                                                        <option>30</option>
+                                                    <select
+                                                        class="form-select shopee-clone-form-select"
+                                                        v-model="profileForm.dob.day"
+                                                        :disabled="isDobDisabled"
+                                                    >
+                                                        <option value="">Day</option>
+                                                        <option v-for="day in daysInMonth" :key="day" :value="day">
+                                                            {{ day }}
+                                                        </option>
                                                     </select>
                                                 </div>
+
+                                                <!-- MONTH -->
                                                 <div class="col-4">
-                                                    <select class="form-select shopee-clone-form-select">
-                                                        <option>January</option>
-                                                        <option>February</option>
-                                                        <option selected>May</option>
-                                                        <option>December</option>
+                                                    <select
+                                                        class="form-select shopee-clone-form-select"
+                                                        v-model="profileForm.dob.month"
+                                                        :disabled="isDobDisabled"
+                                                    >
+                                                        <option value="">Month</option>
+                                                        <option v-for="(month, index) in months" :key="index" :value="index + 1">
+                                                            {{ month }}
+                                                        </option>
                                                     </select>
                                                 </div>
+
+                                                <!-- YEAR -->
                                                 <div class="col-4">
-                                                    <select class="form-select shopee-clone-form-select">
-                                                        <option>1990</option>
-                                                        <option selected>1995</option>
-                                                        <option>2000</option>
-                                                        <option>2005</option>
+                                                    <select
+                                                        class="form-select shopee-clone-form-select"
+                                                        v-model="profileForm.dob.year"
+                                                        :disabled="isDobDisabled"
+                                                    >
+                                                        <option value="">Year</option>
+                                                        <option v-for="year in years" :key="year" :value="year">
+                                                            {{ year }}
+                                                        </option>
                                                     </select>
                                                 </div>
                                             </div>
                                         </div>
-
+                                        <div v-if="isDobDisabled" class="text-muted mb-4 text-center">Date of birth cannot be changed once set</div>
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label"></label>
-                                            <button type="submit" class="btn shopee-clone-save-btn">Save</button>
+                                            <button type="submit" class="btn shopee-clone-save-btn" :disabled="isLoading">
+                                                <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                Save
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -152,9 +221,15 @@
                                 <div class="col-md-4">
                                     <div class="shopee-clone-avatar-section">
                                         <div class="shopee-clone-avatar-preview">
-                                            <img src="/images/img/User-avatar.png" alt="Avatar" class="shopee-clone-avatar-large">
+                                            <img :src="previewImage || (profileForm.avatar ? '/' + profileForm.avatar : '/images/img/User-avatar.png')" alt="Avatar" class="shopee-clone-avatar-large" />
                                         </div>
-                                        <button class="btn shopee-clone-upload-btn">Select Image</button>
+<!--                                        <input class="btn shopee-clone-upload-btn" type="file" value="Select Image">-->
+                                        <div class="file-input-wrapper">
+                                            <label class="file-input-label">
+                                                Chọn Ảnh
+                                                <input type="file" id="fileInput" accept="image/jpeg,image/png" @change="onFileSelected">
+                                            </label>
+                                        </div>
                                         <div class="shopee-clone-avatar-note">
                                             <p>Maximum file size 1 MB</p>
                                             <p>Format: .JPEG, .PNG</p>
@@ -168,42 +243,74 @@
                     <!-- Notifications Tab Content -->
                     <div v-show="activeTab === 'notifications'" class=" bg-light rounded">
                         <div class="shopee-clone-content-card">
-                            <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">Notifications</h5>
-                                <p class="shopee-clone-card-subtitle">Manage your notifications</p>
+                            <div class="shopee-clone-card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="shopee-clone-card-title">Notifications</h5>
+                                    <p class="shopee-clone-card-subtitle">Manage your notifications</p>
+                                </div>
+                                <div v-if="hasUnreadNotifications">
+                                    <button
+                                        class="btn btn-primary btn-sm"
+                                        @click="markAllAsRead"
+                                        :disabled="markingAllAsRead"
+                                    >
+                                        <i class="bi bi-check2-all"></i>
+                                        {{ markingAllAsRead ? 'Marking...' : 'Mark All as Read' }}
+                                    </button>
+                                </div>
                             </div>
 
-                            <div class="shopee-clone-notification-item">
+                            <div
+                                v-for="notification in userNotifications"
+                                :key="notification.id"
+                                class="shopee-clone-notification-item rounded"
+                                :class="{ 'bg-body-secondary bg-opacity-10': !notification.is_read }"
+                            >
                                 <div class="d-flex align-items-start">
-                                    <i class="bi bi-bell-fill text-warning me-3" style="font-size: 24px;"></i>
+                                    <div class="position-relative me-3">
+                                        <i
+                                            :class="notification.icon"
+                                            class="text-warning"
+                                            style="font-size: 24px;"
+                                        ></i>
+                                        <!-- Unread indicator dot -->
+                                        <span
+                                            v-if="!notification.is_read"
+                                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                            style="font-size: 8px; width: 8px; height: 8px;"
+                                        >
+                                        </span>
+                                    </div>
                                     <div class="flex-grow-1">
-                                        <h6 class="mb-1">Order delivered successfully</h6>
-                                        <p class="text-muted mb-1" style="font-size: 14px;">Order #123456 has been delivered to you. Please rate the product.</p>
-                                        <small class="text-muted">2 hours ago</small>
+                                        <h6 class="mb-1" :class="{ 'fw-bold': !notification.is_read }">
+                                            {{ notification.title }}
+                                        </h6>
+                                        <p class="text-muted mb-1" style="font-size: 14px;">
+                                            {{ notification.message }}
+                                        </p>
+                                        <small class="text-muted">{{ notification.created_at }}</small>
+                                    </div>
+                                    <div>
+                                        <button
+                                            v-if="!notification.is_read"
+                                            class="btn btn-outline-primary btn-sm"
+                                            @click="markAsRead(notification.id)"
+                                            :disabled="markingAsRead[notification.id]"
+                                        >
+                                            <i class="bi bi-check2-circle"></i>
+                                            {{ markingAsRead[notification.id] ? 'Marking...' : 'Mark as read' }}
+                                        </button>
+                                        <span v-else class="badge bg-success">
+                                            <i class="bi bi-check-circle"></i> Read
+                                        </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="shopee-clone-notification-item">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-tag-fill text-danger me-3" style="font-size: 24px;"></i>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">New voucher for you</h6>
-                                        <p class="text-muted mb-1" style="font-size: 14px;">You have a 50,000đ discount voucher for your next order.</p>
-                                        <small class="text-muted">1 day ago</small>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="shopee-clone-notification-item">
-                                <div class="d-flex align-items-start">
-                                    <i class="bi bi-truck text-primary me-3" style="font-size: 24px;"></i>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">Order is being shipped</h6>
-                                        <p class="text-muted mb-1" style="font-size: 14px;">Order #123455 is on its way to you.</p>
-                                        <small class="text-muted">3 days ago</small>
-                                    </div>
-                                </div>
+                            <!-- Empty state -->
+                            <div v-if="userNotifications.length === 0" class="text-center py-5">
+                                <i class="bi bi-bell-slash text-muted" style="font-size: 48px;"></i>
+                                <p class="text-muted mt-3">No notifications yet</p>
                             </div>
                         </div>
                     </div>
@@ -216,52 +323,39 @@
                                 <p class="shopee-clone-card-subtitle">Manage your orders</p>
                             </div>
 
-                            <div class="shopee-clone-order-item">
+                            <div class="shopee-clone-order-item rounded" v-for="order in userOrders" :key="order.id">
                                 <div class="d-flex justify-content-between align-items-start mb-3">
                                     <div>
-                                        <span class="badge bg-success">Delivered</span>
-                                        <span class="ms-2 text-muted" style="font-size: 14px;">Order ID: #123456</span>
+                                      <span class="badge fs-6"
+                                            :class="order.status === 'delivered' ? 'bg-success' : 'bg-warning text-dark'">
+                                        {{ capitalize(order.status) }}
+                                      </span>
+                                        <span class="ms-2 text-muted" style="font-size: 14px;">Order ID: #{{ order.id }}</span>
                                     </div>
-                                    <span class="text-muted" style="font-size: 14px;">15/03/2024</span>
+                                    <span class="text-muted" style="font-size: 14px;">{{ formatDate(order.created_at) }}</span>
                                 </div>
-                                <div class="d-flex">
-                                    <img src="/placeholder.svg?height=80&width=80" alt="Product" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
-                                    <div class="ms-3 flex-grow-1">
-                                        <h6 class="mb-1">Premium Men's Cotton T-shirt</h6>
-                                        <p class="text-muted mb-1" style="font-size: 14px;">Variant: White, Size M</p>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">x1</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <p class="mb-0 text-danger fw-bold">₫299.000</p>
-                                    </div>
+                                <hr>
+                                <!-- Danh sách item trong order -->
+                                <div v-for="(item, idx) in order.items" :key="idx" class=" mb-2 pt-2 pb-3 border-bottom">
+                                    <Link :href="route('detail.index', item.product_id)" class="d-flex w-100">
+                                        <img :src="item.image || '/placeholder.svg?height=80&width=80'" alt="Product"
+                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
+                                        <div class="ms-3 flex-grow-1">
+                                            <h6 class="mb-1 fs-5">{{ item.product_name }}</h6>
+                                            <p class="text-muted mb-1" style="font-size: 14px;">Variant: {{ item.variant_size || '-' }}</p>
+                                            <p class="text-muted mb-0" style="font-size: 14px;">x{{ item.quantity }}</p>
+                                        </div>
+                                        <div class="text-end d-flex align-items-center">
+                                            <p class="mb-0 text-danger fw-bold fs-6">₫{{ formatCurrency(item.price * 1 * item.quantity) }}</p>
+                                        </div>
+                                    </Link>
                                 </div>
-                                <div class="d-flex justify-content-end mt-3">
-                                    <button class="btn btn-outline-secondary btn-sm me-2">Buy Again</button>
-                                    <button class="btn btn-outline-secondary btn-sm">Contact Seller</button>
-                                </div>
-                            </div>
 
-                            <div class="shopee-clone-order-item">
-                                <div class="d-flex justify-content-between align-items-start mb-3">
-                                    <div>
-                                        <span class="badge bg-warning text-dark">Shipping</span>
-                                        <span class="ms-2 text-muted" style="font-size: 14px;">Order ID: #123455</span>
-                                    </div>
-                                    <span class="text-muted" style="font-size: 14px;">18/03/2024</span>
-                                </div>
-                                <div class="d-flex">
-                                    <img src="/placeholder.svg?height=80&width=80" alt="Product" style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
-                                    <div class="ms-3 flex-grow-1">
-                                        <h6 class="mb-1">Unisex Sport Shoes</h6>
-                                        <p class="text-muted mb-1" style="font-size: 14px;">Variant: Black, Size 42</p>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">x1</p>
-                                    </div>
-                                    <div class="text-end">
-                                        <p class="mb-0 text-danger fw-bold">₫450.000</p>
-                                    </div>
+                                <div class="d-flex justify-content-end my-4 fs-5">
+                                        Total: <span class="text-danger fw-bold fs-5 ms-5">₫{{ formatCurrency(order.total) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button class="btn btn-outline-secondary btn-sm">Contact Seller</button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 fs-5 fw-bold px-3 py-2" @click="reorder(order)">Buy Again</button>
                                 </div>
                             </div>
                         </div>
@@ -275,12 +369,12 @@
                                 <p class="shopee-clone-card-subtitle">Manage your shipping addresses</p>
                             </div>
 
-                            <button class="btn shopee-clone-save-btn mb-4" @click="showAddressDialog = true">
+                            <button class="btn shopee-clone-save-btn mb-4 rounded" @click="openAddressDialog">
                                 <i class="bi bi-plus-lg me-2"></i>Add New Address
                             </button>
 
                             <!-- Address List -->
-                            <div class="border rounded p-3 mb-3" v-for="address in addresses" :key="address.id">
+                            <div class="border rounded p-3 mb-3" v-for="address in userAddresses" :key="address.id">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
                                         <div class="mb-2">
@@ -300,7 +394,7 @@
                             </div>
 
                             <!-- Empty State -->
-                            <div v-if="addresses.length === 0" class="text-center py-5">
+                            <div v-if="userAddresses.length === 0" class="text-center py-5">
                                 <i class="bi bi-geo-alt" style="font-size: 3rem; color: #ccc;"></i>
                                 <p class="text-muted mt-3">No addresses added yet</p>
                             </div>
@@ -308,7 +402,7 @@
 
                         <!-- Address Dialog Modal -->
                         <div class="modal fade" :class="{ show: showAddressDialog }" :style="{ display: showAddressDialog ? 'block' : 'none' }" tabindex="-1" v-if="showAddressDialog">
-                            <div class="modal-dialog modal-lg">
+                            <div class="modal-dialog modal-md">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title">{{ isEditMode ? 'Update Address' : 'New Address' }}</h5>
@@ -328,7 +422,7 @@
                                             <div class="position-relative mb-3">
                                                 <div class="border rounded p-2 d-flex justify-content-between align-items-center" style="cursor: pointer; min-height: 38px;" @click="toggleLocationDropdown">
                                                     <span :class="{ 'text-muted': !locationDisplayText }">
-                                                        {{ locationDisplayText || 'City, District, Ward' }}
+                                                        {{ defaultAddress !== '' && locationDisplayText === '' && isEditMode ? defaultAddress : locationDisplayText !== '' ? locationDisplayText : 'City, District, Ward' }}
                                                     </span>
                                                     <div class="d-flex align-items-center gap-2">
                                                         <button type="button" class="btn btn-sm p-0" @click.stop="clearLocation" v-if="locationDisplayText" style="border: none; background: none;">
@@ -396,7 +490,10 @@
 
                                             <div class="d-flex justify-content-end gap-2">
                                                 <button type="button" class="btn btn-secondary" @click="closeAddressDialog">Cancel</button>
-                                                <button type="button" class="btn text-white" style="background-color: #ee4d2d;" @click="saveAddress">Submit</button>
+                                                <button type="button" class="btn text-white" style="background-color: #ee4d2d;" @click="saveAddress">
+                                                    <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                                    Submit
+                                                </button>
                                             </div>
                                         </form>
                                     </div>
@@ -416,25 +513,28 @@
                                 <p class="shopee-clone-card-subtitle">For security, please do not share your password with others</p>
                             </div>
 
-                            <form class="shopee-clone-profile-form">
+                            <form class="shopee-clone-profile-form" @submit.prevent="changePassword">
                                 <div class="shopee-clone-form-group">
                                     <label class="shopee-clone-form-label">Current Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter current password">
+                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter current password" v-model="passwordForm.current_password">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
                                     <label class="shopee-clone-form-label">New Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter new password">
+                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter new password" v-model="passwordForm.new_password">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
                                     <label class="shopee-clone-form-label">Confirm Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Re-enter new password">
+                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Re-enter new password" v-model="passwordForm.new_password_confirmation">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
                                     <label class="shopee-clone-form-label"></label>
-                                    <button type="submit" class="btn shopee-clone-save-btn">Confirm</button>
+                                    <button type="submit" class="btn shopee-clone-save-btn" :disabled="isLoading">
+                                        <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        Confirm
+                                    </button>
                                 </div>
                             </form>
                         </div>
@@ -590,27 +690,25 @@
     </div>
 </template>
 
-<script>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import {Head, router } from '@inertiajs/vue3';
+<script lang="ts">
+import {Head, Link} from '@inertiajs/vue3';
 import Menu from '../Includes/Menu.vue';
-import Search from '../Includes/Search.vue';
 import axios from "axios";
-import { useCartStore } from '@/stores/cart';
-import  { Link } from '@inertiajs/vue3';
-import {useAuthStore} from "@/stores/auth.js";
+import Swal from 'sweetalert2';
 axios.defaults.withCredentials = true;
+
 export default {
     components: {
-        AuthenticatedLayout,
         Menu,
         Head,
-        Search,
         Link,
     },
     props: {
         auth: Object,
         csrf_token: String,
+        notifications: Array,
+        orders: Array,
+        addresses: Array,
     },
     data() {
         return {
@@ -619,99 +717,95 @@ export default {
             isEditMode: false,
             isLoading: false,
             selectedLocation: '',
+            defaultAddress: '',
             showLocationDropdown: false,
             currentLocationLevel: 'city',
-            selectedCity: null,
-            selectedDistrict: null,
-            selectedWard: null,
+            selectedCity: null as any,
+            selectedDistrict: null as any,
+            selectedWard: null as any,
+            // Dữ liệu location sẽ được load từ API
             locationData: {
-                cities: [
-                    { id: 1, name: 'Hồ Chí Minh' },
-                    { id: 2, name: 'Hà Nội' },
-                    { id: 3, name: 'Bà Rịa - Vũng Tàu' },
-                    { id: 4, name: 'Đà Nẵng' },
-                ],
-                districts: {
-                    1: [
-                        { id: 11, name: 'Quận 1' },
-                        { id: 12, name: 'Quận 2' },
-                        { id: 13, name: 'Quận 3' },
-                        { id: 14, name: 'Quận Bình Thạnh' },
-                    ],
-                    2: [
-                        { id: 21, name: 'Quận Ba Đình' },
-                        { id: 22, name: 'Quận Hoàn Kiếm' },
-                        { id: 23, name: 'Quận Đống Đa' },
-                    ],
-                    3: [
-                        { id: 31, name: 'Huyện Long Điền' },
-                        { id: 32, name: 'Thành phố Vũng Tàu' },
-                        { id: 33, name: 'Thành phố Bà Rịa' },
-                    ],
-                    4: [
-                        { id: 41, name: 'Quận Hải Châu' },
-                        { id: 42, name: 'Quận Thanh Khê' },
-                        { id: 43, name: 'Quận Sơn Trà' },
-                    ],
-                },
-                wards: {
-                    11: [
-                        { id: 111, name: 'Phường Bến Nghé' },
-                        { id: 112, name: 'Phường Bến Thành' },
-                        { id: 113, name: 'Phường Nguyễn Thái Bình' },
-                    ],
-                    31: [
-                        { id: 311, name: 'Thị Trấn Long Hải' },
-                        { id: 312, name: 'Thị Trấn Long Điền' },
-                        { id: 313, name: 'Xã An Ngãi' },
-                        { id: 314, name: 'Xã An Nhứt' },
-                        { id: 315, name: 'Xã Phước Hưng' },
-                        { id: 316, name: 'Xã Phước Tĩnh' },
-                        { id: 317, name: 'Xã Tam Phước' },
-                    ],
-                },
+                cities: [] as any[],
+                districts: [] as any[],
+                wards: [] as any[],
             },
-            addresses: [
-                {
-                    id: 1,
-                    name: 'Nguyen Van A',
-                    phone: '0912345789',
-                    address: '123 ABC Street',
-                    city: 'Ho Chi Minh City',
-                    country: 'Vietnam',
-                    is_default: true,
-                },
-                {
-                    id: 2,
-                    name: 'Nguyen Van B',
-                    phone: '0987654321',
-                    address: '456 DEF Street',
-                    city: 'Hanoi',
-                    country: 'Vietnam',
-                    is_default: false,
-                },
+            months: [
+                'January', 'February', 'March', 'April', 'May', 'June',
+                'July', 'August', 'September', 'October', 'November', 'December'
             ],
+
+            currentYear: new Date().getFullYear(),
+            userAddresses: [] as any[],
+            userNotifications: [] as any[],
+            userOrders: [] as any[],
             addressForm: {
                 id: null,
                 name: '',
                 phone: '',
                 address: '',
-                city: '',
-                postal_code: '',
-                country: '',
+                ward_id: null,
+                district_id: null,
+                province_id: null,
                 is_default: false,
             },
+            profileForm: {
+                username: '',
+                full_name: '',
+                phone: '',
+                gender: '',
+                avatar: '',
+                dob: {
+                    year: null as number | null,
+                    month: null as number | null,
+                    day: null as number | null,
+                } as any,
+            },
+            passwordForm: {
+                current_password: '',
+                new_password: '',
+                new_password_confirmation: '',
+            },
+            previewImage: null as string | null,
+            selectedFile: null as File | null,
+            showFullEmail: false,
+            isEditingPhone: false,
+            isGenderDisabled: false,
+            isDobDisabled: false,
+            isLoadingPhone: false,
+            phoneForm: {
+                phone: '',
+            },
+            markingAllAsRead: false,
+            markingAsRead: {} as any,
         };
     },
+
     computed: {
-        authStore() {
-            return useAuthStore();
+        currentLocationList() {
+            if (this.currentLocationLevel === 'city') {
+                return this.locationData.cities;
+            } else if (this.currentLocationLevel === 'district' && this.selectedCity) {
+                return this.locationData.districts;
+            } else if (this.currentLocationLevel === 'ward' && this.selectedDistrict) {
+                return this.locationData.wards;
+            }
+            return [];
         },
-        cartStore() {
-            return useCartStore();
+        years() {
+            // 80 năm trở lại từ hiện tại
+            return Array.from({ length: 80 }, (_, i) => this.currentYear - i)
         },
-        flashMessages() {
-            return this.$page.props.flash || {};
+        daysInMonth() {
+            const month = Number(this.profileForm.dob.month)
+            const year = Number(this.profileForm.dob.year)
+
+            if (!month || !year) {
+                return Array.from({ length: 31 }, (_, i) => i + 1)
+            }
+
+            // Lấy số ngày của tháng (auto xét năm nhuận)
+            const days = new Date(year, month, 0).getDate()
+            return Array.from({ length: days }, (_, i) => i + 1)
         },
         locationDisplayText() {
             const parts = [];
@@ -720,164 +814,506 @@ export default {
             if (this.selectedWard) parts.push(this.selectedWard.name);
             return parts.join(', ');
         },
-        currentLocationList() {
-            if (this.currentLocationLevel === 'city') {
-                return this.locationData.cities;
-            } else if (this.currentLocationLevel === 'district' && this.selectedCity) {
-                return this.locationData.districts[this.selectedCity.id] || [];
-            } else if (this.currentLocationLevel === 'ward' && this.selectedDistrict) {
-                return this.locationData.wards[this.selectedDistrict.id] || [];
-            }
-            return [];
+        hasUnreadNotifications() {
+            return this.userNotifications.some(notification => !notification.is_read);
         },
     },
+    watch: {
+        // Khi đổi tháng hoặc năm, nếu ngày không hợp lệ thì reset lại
+        'profileForm.dob.month'() {
+            this.adjustDay()
+        },
+        'profileForm.dob.year'() {
+            this.adjustDay()
+        }
+    },
+    mounted() {
+        // Initialize data from props
+        this.userAddresses = this.addresses || [];
+        this.userNotifications = this.notifications || [];
+        this.userOrders = this.orders || [];
+
+        this.addressForm.name = this.userAddresses[0].name;
+        this.addressForm.phone = this.userAddresses[0].phone;
+        this.addressForm.address = this.userAddresses[0].address;
+        console.log('userAdded', this.userAddresses);
+        if (this.userAddresses && this.userAddresses[0].province.length > 0 && this.userAddresses[0].district.length > 0 && this.userAddresses[0].ward.length > 0) {
+            this.defaultAddress = this.userAddresses[0].province + ', ' + this.userAddresses[0].district + ', ' + this.userAddresses[0].ward;
+        }
+        // Initialize profile form
+        if (this.auth?.user) {
+            console.log('Auth User:', this.profileForm);
+            this.profileForm.username = this.auth.user.username || '';
+            this.profileForm.full_name = this.auth.user.full_name || '';
+            this.profileForm.phone = this.auth.user.phone || '';
+            this.profileForm.avatar = this.auth.user.avatar
+                ? 'storage/' + this.auth.user.avatar
+                : '';
+            this.profileForm.gender = this.auth.user.gender || '';
+
+            // Initialize dob as object first
+            this.profileForm.dob = {
+                year: null,
+                month: null,
+                day: null
+            };
+
+            // Then populate if user has dob
+            if (this.auth?.user?.dob) {
+                const [year, month, day] = this.auth.user.dob.split('-');
+                this.profileForm.dob = {
+                    year: Number(year),
+                    month: Number(month),
+                    day: Number(day)
+                };
+            }
+
+            // Disable gender and dob fields if already set
+            this.isGenderDisabled = !!this.auth.user.gender;
+            this.isDobDisabled = !!this.auth.user.dob;
+        }
+
+        // Load location data
+        this.loadLocationData();
+    },
+
     methods: {
+        capitalize(s){ if(!s) return ''; return s.charAt(0).toUpperCase()+s.slice(1); },
+        formatDate(raw){
+            if (typeof raw === 'string' && raw.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                const [d,m,y]=raw.split('/'); return new Date(`${y}-${m}-${d}`).toLocaleDateString();
+            }
+            const d=new Date(raw); return isNaN(d)?raw:d.toLocaleDateString();
+        },
+        formatCurrency(value){
+            const n = Number(value) || 0;
+            return n.toLocaleString('vi-VN', { maximumFractionDigits: 2 });
+        },
+        reorder(row) { console.log('Reorder row', row.rowId); },
+
         setActiveTab(tab) {
             this.activeTab = tab;
         },
+
+        // Helper methods
+        adjustDay() {
+            const maxDays = this.daysInMonth.length
+            if (this.profileForm.dob.day > maxDays) {
+                this.profileForm.dob.day = maxDays
+            }
+        },
+        getDobString() {
+            const { year, month, day } = this.profileForm.dob
+            if (year && month && day) {
+                // Format chuẩn YYYY-MM-DD
+                return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+            }
+            return ''
+        },
+        maskEmail(email) {
+            if (!email) return 'No email';
+            const [name, domain] = email.split('@');
+            if (name.length <= 2) return email;
+            const maskedName = name.charAt(0) + '*'.repeat(name.length - 2) + name.charAt(name.length - 1);
+            return `${maskedName}@${domain}`;
+        },
+
+        maskPhone(phone) {
+            if (!phone) return 'No phone';
+            if (phone.length <= 4) return phone;
+            const visiblePart = phone.slice(-3);
+            const maskedPart = '*'.repeat(phone.length - 3);
+            return maskedPart + visiblePart;
+        },
+
+        // Email visibility methods
+        toggleEmailVisibility() {
+            this.showFullEmail = !this.showFullEmail;
+        },
+
+        // Phone editing methods
+        startEditPhone() {
+            this.isEditingPhone = true;
+            this.phoneForm.phone = this.auth?.user?.phone || '';
+        },
+
+        cancelEditPhone() {
+            this.isEditingPhone = false;
+            this.phoneForm.phone = '';
+        },
+
+        async savePhone() {
+            if (!this.phoneForm.phone.trim()) {
+                Swal.fire('Error', 'Please enter a phone number', 'error');
+                return;
+            }
+
+            this.isLoadingPhone = true;
+            try {
+                const response = await axios.post('/api/profile/update-phone', {
+                    phone: this.phoneForm.phone
+                });
+
+                if (response.data.success) {
+                    // Cập nhật phone number trong auth object
+                    if (this.auth?.user) {
+                        this.auth.user.phone = this.phoneForm.phone;
+                    }
+
+                    this.isEditingPhone = false;
+                    this.phoneForm.phone = '';
+
+                    Swal.fire('Success', 'Phone number updated successfully!', 'success');
+                }
+            } catch (error: any) {
+                console.error('Error updating phone:', error);
+                if (error.response?.data?.message) {
+                    Swal.fire('Error', error.response.data.message, 'error');
+                } else {
+                    Swal.fire('Error', 'Failed to update phone number', 'error');
+                }
+            } finally {
+                this.isLoadingPhone = false;
+            }
+        },
+
+        // Profile methods
+        async updateProfile() {
+            this.isLoading = true;
+            try {
+                // Tạo FormData để gửi file và data
+                const formData = new FormData();
+
+                // Thêm thông tin profile
+                formData.append('full_name', this.profileForm.full_name || '');
+                formData.append('gender', this.profileForm.gender || '');
+
+                // Thêm ngày sinh nếu có đầy đủ thông tin
+                if (this.profileForm.dob && this.profileForm.dob.year && this.profileForm.dob.month && this.profileForm.dob.day) {
+                    const dobString = this.getDobString();
+                    formData.append('dob', dobString);
+                }
+
+                // Thêm file avatar nếu có chọn file mới
+                if (this.selectedFile) {
+                    formData.append('avatar', this.selectedFile);
+                }
+
+                // Thêm CSRF token nếu có
+                if (this.csrf_token) {
+                    formData.append('_token', this.csrf_token);
+                }
+
+                // Gửi request với FormData
+                const response = await axios.post('/api/profile/update', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                });
+
+                if (response.data.success) {
+                    // Cập nhật avatar URL nếu có
+                    if (response.data.user && response.data.user.avatar) {
+                        this.profileForm.avatar = response.data.user.avatar;
+                    }
+
+                    // Reset preview image và selected file
+                    this.previewImage = null;
+                    this.selectedFile = null;
+
+                    Swal.fire('Success', 'Profile updated successfully!', 'success');
+                }
+            } catch (error: any) {
+                console.error('Error updating profile:', error);
+
+                // Log chi tiết lỗi để debug
+                if (error.response) {
+                    console.error('Error response:', error.response.data);
+                    console.error('Error status:', error.response.status);
+                    console.error('Error headers:', error.response.headers);
+                }
+
+                if (error.response?.data?.message) {
+                    Swal.fire('Error', error.response.data.message, 'error');
+                } else if (error.response?.status === 405) {
+                    Swal.fire('Error', 'Method not allowed. Please refresh the page and try again.', 'error');
+                } else {
+                    Swal.fire('Error', 'Failed to update profile', 'error');
+                }
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        async changePassword() {
+            this.isLoading = true;
+            try {
+                const response = await axios.post('/api/profile/change-password', this.passwordForm);
+                if (response.data.success) {
+                    Swal.fire('Success', 'Password changed successfully!', 'success');
+                    this.passwordForm = {
+                        current_password: '',
+                        new_password: '',
+                        new_password_confirmation: '',
+                    };
+                }
+            } catch (error) {
+                console.error('Error changing password:', error);
+                if (error.response?.data?.message) {
+                    Swal.fire('Error', error.response.data.message, 'error');
+                } else {
+                    Swal.fire('Error', 'Failed to change password', 'error');
+                }
+            } finally {
+                this.isLoading = false;
+            }
+        },
+
+        // Address methods
+        openAddressDialog() {
+            this.showAddressDialog = true;
+            this.isEditMode = false;
+            this.resetAddressForm();
+        },
+
+        editAddress(address) {
+            this.showAddressDialog = true;
+            this.isEditMode = true;
+            this.addressForm = { ...address };
+        },
+
         closeAddressDialog() {
             this.showAddressDialog = false;
             this.resetAddressForm();
+            this.showLocationDropdown = false;
         },
+
         resetAddressForm() {
             this.addressForm = {
                 id: null,
                 name: '',
                 phone: '',
                 address: '',
-                city: '',
-                postal_code: '',
-                country: '',
+                ward_id: null,
+                district_id: null,
+                province_id: null,
                 is_default: false,
             };
-            this.selectedLocation = '';
             this.selectedCity = null;
             this.selectedDistrict = null;
             this.selectedWard = null;
-            this.currentLocationLevel = 'city';
-            this.showLocationDropdown = false;
         },
-        editAddress(address) {
-            this.addressForm = { ...address };
-            // Assuming latitude and longitude are available in address object
-            if (address.latitude && address.longitude) {
-                this.selectedLocation = `${address.latitude}, ${address.longitude}`;
-            }
-            // Manually set selected city, district, ward if available from existing address
-            // This part might need more sophisticated logic based on your data structure
-            if (address.city) {
-                const city = this.locationData.cities.find(c => c.name === address.city);
-                if (city) {
-                    this.selectedCity = city;
-                    // Try to find district and ward if they exist in the address
-                    if (address.district) {
-                        const district = this.locationData.districts[city.id]?.find(d => d.name === address.district);
-                        if (district) {
-                            this.selectedDistrict = district;
-                            if (address.ward) {
-                                const ward = this.locationData.wards[district.id]?.find(w => w.name === address.ward);
-                                if (ward) {
-                                    this.selectedWard = ward;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
 
-            this.isEditMode = true;
-            this.showAddressDialog = true;
-        },
-        deleteAddress(id) {
-            // Implement delete address functionality
-            console.log('Delete address with id:', id);
-            this.addresses = this.addresses.filter(address => address.id !== id);
-        },
-        saveAddress() {
+        async saveAddress() {
+            if (!this.validateAddressForm()) return;
+
             this.isLoading = true;
-            // Simulate API call
-            setTimeout(() => {
-                this.isLoading = false;
-                // Logic to add or update address
-                if (this.isEditMode) {
-                    const index = this.addresses.findIndex(addr => addr.id === this.addressForm.id);
-                    if (index !== -1) {
-                        // Update existing address
-                        this.addresses[index] = {
-                            ...this.addressForm,
-                            city: this.selectedCity ? this.selectedCity.name : this.addressForm.city,
-                            district: this.selectedDistrict ? this.selectedDistrict.name : '', // Assuming district and ward are part of address form
-                            ward: this.selectedWard ? this.selectedWard.name : '',
-                        };
-                    }
-                } else {
-                    // Add new address
-                    const newId = this.addresses.length > 0 ? Math.max(...this.addresses.map(a => a.id)) + 1 : 1;
-                    this.addresses.push({
-                        ...this.addressForm,
-                        id: newId,
-                        city: this.selectedCity ? this.selectedCity.name : this.addressForm.city,
-                        district: this.selectedDistrict ? this.selectedDistrict.name : '',
-                        ward: this.selectedWard ? this.selectedWard.name : '',
-                    });
-                }
+            try {
+                const url = this.isEditMode ? `/api/profile/addresses/${this.addressForm.id}` : '/api/profile/addresses';
+                const method = this.isEditMode ? 'put' : 'post';
 
-                this.showAddressDialog = false;
-                this.resetAddressForm();
-                alert('Address saved successfully!');
-            }, 1000); // Shorter timeout for faster feedback
+                const response = await axios[method](url, this.addressForm);
+
+                if (response.data.success) {
+                    Swal.fire('Success', response.data.message, 'success');
+                    this.closeAddressDialog();
+                    // Refresh addresses
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Error saving address:', error);
+                Swal.fire('Error', 'Failed to save address', 'error');
+            } finally {
+                this.isLoading = false;
+            }
         },
-        selectLocationOnMap() {
-            // Implement location selection on map
-            this.selectedLocation = '10.762622, 106.660172'; // Example coordinates
+
+        async deleteAddress(addressId) {
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'You won\'t be able to revert this!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await axios.delete(`/api/profile/addresses/${addressId}`);
+                    if (response.data.success) {
+                        Swal.fire('Deleted!', 'Address has been deleted.', 'success');
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    console.error('Error deleting address:', error);
+                    Swal.fire('Error', 'Failed to delete address', 'error');
+                }
+            }
         },
-        getCurrentLocation() {
-            // Implement get current location functionality
-            this.selectedLocation = '10.762622, 106.660172'; // Example coordinates
+
+        validateAddressForm() {
+            if (!this.addressForm.name || !this.addressForm.phone || !this.addressForm.address) {
+                Swal.fire('Error', 'Please fill in all required fields', 'error');
+                return false;
+            }
+            if (!this.selectedWard || !this.selectedDistrict || !this.selectedCity) {
+                Swal.fire('Error', 'Please select city, district, and ward', 'error');
+                return false;
+            }
+
+            this.addressForm.ward_id = this.selectedWard.id;
+            this.addressForm.district_id = this.selectedDistrict.id;
+            this.addressForm.province_id = this.selectedCity.id;
+
+            return true;
         },
+
+        // Location methods
         toggleLocationDropdown() {
             this.showLocationDropdown = !this.showLocationDropdown;
         },
+
         setLocationLevel(level) {
             this.currentLocationLevel = level;
         },
-        selectCity(city) {
+
+        async selectCity(city) {
             this.selectedCity = city;
             this.selectedDistrict = null;
             this.selectedWard = null;
             this.currentLocationLevel = 'district';
-            // Update addressForm.city when a city is selected
-            this.addressForm.city = city.name;
+
+            // Load districts for selected city
+            await this.loadDistricts(city.id);
         },
-        selectDistrict(district) {
+
+        async selectDistrict(district) {
             this.selectedDistrict = district;
             this.selectedWard = null;
             this.currentLocationLevel = 'ward';
-            // Update addressForm.district when a district is selected
-            this.addressForm.district = district.name;
+
+            // Load wards for selected district
+            await this.loadWards(district.id);
         },
+
         selectWard(ward) {
             this.selectedWard = ward;
             this.showLocationDropdown = false;
-            // Update addressForm.ward when a ward is selected
-            this.addressForm.ward = ward.name;
         },
+
         clearLocation() {
             this.selectedCity = null;
             this.selectedDistrict = null;
             this.selectedWard = null;
             this.currentLocationLevel = 'city';
-            this.showLocationDropdown = false;
-            // Clear relevant fields in addressForm
-            this.addressForm.city = '';
-            this.addressForm.district = '';
-            this.addressForm.ward = '';
+            // Reset districts and wards
+            this.locationData.districts = [];
+            this.locationData.wards = [];
         },
-    },
-    setup() {
 
+        // Notification methods
+        async markAsRead(notificationId) {
+            try {
+                await axios.post(`/api/profile/notifications/${notificationId}/read`);
+                const notification = this.userNotifications.find(n => n.id === notificationId);
+                if (notification) {
+                    notification.is_read = true;
+                }
+            } catch (error) {
+                console.error('Error marking notification as read:', error);
+            }
+        },
 
-        return {}
+        async markAllAsRead() {
+            this.markingAllAsRead = true;
+            try {
+                const response = await axios.post('/api/profile/notifications/mark-all-as-read');
+                if (response.data.success) {
+                    this.userNotifications.forEach(notification => {
+                        notification.is_read = true;
+                    });
+                    Swal.fire('Success', 'All notifications marked as read!', 'success');
+                }
+            } catch (error) {
+                console.error('Error marking all notifications as read:', error);
+                Swal.fire('Error', 'Failed to mark notifications as read', 'error');
+            } finally {
+                this.markingAllAsRead = false;
+            }
+        },
+
+        // Order methods
+        reorder(order) {
+            // Logic to reorder items
+            console.log('Reordering:', order);
+        },
+
+        // Avatar preview method
+        onFileSelected(event) {
+            const file = event.target.files[0];
+            if (file) {
+                // Kiểm tra kích thước file (1MB = 1024*1024 bytes)
+                if (file.size > 1024 * 1024) {
+                    alert('File size must be less than 1MB');
+                    return;
+                }
+
+                // Kiểm tra định dạng file
+                const allowedTypes = ['image/jpeg', 'image/png'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Only JPEG and PNG formats are allowed');
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.previewImage = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                // Lưu file đã chọn để gửi lên server
+                this.selectedFile = file;
+            }
+        },
+
+        // Location data methods
+        async loadLocationData() {
+            try {
+                // Chỉ load provinces khi component mount
+                const response = await axios.get('/api/locations/provinces');
+                if (response.data.success) {
+                    this.locationData.cities = response.data.data || [];
+                }
+            } catch (error) {
+                console.error('Error loading provinces:', error);
+            }
+        },
+
+        async loadDistricts(provinceId) {
+            try {
+                const response = await axios.get(`/api/locations/districts/${provinceId}`);
+                if (response.data.success) {
+                    this.locationData.districts = response.data.data || [];
+                }
+            } catch (error) {
+                console.error('Error loading districts:', error);
+            }
+        },
+
+        async loadWards(districtId) {
+            try {
+                const response = await axios.get(`/api/locations/wards/${districtId}`);
+                if (response.data.success) {
+                    this.locationData.wards = response.data.data || [];
+                }
+            } catch (error) {
+                console.error('Error loading wards:', error);
+            }
+        },
     }
 }
 </script>

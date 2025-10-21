@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\UserAddress;
+use App\Models\Ward;
 use Illuminate\Database\Seeder;
 
 class UserAddressSeeder extends Seeder
@@ -16,24 +17,34 @@ class UserAddressSeeder extends Seeder
         // Get all existing users
         $users = User::all();
 
+        // Get some random wards for addresses
+        $wards = Ward::inRandomOrder()->limit(50)->get();
+
+        if ($wards->isEmpty()) {
+            $this->command->warn('No wards found. Please run ProvinceSeeder, DistrictSeeder, and WardSeeder first.');
+            return;
+        }
+
         foreach ($users as $user) {
             // Create 1-3 addresses for each user
             $addressCount = rand(1, 3);
 
             for ($i = 0; $i < $addressCount; $i++) {
                 $isDefault = $i === 0; // First address is default
+                $labels = ['home', 'work', 'other'];
+                $label = $i === 0 ? 'home' : $labels[array_rand($labels)];
 
                 UserAddress::factory()->create([
                     'user_id' => $user->id,
-                    'first_name' => $user->name ? explode(' ', $user->name)[0] : fake()->firstName(),
-                    'last_name' => $user->name ? (explode(' ', $user->name)[1] ?? fake()->lastName()) : fake()->lastName(),
-                    'email' => $user->email,
+                    'name' => $user->full_name ?? fake()->name(),
+                    'phone' => $user->phone ?? fake()->phoneNumber(),
+                    'ward_id' => $wards->random()->id,
+                    'label' => $label,
                     'is_default' => $isDefault,
                 ]);
             }
         }
 
-        // Create some standalone addresses for testing
-        UserAddress::factory(10)->create();
+        $this->command->info('UserAddress seeder completed successfully.');
     }
 }

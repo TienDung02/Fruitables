@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\User;
 use App\Models\UserAddress;
+use App\Models\Ward;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,50 +23,52 @@ class UserAddressFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'first_name' => fake()->firstName(),
-            'last_name' => fake()->lastName(),
-            'company_name' => fake()->optional(0.3)->company(),
+            'name' => fake()->name(),
+            'phone' => fake()->phoneNumber(),
             'address' => fake()->streetAddress(),
-            'city' => fake()->city(),
-            'country' => fake()->country(),
-            'postcode' => fake()->postcode(),
-            'mobile' => fake()->phoneNumber(),
-            'email' => fake()->email(),
-            'notes' => fake()->optional(0.2)->sentence(),
+            'ward_id' => Ward::inRandomOrder()->first()?->id ?? null,
+            'label' => fake()->randomElement(['home', 'work', 'other']),
             'is_default' => fake()->boolean(20), // 20% chance of being default
-            'type' => fake()->randomElement(['billing', 'shipping', 'both']),
         ];
     }
 
     /**
-     * Indicate that the address is a default billing address.
+     * Indicate that the address is default.
      */
-    public function defaultBilling(): static
+    public function default(): static
     {
         return $this->state(fn (array $attributes) => [
             'is_default' => true,
-            'type' => 'billing',
         ]);
     }
 
     /**
-     * Indicate that the address is a default shipping address.
+     * Indicate that the address is home address.
      */
-    public function defaultShipping(): static
+    public function home(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_default' => true,
-            'type' => 'shipping',
+            'label' => 'home',
         ]);
     }
 
     /**
-     * Indicate that the address is for both billing and shipping.
+     * Indicate that the address is work address.
      */
-    public function both(): static
+    public function work(): static
     {
         return $this->state(fn (array $attributes) => [
-            'type' => 'both',
+            'label' => 'work',
+        ]);
+    }
+
+    /**
+     * Indicate that the address is other address.
+     */
+    public function other(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'label' => 'other',
         ]);
     }
 }

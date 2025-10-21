@@ -23,7 +23,7 @@ class OrderSeeder extends Seeder
 
         if ($userCount === 0) {
             $this->command->warn('No users found. Creating some users first...');
-            User::factory(10)->create();
+            User::factory(100)->create();
         }
 
         if ($variantCount === 0) {
@@ -37,14 +37,14 @@ class OrderSeeder extends Seeder
         $orders = collect();
 
         // Tạo 20 orders đã hoàn thành (để có dữ liệu bestsellers)
-        $completedOrders = Order::factory(20)
+        $completedOrders = Order::factory(200)
             ->completed()
             ->forExistingUser()
             ->create();
         $orders = $orders->merge($completedOrders);
 
         // Tạo 15 orders đang xử lý
-        $processingOrders = Order::factory(15)
+        $processingOrders = Order::factory(150)
             ->state([
                 'status' => Order::STATUS_PROCESSING,
                 'payment_status' => Order::PAYMENT_STATUS_PAID,
@@ -55,7 +55,7 @@ class OrderSeeder extends Seeder
         $orders = $orders->merge($processingOrders);
 
         // Tạo 8 orders đã xác nhận
-        $confirmedOrders = Order::factory(8)
+        $confirmedOrders = Order::factory(80)
             ->state([
                 'status' => Order::STATUS_CONFIRMED,
                 'payment_status' => Order::PAYMENT_STATUS_PAID,
@@ -66,14 +66,14 @@ class OrderSeeder extends Seeder
         $orders = $orders->merge($confirmedOrders);
 
         // Tạo 7 orders đang chờ xử lý
-        $pendingOrders = Order::factory(7)
+        $pendingOrders = Order::factory(70)
             ->pending()
             ->forExistingUser()
             ->create();
         $orders = $orders->merge($pendingOrders);
 
         // Tạo 5 orders bị hủy
-        $cancelledOrders = Order::factory(5)
+        $cancelledOrders = Order::factory(50)
             ->cancelled()
             ->forExistingUser()
             ->create();

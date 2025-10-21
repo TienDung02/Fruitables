@@ -12,18 +12,12 @@ class UserAddress extends Model
 
     protected $fillable = [
         'user_id',
-        'first_name',
-        'last_name',
-        'company_name',
+        'name',
+        'phone',
         'address',
-        'city',
-        'country',
-        'postcode',
-        'mobile',
-        'email',
-        'notes',
-        'is_default',
-        'type'
+        'ward_id',
+        'label',
+        'is_default'
     ];
 
     protected $casts = [

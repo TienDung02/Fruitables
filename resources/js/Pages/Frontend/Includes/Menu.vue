@@ -17,7 +17,7 @@
                     </Link>
                 </div>
                 <div v-else>
-                    Chào mừng, {{ authStore.user.name }}
+                    {{ authStore.user.full_name  }}
                 </div>
             </div>
         </div>

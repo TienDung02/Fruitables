@@ -19,8 +19,14 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
+        'full_name',
         'email',
+        'phone',
+        'gender',
+        'dob',
+        'avatar',
+        'is_active',
         'password',
         'is_admin',
     ];
@@ -44,14 +50,19 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
+            'dob' => 'date',
             'password' => 'hashed',
             'is_admin' => 'boolean',
+            'is_active' => 'boolean',
         ];
     }
+
     public function cart()
     {
         return $this->hasOne(Cart::class);
     }
+
     /**
      * Get the reviews for the user.
      */
@@ -69,18 +80,53 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the default billing address
+     * Get the notifications for the user
      */
-    public function defaultBillingAddress()
+    public function notifications(): HasMany
     {
-        return $this->addresses()->billing()->default()->first();
+        return $this->hasMany(UserNotification::class);
     }
 
     /**
-     * Get the default shipping address
+     * Get the default address
      */
-    public function defaultShippingAddress()
+    public function defaultAddress()
     {
-        return $this->addresses()->shipping()->default()->first();
+        return $this->addresses()->where('is_default', true)->first();
+    }
+
+    /**
+     * Get unread notifications count
+     */
+    public function unreadNotificationsCount(): int
+    {
+        return $this->notifications()->unread()->count();
+    }
+
+    /**
+     * Get recent notifications
+     */
+    public function recentNotifications($limit = 10)
+    {
+        return $this->notifications()
+            ->orderBy('created_at', 'desc')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Scope for active users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope for verified users
+     */
+    public function scopeVerified($query)
+    {
+        return $query->whereNotNull('email_verified_at');
     }
 }

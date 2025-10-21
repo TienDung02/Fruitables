@@ -4,15 +4,19 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\UserAddress;
+use App\Models\Province;
+use App\Models\District;
+use App\Models\Ward;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class UserAddressController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of user's addresses
      */
     public function index(): JsonResponse
     {
@@ -25,33 +29,37 @@ class UserAddressController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Store a new address
      */
     public function store(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'company_name' => 'nullable|string|max:255',
-            'address' => 'required|string',
-            'city' => 'required|string|max:255',
-            'country' => 'required|string|max:255',
-            'postcode' => 'required|string|max:20',
-            'mobile' => 'required|string|max:20',
-            'email' => 'required|email|max:255',
-            'notes' => 'nullable|string',
-            'is_default' => 'boolean',
-            'type' => ['required', Rule::in(['billing', 'shipping', 'both'])]
+        Log::info('request', $request->all());
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'ward_id' => 'required|integer|exists:wards,id',
+            'label' => 'nullable|string|max:255',
+            'is_default' => 'boolean'
         ]);
 
-        $validated['user_id'] = Auth::id();
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
 
-        // If this is set as default, unset other defaults
-        if ($validated['is_default'] ?? false) {
+        $data = $validator->validated();
+        $data['user_id'] = Auth::id();
+
+        // If this is set as default, unset other default addresses
+        if ($data['is_default'] ?? false) {
             Auth::user()->addresses()->update(['is_default' => false]);
         }
 
-        $address = UserAddress::create($validated);
+        $address = UserAddress::create($data);
 
         return response()->json([
             'success' => true,
@@ -61,80 +69,87 @@ class UserAddressController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Display the specified address
      */
-    public function show(UserAddress $userAddress): JsonResponse
+    public function show($id): JsonResponse
     {
-        // Check if address belongs to authenticated user
-        if ($userAddress->user_id !== Auth::id()) {
+        $address = Auth::user()->addresses()->find($id);
+
+        if (!$address) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+                'message' => 'Address not found'
+            ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $userAddress
+            'data' => $address
         ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Update the specified address
      */
-    public function update(Request $request, UserAddress $userAddress): JsonResponse
+    public function update(Request $request, $id): JsonResponse
     {
-        // Check if address belongs to authenticated user
-        if ($userAddress->user_id !== Auth::id()) {
+        $address = Auth::user()->addresses()->find($id);
+
+        if (!$address) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+                'message' => 'Address not found'
+            ], 404);
         }
 
-        $validated = $request->validate([
-            'first_name' => 'sometimes|required|string|max:255',
-            'last_name' => 'sometimes|required|string|max:255',
-            'company_name' => 'nullable|string|max:255',
-            'address' => 'sometimes|required|string',
-            'city' => 'sometimes|required|string|max:255',
-            'country' => 'sometimes|required|string|max:255',
-            'postcode' => 'sometimes|required|string|max:20',
-            'mobile' => 'sometimes|required|string|max:20',
-            'email' => 'sometimes|required|email|max:255',
-            'notes' => 'nullable|string',
-            'is_default' => 'boolean',
-            'type' => ['sometimes', 'required', Rule::in(['billing', 'shipping', 'both'])]
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string|max:500',
+            'ward_id' => 'required|integer|exists:wards,id',
+            'label' => 'nullable|string|max:255',
+            'is_default' => 'boolean'
         ]);
 
-        // If this is set as default, unset other defaults
-        if ($validated['is_default'] ?? false) {
-            Auth::user()->addresses()->where('id', '!=', $userAddress->id)->update(['is_default' => false]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        $userAddress->update($validated);
+        $data = $validator->validated();
+
+        // If this is set as default, unset other default addresses
+        if ($data['is_default'] ?? false) {
+            Auth::user()->addresses()->where('id', '!=', $id)->update(['is_default' => false]);
+        }
+
+        $address->update($data);
 
         return response()->json([
             'success' => true,
             'message' => 'Address updated successfully',
-            'data' => $userAddress->fresh()
+            'data' => $address->fresh()
         ]);
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Remove the specified address
      */
-    public function destroy(UserAddress $userAddress): JsonResponse
+    public function destroy($id): JsonResponse
     {
-        // Check if address belongs to authenticated user
-        if ($userAddress->user_id !== Auth::id()) {
+        $address = Auth::user()->addresses()->find($id);
+
+        if (!$address) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+                'message' => 'Address not found'
+            ], 404);
         }
 
-        $userAddress->delete();
+        $address->delete();
 
         return response()->json([
             'success' => true,
@@ -143,54 +158,74 @@ class UserAddressController extends Controller
     }
 
     /**
-     * Set an address as default
+     * Set address as default
      */
-    public function setDefault(UserAddress $userAddress): JsonResponse
+    public function setDefault($id): JsonResponse
     {
-        // Check if address belongs to authenticated user
-        if ($userAddress->user_id !== Auth::id()) {
+        $address = Auth::user()->addresses()->find($id);
+
+        if (!$address) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized'
-            ], 403);
+                'message' => 'Address not found'
+            ], 404);
         }
 
-        // Unset other defaults
+        // Unset all other default addresses
         Auth::user()->addresses()->update(['is_default' => false]);
 
-        // Set this as default
-        $userAddress->update(['is_default' => true]);
+        // Set this address as default
+        $address->update(['is_default' => true]);
 
         return response()->json([
             'success' => true,
             'message' => 'Default address updated successfully',
-            'data' => $userAddress->fresh()
+            'data' => $address->fresh()
         ]);
     }
 
     /**
-     * Get default billing address
+     * Get location data for address form
      */
-    public function getDefaultBilling(): JsonResponse
+    public function getLocationData(): JsonResponse
     {
-        $address = Auth::user()->defaultBillingAddress();
+        $provinces = Province::orderBy('name')->get(['id', 'name']);
 
         return response()->json([
             'success' => true,
-            'data' => $address
+            'data' => [
+                'provinces' => $provinces
+            ]
         ]);
     }
 
     /**
-     * Get default shipping address
+     * Get districts by province
      */
-    public function getDefaultShipping(): JsonResponse
+    public function getDistricts($provinceId): JsonResponse
     {
-        $address = Auth::user()->defaultShippingAddress();
+        $districts = District::where('province_id', $provinceId)
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return response()->json([
             'success' => true,
-            'data' => $address
+            'data' => $districts
+        ]);
+    }
+
+    /**
+     * Get wards by district
+     */
+    public function getWards($districtId): JsonResponse
+    {
+        $wards = Ward::where('district_id', $districtId)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $wards
         ]);
     }
 }
