@@ -404,6 +404,32 @@ class SessionController extends Controller
             'message' => 'Wishlist cleared'
         ]);
     }
+    public function removeFromSessionWishlist(Request $request)
+    {
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+        ]);
+
+//        Log::info('removeFromSessionWishlist() called - ', $request->all());
+        $sessionWishlist = session('wishlist', []);
+//        Log::info('sessionWishlist before removal in removeFromSessionWishlist()', ['data' => $sessionWishlist]);
+
+        $productId = $request->product_id;
+
+        $sessionWishlist = collect($sessionWishlist)->filter(function ($item) use ($productId) {
+            return $item['product_id'] != $productId;
+        })->values()->toArray();
+
+        session(['wishlist' => $sessionWishlist]);
+
+//        Log::info('sessionWishlist after removal in removeFromSessionWishlist()', ['data' => $sessionWishlist]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Item removed from wishlist',
+            'wishlist_count' => count($sessionWishlist)
+        ]);
+    }
 
     /**
      * Get session cart count

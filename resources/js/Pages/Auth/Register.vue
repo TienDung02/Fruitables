@@ -22,17 +22,13 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Register" />
+    <Head :title="$t('messages.register')" />
 
-<!--    <div v-if="status" class="mb-4 text-sm font-medium text-green-600">-->
-<!--        {{ status }}-->
-<!--    </div>-->
     <div class="main-login-bg">
         <div class="login-container">
             <!-- Left Panel - Image Background -->
             <div class="login-left-pane">
                 <img class="fruit-image-bg" src="/images/img/bg-login-2.png" alt="Fresh fruits background">
-
             </div>
 
             <!-- Right Panel - Login Form -->
@@ -44,25 +40,23 @@ const submit = () => {
                 </div>
 
                 <!-- Title -->
-                <div class="login-title">Sign in to your account</div>
+                <div class="login-title">{{ $t('messages.sign_in_to_account') }}</div>
                 <div class="login-sub">
-                    Welcome back to <b>Fruitables</b>!<br>
-                    Enjoy fresh and clean agricultural products every day.
+                    {{ $t('messages.welcome_back') }} <b>Fruitables</b>!<br>
+                    {{ $t('messages.enjoy_fresh_products') }}
                 </div>
 
                 <!-- Login Form -->
-                <form @submit.prevent="submit" >
-
-
+                <form @submit.prevent="submit">
                     <div>
-                        <InputLabel for="name" class="form-label" value="Name" />
+                        <InputLabel for="name" class="form-label" :value="$t('messages.name')" />
 
                         <TextInput
                             id="name"
                             type="text"
                             class="form-control mt-1 block w-full"
                             v-model="form.name"
-                            placeholder="Username"
+                            :placeholder="$t('messages.username_placeholder')"
                             required
                             autofocus
                             autocomplete="name"
@@ -72,14 +66,14 @@ const submit = () => {
                     </div>
 
                     <div class="mt-4">
-                        <InputLabel for="email" class="form-label" value="Email" />
+                        <InputLabel for="email" class="form-label" :value="$t('messages.email')" />
 
                         <TextInput
                             id="email"
                             type="email"
                             class="form-control mt-1 block w-full"
                             v-model="form.email"
-                            placeholder="Email"
+                            :placeholder="$t('messages.email_placeholder')"
                             required
                             autocomplete="username"
                         />
@@ -88,13 +82,13 @@ const submit = () => {
                     </div>
 
                     <div class="mt-4">
-                        <InputLabel for="password" class="form-label" value="Password" />
+                        <InputLabel for="password" class="form-label" :value="$t('messages.password')" />
 
                         <TextInput
                             id="password"
                             type="password"
                             class="form-control mt-1 block w-full"
-                            placeholder="Password"
+                            :placeholder="$t('messages.password_placeholder')"
                             v-model="form.password"
                             required
                             autocomplete="new-password"
@@ -106,14 +100,14 @@ const submit = () => {
                     <div class="mt-4">
                         <InputLabel class="form-label"
                             for="password_confirmation"
-                            value="Confirm Password"
+                            :value="$t('messages.confirm_password')"
                         />
 
                         <TextInput
                             id="password_confirmation"
                             type="password"
                             class="form-control mt-1 block w-full"
-                            placeholder="Comfirm Password"
+                            :placeholder="$t('messages.confirm_password_placeholder')"
                             v-model="form.password_confirmation"
                             required
                             autocomplete="new-password"
@@ -130,20 +124,20 @@ const submit = () => {
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                     >
-                        Register
+                        {{ $t('messages.register') }}
                     </PrimaryButton>
 
                     <div class="flex-links">
                         <Link
                             :href="route('login')"
-                            class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            class="signup-link rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
-                            Already registered?
+                            {{ $t('messages.already_registered') }}
                         </Link>
                         <span>
-                            Don't have an account?
+                            {{ $t('messages.dont_have_account') }}
                             <Link :href="route('register')" class="signup-link">
-                                Register
+                                {{ $t('messages.register') }}
                             </Link>
                         </span>
                     </div>
@@ -151,6 +145,4 @@ const submit = () => {
             </div>
         </div>
     </div>
-
-
 </template>

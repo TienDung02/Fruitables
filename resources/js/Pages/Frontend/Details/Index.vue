@@ -1,16 +1,16 @@
 <template>
-    <Head title="Products"/>
+    <Head :title="$t('messages.products')"/>
     <Menu></Menu>
     <Search></Search>
 
     <div>
         <!-- Single Page Header start -->
         <div class="container-fluid page-header py-5">
-            <h1 class="text-center text-white display-6">Shop Detail</h1>
+            <h1 class="text-center text-white display-6">{{ $t('messages.shop_detail') }}</h1>
             <ol class="breadcrumb justify-content-center mb-0">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Pages</a></li>
-                <li class="breadcrumb-item active text-white">Shop Detail</li>
+                <li class="breadcrumb-item"><a href="#">{{ $t('messages.home') }}</a></li>
+                <li class="breadcrumb-item"><a href="#">{{ $t('messages.pages') }}</a></li>
+                <li class="breadcrumb-item active text-white">{{ $t('messages.shop_detail') }}</li>
             </ol>
         </div>
         <!-- Single Page Header End -->
@@ -46,7 +46,7 @@
                             </div>
                             <div class="col-lg-6">
                                 <h4 class="fw-bold mb-3">{{ data.name }}</h4>
-                                <p class="mb-3 fs-5">Category: {{ data.category.name }}</p>
+                                <p class="mb-3 fs-5">{{ $t('messages.category') }}: {{ data.category.name }}</p>
                                 <h3 class="fw-bold mb-3">
                                     <div v-if="this.sale_price">
                                         <span class="text-danger">${{ this.sale_price }}</span>
@@ -64,7 +64,7 @@
                                 </div>
                                 <p class="mb-5">{{ data.short_description }}</p>
                                 <div class="d-flex mb-4 ">
-                                    <p class="mb-3">Size</p>
+                                    <p class="mb-3">{{ $t('messages.size') }}</p>
                                     <ul  class="d-flex ps-0">
                                         <li
                                             v-for="variant in data.variants"
@@ -78,7 +78,7 @@
                                 </div>
 
                                 <div class="d-flex">
-                                    <p class="mb-3">Quantity</p>
+                                    <p class="mb-3">{{ $t('messages.quantity') }}</p>
                                     <div class="input-group quantity mb-5 ms-4" style="width: 100px;">
                                         <div class="input-group-btn">
                                             <button class="btn btn-sm btn-minus rounded-circle bg-light border" @click="decreaseQuantity">
@@ -96,12 +96,12 @@
 
                                 <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="addToCart()">
                                     <i class="fa fa-shopping-bag me-2 text-primary"></i>
-                                    <span>Add to cart</span>
+                                    <span>{{ $t('messages.add_to_cart') }}</span>
                                 </button>
 
                                 <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="buyNow()">
                                     <i class="fa fa-shopping-bag me-2 text-primary"></i>
-                                    <span>buyNow</span>
+                                    <span>{{ $t('messages.buy_now') }}</span>
                                 </button>
                             </div>
                             <div class="col-lg-12">
@@ -109,10 +109,10 @@
                                     <div class="nav nav-tabs mb-3">
                                         <button class="nav-link active border-white border-bottom-0" type="button" role="tab"
                                                 id="nav-about-tab" data-bs-toggle="tab" data-bs-target="#nav-about"
-                                                aria-controls="nav-about" aria-selected="true">Description</button>
+                                                aria-controls="nav-about" aria-selected="true">{{ $t('messages.description') }}</button>
                                         <button class="nav-link border-white border-bottom-0" type="button" role="tab"
                                                 id="nav-mission-tab" data-bs-toggle="tab" data-bs-target="#nav-mission"
-                                                aria-controls="nav-mission" aria-selected="false">Reviews</button>
+                                                aria-controls="nav-mission" aria-selected="false">{{ $t('messages.reviews') }}</button>
                                     </div>
                                 </nav>
                                 <div class="tab-content mb-5">
@@ -124,7 +124,7 @@
                                                 <div class="col-6">
                                                     <div class="row bg-light align-items-center text-center justify-content-center py-2">
                                                         <div class="col-6">
-                                                            <p class="mb-0">Weight</p>
+                                                            <p class="mb-0">{{ $t('messages.weight') }}</p>
                                                         </div>
                                                         <div class="col-6">
                                                             <p class="mb-0">1 kg</p>
@@ -132,31 +132,31 @@
                                                     </div>
                                                     <div class="row text-center align-items-center justify-content-center py-2">
                                                         <div class="col-6">
-                                                            <p class="mb-0">Country of Origin</p>
+                                                            <p class="mb-0">{{ $t('messages.country_of_origin') }}</p>
                                                         </div>
                                                         <div class="col-6">
-                                                            <p class="mb-0">Agro Farm</p>
+                                                            <p class="mb-0">{{ $t('messages.agro_farm') }}</p>
                                                         </div>
                                                     </div>
                                                     <div class="row bg-light text-center align-items-center justify-content-center py-2">
                                                         <div class="col-6">
-                                                            <p class="mb-0">Quality</p>
+                                                            <p class="mb-0">{{ $t('messages.quality') }}</p>
                                                         </div>
                                                         <div class="col-6">
-                                                            <p class="mb-0">Organic</p>
+                                                            <p class="mb-0">{{ $t('messages.organic') }}</p>
                                                         </div>
                                                     </div>
                                                     <div class="row text-center align-items-center justify-content-center py-2">
                                                         <div class="col-6">
-                                                            <p class="mb-0">Сheck</p>
+                                                            <p class="mb-0">{{ $t('messages.check') }}</p>
                                                         </div>
                                                         <div class="col-6">
-                                                            <p class="mb-0">Healthy</p>
+                                                            <p class="mb-0">{{ $t('messages.healthy') }}</p>
                                                         </div>
                                                     </div>
                                                     <div class="row bg-light text-center align-items-center justify-content-center py-2">
                                                         <div class="col-6">
-                                                            <p class="mb-0">Min Weight</p>
+                                                            <p class="mb-0">{{ $t('messages.min_weight') }}</p>
                                                         </div>
                                                         <div class="col-6">
                                                             <p class="mb-0">250 Kg</p>
@@ -213,27 +213,27 @@
                                 </div>
                             </div>
                             <form action="#">
-                                <h4 class="mb-5 fw-bold">Leave a Reply</h4>
+                                <h4 class="mb-5 fw-bold">{{ $t('messages.leave_a_reply') }}</h4>
                                 <div class="row g-4">
                                     <div class="col-lg-6">
                                         <div class="border-bottom rounded">
-                                            <input type="text" class="form-control border-0 me-4" placeholder="Yur Name *">
+                                            <input type="text" class="form-control border-0 me-4" :placeholder="$t('messages.your_name') + ' *'">
                                         </div>
                                     </div>
                                     <div class="col-lg-6">
                                         <div class="border-bottom rounded">
-                                            <input type="email" class="form-control border-0" placeholder="Your Email *">
+                                            <input type="email" class="form-control border-0" :placeholder="$t('messages.your_email') + ' *'">
                                         </div>
                                     </div>
                                     <div class="col-lg-12">
                                         <div class="border-bottom rounded my-4">
-                                            <textarea name="" id="" class="form-control border-0" cols="30" rows="8" placeholder="Your Review *" spellcheck="false"></textarea>
+                                            <textarea name="" id="" class="form-control border-0" cols="30" rows="8" :placeholder="$t('messages.your_review') + ' *'" spellcheck="false"></textarea>
                                         </div>
                                     </div>
                                     <div class="col-lg-12">
                                         <div class="d-flex justify-content-between py-3 mb-5">
                                             <div class="d-flex align-items-center">
-                                                <p class="mb-0 me-3">Please rate:</p>
+                                                <p class="mb-0 me-3">{{ $t('messages.please_rate') }}:</p>
                                                 <div class="d-flex align-items-center" style="font-size: 12px;">
                                                     <i class="fa fa-star text-muted"></i>
                                                     <i class="fa fa-star"></i>
@@ -242,7 +242,7 @@
                                                     <i class="fa fa-star"></i>
                                                 </div>
                                             </div>
-                                            <a href="#" class="btn border border-secondary text-primary rounded-pill px-4 py-3"> Post Comment</a>
+                                            <a href="#" class="btn border border-secondary text-primary rounded-pill px-4 py-3">{{ $t('messages.post_comment') }}</a>
                                         </div>
                                     </div>
                                 </div>
@@ -252,7 +252,7 @@
                     <div class="col-lg-4 col-xl-3">
                         <div class="row g-4 fruite">
                             <div class="col-lg-12">
-                                <h4 class="mb-4">Featured products</h4>
+                                <h4 class="mb-4">{{ $t('messages.featured_products') }}</h4>
                                 <div  v-for="featuredProduct in featuredProducts" :key="featuredProduct.id" class="d-flex align-items-center justify-content-start mb-5">
                                     <div class="rounded me-3" style="width: 100px; height: 100px;">
                                         <img
@@ -286,27 +286,27 @@
                                 <div class="position-relative">
                                     <img src="/images/img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
                                     <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
-                                        <h3 class="text-secondary fw-bold">Fresh <br> Fruits <br> Banner</h3>
+                                        <h3 class="text-secondary fw-bold">{{ $t('messages.fresh_fruits_banner').replace(' ', '<br>').replace(' ', '<br>') }}</h3>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <h1 class="fw-bold mb-0">Related products</h1>
+                <h1 class="fw-bold mb-0">{{ $t('messages.related_products') }}</h1>
                 <div class="vesitable">
                     <div class="owl-carousel vegetable-carousel justify-content-center">
                         <div class="border border-primary rounded position-relative vesitable-item">
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.parsely') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$4.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -314,13 +314,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-1.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.parsely') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$4.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -328,13 +328,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-3.png" class="img-fluid w-100 rounded-top bg-light" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Banana</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.banana') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -342,13 +342,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-4.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Bell Papper</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.bell_pepper') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -356,13 +356,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-5.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Potatoes</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.potatoes') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -370,13 +370,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.parsely') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -384,13 +384,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-5.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Potatoes</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.potatoes') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -398,13 +398,13 @@
                             <div class="vesitable-img">
                                 <img src="/images/img/vegetable-item-6.jpg" class="img-fluid w-100 rounded-top" alt="">
                             </div>
-                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">Vegetable</div>
+                            <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                             <div class="p-4 pb-0 rounded-bottom">
-                                <h4>Parsely</h4>
-                                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
+                                <h4>{{ $t('messages.parsely') }}</h4>
+                                <p>{{ $t('messages.lorem_ipsum_text') }}</p>
                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                     <p class="text-dark fs-5 fw-bold">$7.99 / kg</p>
-                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart</a>
+                                    <a href="#" class="btn border border-secondary rounded-pill px-3 py-1 mb-4 text-primary"><i class="fa fa-shopping-bag me-2 text-primary"></i> {{ $t('messages.add_to_cart') }}</a>
                                 </div>
                             </div>
                         </div>
@@ -416,95 +416,8 @@
 
 
         <!-- Footer Start -->
-        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
-            <div class="container py-5">
-                <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
-                    <div class="row g-4">
-                        <div class="col-lg-3">
-                            <a href="#">
-                                <h1 class="text-primary mb-0">Fruitables</h1>
-                                <p class="text-secondary mb-0">Fresh products</p>
-                            </a>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="position-relative mx-auto">
-                                <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number" placeholder="Your Email">
-                                <button type="submit" class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white" style="top: 0; right: 0;">Subscribe Now</button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="d-flex justify-content-end pt-3">
-                                <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-youtube"></i></a>
-                                <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i class="fab fa-linkedin-in"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-5">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="footer-item">
-                            <h4 class="text-light mb-3">Why People Like us!</h4>
-                            <p class="mb-4">typesetting, remaining essentially unchanged. It was
-                                popularised in the 1960s with the like Aldus PageMaker including of Lorem Ipsum.</p>
-                            <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="d-flex flex-column text-start footer-item">
-                            <h4 class="text-light mb-3">Shop Info</h4>
-                            <a class="btn-link" href="">About Us</a>
-                            <a class="btn-link" href="">Contact Us</a>
-                            <a class="btn-link" href="">Privacy Policy</a>
-                            <a class="btn-link" href="">Terms & Condition</a>
-                            <a class="btn-link" href="">Return Policy</a>
-                            <a class="btn-link" href="">FAQs & Help</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="d-flex flex-column text-start footer-item">
-                            <h4 class="text-light mb-3">Account</h4>
-                            <a class="btn-link" href="">My Account</a>
-                            <a class="btn-link" href="">Shop details</a>
-                            <a class="btn-link" href="">Shopping Cart</a>
-                            <a class="btn-link" href="">Wishlist</a>
-                            <a class="btn-link" href="">Order History</a>
-                            <a class="btn-link" href="">International Orders</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="footer-item">
-                            <h4 class="text-light mb-3">Contact</h4>
-                            <p>Address: 1429 Netus Rd, NY 48247</p>
-                            <p>Email: Example@gmail.com</p>
-                            <p>Phone: +0123 4567 8910</p>
-                            <p>Payment Accepted</p>
-                            <img src="img/payment.png" class="img-fluid" alt="">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <Footer />
         <!-- Footer End -->
-
-        <!-- Copyright Start -->
-        <div class="container-fluid copyright bg-dark py-4">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
-                    </div>
-                    <div class="col-md-6 my-auto text-center text-md-end text-white">
-                        <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
-                        <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlink, ***/-->
-                        <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
-                        Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Copyright End -->
     </div>
 </template>
 
@@ -520,13 +433,16 @@ import 'swiper/css/pagination';
 import { Navigation, Pagination } from 'swiper/modules';
 import axios from "axios";
 import { useCartStore } from '@/stores/cart';
+import Swal from 'sweetalert2';
+import Footer from '@/Pages/Frontend/Includes/Footer.vue';
 export default {
     components: {
         Search,
         Menu,
         Head,
         Swiper,
-        SwiperSlide
+        SwiperSlide,
+        Footer,
     },
     computed: {
         // Calculate range track fill style
@@ -717,9 +633,34 @@ export default {
                 console.log('quantity:', this.quantity);
             }
         },
-        showNotification(message, type) {
-            console.log(`Notification (${type}): ${message}`);
-            alert(message);
+        showNotification(message, type = 'success') {
+            let icon = 'success';
+            const title = message;
+
+            switch(type) {
+                case 'success':
+                    icon = 'success';
+                    break;
+                case 'error':
+                    icon = 'error';
+                    break;
+                case 'warning':
+                    icon = 'warning';
+                    break;
+                case 'info':
+                    icon = 'info';
+                    break;
+                default:
+                    icon = 'success';
+            }
+
+            Swal.fire({
+                position: "top-end",
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 1500
+            });
         },
     }
 }

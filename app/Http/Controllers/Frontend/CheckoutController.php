@@ -4,11 +4,18 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\CheckoutSessionService;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class CheckoutController extends Controller
 {
+    protected $checkoutSessionService;
+
+    public function __construct(CheckoutSessionService $checkoutSessionService)
+    {
+        $this->checkoutSessionService = $checkoutSessionService;
+    }
     public function index(Request $request, $checkoutId)
     {
         Log::info('method checkout in CheckoutController called');
@@ -25,13 +32,17 @@ class CheckoutController extends Controller
             $selectedItems = [];
         }
 
+        // Lấy shipping info từ session
+        $shippingData = $this->checkoutSessionService->prepareResponseData();
+
         return Inertia::render('Frontend/Checkout/Index', [
             'auth' => [
                 'user' => auth()->user(),
             ],
             'csrf_token' => csrf_token(),
             'selectedItems' => $selectedItems,
-            'checkoutId' => $checkoutId
+            'checkoutId' => $checkoutId,
+            'shippingInfo' => $shippingData
         ]);
     }
 
@@ -58,6 +69,10 @@ class CheckoutController extends Controller
             'items' => $validated['items']
         ]);
 
+        // Lấy shipping info từ session (tương tự như index method)
+        $shippingData = $this->checkoutSessionService->prepareResponseData();
+        Log::info('shippingData for buyNow: ', ['shippingData' => $shippingData]);
+
         // Render trang checkout với dữ liệu buy_now
         return Inertia::render('Frontend/Checkout/Index', [
             'auth' => [
@@ -66,6 +81,7 @@ class CheckoutController extends Controller
             'csrf_token' => csrf_token(),
             'selectedItems' => $validated['items'],
             'checkoutId' => $checkoutId,
+            'shippingInfo' => $shippingData,
             'buyNow' => true // Flag để phân biệt với checkout thông thường
         ]);
     }

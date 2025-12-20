@@ -3,11 +3,11 @@
     <Search />
     <!-- Single Page Header start -->
     <div class="container-fluid page-header py-5">
-        <h1 class="text-center text-white display-6">Wishlist</h1>
+        <h1 class="text-center text-white display-6">{{ $t('messages.wishlist') }}</h1>
         <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Pages</a></li>
-            <li class="breadcrumb-item active text-white">Wishlist</li>
+            <li class="breadcrumb-item"><a href="#">{{ $t('messages.home') }}</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ $t('messages.pages') }}</a></li>
+            <li class="breadcrumb-item active text-white">{{ $t('messages.wishlist') }}</li>
         </ol>
     </div>
     <!-- Single Page Header End -->
@@ -17,25 +17,26 @@
         <div class="container py-5">
             <h1 class="mb-4">
                 <i class="fa fa-heart" style="color: #fbc531;"></i> &nbsp;
-                Wishlist</h1>
+                {{ $t('messages.wishlist') }}
+            </h1>
 
             <div class="wishlist-stats">
                 <div class="row">
                     <div class="col-md-4">
                         <div class="stat-item">
-                            <p class="stat-label">Sản phẩm yêu thích</p>
+                            <p class="stat-label">{{ $t('messages.favorite_products') }}</p>
                             <span class="stat-number" id="totalItems">{{ products.length }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-item">
-                            <p class="stat-label">Tổng giá trị</p>
+                            <p class="stat-label">{{ $t('messages.total_value') }}</p>
                             <span class="stat-number" id="totalValue">${{ totalValue }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-item">
-                            <p class="stat-label">Tiết kiệm được</p>
+                            <p class="stat-label">{{ $t('messages.savings') }}</p>
                             <span class="stat-number" id="savedAmount">${{ saveValue }}</span>
                         </div>
                     </div>
@@ -51,9 +52,9 @@
                                 <template v-if="loading">
                                     <div class="col-12 text-center">
                                         <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
+                                            <span class="visually-hidden">{{ $t('messages.loading') }}</span>
                                         </div>
-                                        <p class="mt-2">Loading products...</p>
+                                        <p class="mt-2">{{ $t('messages.loading_products') }}</p>
                                     </div>
                                 </template>
 
@@ -67,14 +68,14 @@
                                 <!-- No Products -->
                                 <template v-else-if="!Array.isArray(products) || products.length === 0">
                                     <div class="col-12">
-                                        <div class="alert alert-warning">No products found in your wishlist</div>
+                                        <div class="alert alert-warning">{{ $t('messages.no_products_wishlist') }}</div>
                                     </div>
                                 </template>
 
                                 <!-- Dynamic Products -->
                                 <template v-else-if="Array.isArray(products) && products.length > 0">
                                     <div v-for="product in products" :key="product.id" class="col-md-6 col-lg-6 col-xl-3">
-                                        <div class="rounded position-relative fruite-item ">
+                                        <div class="rounded position-relative fruite-item border border-secondary">
                                             <div class="fruite-img border-secondary" style="border: 1px solid #000; position: relative;">
                                                 <img
                                                     :alt="product.name"
@@ -82,26 +83,58 @@
                                                     class="img-fluid w-100 rounded-top"
                                                 >
                                                 <!-- Nút trái tim -->
-                                                <button class="btn btn-outline-danger position-absolute" style="top:10px; right:10px; z-index:2;" @click="toggleWishlist(product.id)" title="Bỏ/Thêm yêu thích">
+                                                <button class="btn btn-outline-danger position-absolute" style="top:10px; right:10px; z-index:2;" @click="toggleWishlist(product.id)" :title="$t('messages.add_remove_favorite')">
                                                     <i v-if="isInWishlist(product.id)" class="fa fa-heart" style="color: #f00"></i>
                                                     <i v-else class="far fa-heart" style="color: #f00"></i>
                                                 </button>
                                             </div>
                                             <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">
-                                                {{ product.category?.name || 'Fruits' }}
+                                                {{ product.category?.name || $t('messages.fruits') }}
                                             </div>
-                                            <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                                            <div class="p-4 border-top-0 rounded-bottom">
                                                 <h4>{{ product.name }}</h4>
-                                                <p>{{ product.description?.substring(0, 100) || 'Lorem ipsum dolor sit amet...' }}...</p>
+                                                <p>{{ product.description?.substring(0, 100) || $t('messages.lorem_ipsum_short') }}...</p>
                                                 <div class="d-flex justify-content-between flex-lg-wrap">
-                                                    <p class="text-dark fs-5 fw-bold mb-0">
+                                                    <p class="text-dark fs-5 fw-bold mb-0 d-flex">
                                                         <span v-if="product.variants[0].sale_price" class="text-danger">${{ product.variants[0].sale_price }} / {{product.variants[0].size}}</span>
-                                                        <span v-if="product.variants[0].sale_price" class="text-decoration-line-through opacity-75 fs-6">${{ product.variants[0].price }} / {{product.variants[0].size}}</span>
+                                                        <span v-if="product.variants[0].sale_price" class="text-decoration-line-through opacity-75 fs-6 ms-3">${{ product.variants[0].price }} / {{product.variants[0].size}}</span>
                                                         <span v-else>${{ product.variants[0].price }} / kg</span>
                                                     </p>
-                                                    <a class="btn border border-secondary rounded-pill px-3 text-primary" href="#">
-                                                        <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
-                                                    </a>
+
+                                                    <!-- Add to Cart Button -->
+                                                    <div class="d-flex align-items-center w-100 mt-2 justify-content-between">
+                                                        <!-- Quantity Selector -->
+                                                        <div class="input-group ms-3 width-35">
+                                                            <button
+                                                                @click="decreaseQuantity(product.id)"
+                                                                class="btn btn-sm btn-outline-secondary "
+                                                                type="button">
+                                                                <i class="fa fa-minus"></i>
+                                                            </button>
+                                                            <input
+                                                                v-model="quantities[product.id]"
+                                                                type="number"
+                                                                min="1"
+                                                                class="form-control form-control-sm text-center "
+                                                                style="padding: 4px;">
+                                                            <button
+                                                                @click="increaseQuantity(product.id)"
+                                                                class="btn btn-sm btn-outline-secondary "
+                                                                type="button">
+                                                                <i class="fa fa-plus"></i>
+                                                            </button>
+                                                        </div>
+
+                                                        <!-- Add to Cart Button -->
+                                                        <button
+                                                            @click="addToCart(product)"
+                                                            :disabled="addToCartLoading[product.id]"
+                                                            class="btn border border-secondary rounded-pill h-100 px-3 text-primary fs-5">
+                                                            <div v-if="addToCartLoading[product.id]" class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                                            <i v-else class="fa fa-shopping-bag me-2 text-primary"></i>
+                                                            {{ addToCartLoading[product.id] ? $t('messages.adding') : $t('messages.add_to_cart') }}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -117,113 +150,22 @@
     <!-- Fruits Shop End-->
 
     <!-- Footer Start -->
-    <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
-        <div class="container py-5">
-            <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
-                <div class="row g-4">
-                    <div class="col-lg-3">
-                        <a href="#">
-                            <h1 class="text-primary mb-0">Fruitables</h1>
-                            <p class="text-secondary mb-0">Fresh products</p>
-                        </a>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="position-relative mx-auto">
-                            <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" placeholder="Your Email"
-                                   type="number">
-                            <button
-                                class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white"
-                                style="top: 0; right: 0;"
-                                type="submit">Subscribe Now
-                            </button>
-                        </div>
-                    </div>
-                    <div class="col-lg-3">
-                        <div class="d-flex justify-content-end pt-3">
-                            <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
-                                class="fab fa-twitter"></i></a>
-                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
-                                class="fab fa-facebook-f"></i></a>
-                            <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i
-                                class="fab fa-youtube"></i></a>
-                            <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i
-                                class="fab fa-linkedin-in"></i></a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="row g-5">
-                <div class="col-lg-3 col-md-6">
-                    <div class="footer-item">
-                        <h4 class="text-light mb-3">Why People Like us!</h4>
-                        <p class="mb-4">typesetting, remaining essentially unchanged. It was
-                            popularised in the 1960s with the like Aldus PageMaker including of Lorem Ipsum.</p>
-                        <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="d-flex flex-column text-start footer-item">
-                        <h4 class="text-light mb-3">Shop Info</h4>
-                        <a class="btn-link" href="">About Us</a>
-                        <a class="btn-link" href="">Contact Us</a>
-                        <a class="btn-link" href="">Privacy Policy</a>
-                        <a class="btn-link" href="">Terms & Condition</a>
-                        <a class="btn-link" href="">Return Policy</a>
-                        <a class="btn-link" href="">FAQs & Help</a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="d-flex flex-column text-start footer-item">
-                        <h4 class="text-light mb-3">Account</h4>
-                        <a class="btn-link" href="">My Account</a>
-                        <a class="btn-link" href="">Shop details</a>
-                        <a class="btn-link" href="">Shopping Cart</a>
-                        <a class="btn-link" href="">Wishlist</a>
-                        <a class="btn-link" href="">Order History</a>
-                        <a class="btn-link" href="">International Orders</a>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="footer-item">
-                        <h4 class="text-light mb-3">Contact</h4>
-                        <p>Address: 1429 Netus Rd, NY 48247</p>
-                        <p>Email: Example@gmail.com</p>
-                        <p>Phone: +0123 4567 8910</p>
-                        <p>Payment Accepted</p>
-                        <img src="/images/img/payment.png" class="img-fluid" alt="">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <Footer />
     <!-- Footer End -->
-
-    <!-- Copyright Start -->
-    <div class="container-fluid copyright bg-dark py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                    <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
-                </div>
-                <div class="col-md-6 my-auto text-center text-md-end text-white">
-                    Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a
-                    class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Copyright End -->
 </template>
 
 <script lang="ts">
 import MenuComponent from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
+import Footer from '@/Pages/Frontend/Includes/Footer.vue';
 import axios from "axios";
+import Swal from 'sweetalert2';
 
 export default {
     components: {
         MenuComponent,
         Search,
+        Footer,
     },
     props: {
         auth: {
@@ -241,6 +183,8 @@ export default {
             error: null,
             totalValue: 0,
             saveValue: 0,
+            quantities: {},
+            addToCartLoading: {},
         }
     },
     computed: {
@@ -300,8 +244,18 @@ export default {
                 }
             }
 
+            // Initialize quantities for each product
+            this.initializeQuantities();
+
             await this.fetchWishlistTotalValue();
             await this.fetchWishlistSaveValue();
+        },
+
+        initializeQuantities() {
+            this.products.forEach(product => {
+                // Vue 3: Sử dụng direct assignment thay vì this.$set
+                this.quantities[product.id] = 1;
+            });
         },
 
         // Lấy chi tiết sản phẩm wishlist từ API (khi đã đăng nhập)
@@ -408,10 +362,95 @@ export default {
             return this.wishlistIds.includes(productId);
         },
 
-        showNotification(message, type) {
-            console.log(`Notification (${type}): ${message}`);
-            alert(message);
-        }
+
+
+        increaseQuantity(productId) {
+            if (!this.quantities[productId]) {
+                this.quantities[productId] = 1;
+            }
+            this.quantities[productId]++;
+        },
+        decreaseQuantity(productId) {
+            if (this.quantities[productId] && this.quantities[productId] > 1) {
+                this.quantities[productId]--;
+            }
+        },
+        async addToCart(product) {
+            const productId = product.id;
+            const productVariantId = product.variants[0].id; // Lấy variant đầu tiên
+            const quantity = this.quantities[productId] || 1;
+
+            this.addToCartLoading[productId] = true;
+
+            try {
+                if (this.user) {
+                    // User đã đăng nhập - sử dụng database API
+                    const cartRes = await axios.get('/api/cart');
+                    const cartItems = cartRes.data.data || [];
+
+                    const existingItem = cartItems.find(item => item.productVariant_id === productVariantId);
+
+                    if (existingItem) {
+                        // Nếu variant đã có trong giỏ hàng, cập nhật số lượng
+                        await axios.put(`/api/cart/${existingItem.id}`, {
+                            quantity: existingItem.quantity + quantity
+                        });
+                    } else {
+                        // Nếu variant chưa có, thêm mới
+                        await axios.post('/api/cart', {
+                            productVariant_id: productVariantId,
+                            quantity: quantity
+                        });
+                    }
+                } else {
+                    // User chưa đăng nhập - sử dụng session API
+                    await axios.post('/api/session/cart', {
+                        productVariant_id: productVariantId,
+                        quantity: quantity
+                    });
+                }
+
+                this.showNotification('Sản phẩm đã được thêm vào giỏ hàng!', 'success');
+
+                // Reset quantity về 1 sau khi thêm thành công
+                this.quantities[productId] = 1;
+
+            } catch (error) {
+                this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
+                console.error('Add to cart error:', error);
+            } finally {
+                this.addToCartLoading[productId] = false;
+            }
+        },
+        showNotification(message, type = 'success') {
+            let icon = 'success';
+            const title = message;
+
+            switch(type) {
+                case 'success':
+                    icon = 'success';
+                    break;
+                case 'error':
+                    icon = 'error';
+                    break;
+                case 'warning':
+                    icon = 'warning';
+                    break;
+                case 'info':
+                    icon = 'info';
+                    break;
+                default:
+                    icon = 'success';
+            }
+
+            Swal.fire({
+                position: "top-end",
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 1500,
+            });
+        },
     }
 }
 </script>

@@ -4,38 +4,50 @@
         <div class="container topbar bg-primary d-none d-lg-block">
             <div class="d-flex justify-content-between">
                 <div class="top-info ps-2">
-                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">Dormitory Area A, Ho Chi Minh City National University</a></small>
+                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">{{ $t('messages.dormitory_area_hcmu') }}</a></small>
                     <small class="me-3"><i class="fas fa-envelope me-2 text-secondary"></i><a href="#" class="text-white">nongtiendung2309@gmail.com</a></small>
                 </div>
-                <div v-if="!authStore.isLoggedIn">
-                    <Link :href="route('login')" class="signup-link text-white mx-2 hover:text-gray-900">
-                        Login
-                    </Link>
-                    /
-                    <Link :href="route('register')" class="signup-link text-white mx-2 hover:text-gray-900">
-                        Register
-                    </Link>
-                </div>
-                <div v-else>
-                    {{ authStore.user.full_name  }}
+                <div class="d-flex align-items-center">
+                    <!-- Language Switcher -->
+                    <div class="me-3">
+                        <LanguageSwitcher />
+                    </div>
+                    <div v-if="!authStore.isLoggedIn">
+                        <Link :href="route('login')" class="signup-link text-white mx-2 hover:text-gray-900">
+                            {{ $t('messages.login') }}
+                        </Link>
+                        /
+                        <Link :href="route('register')" class="signup-link text-white mx-2 hover:text-gray-900">
+                            {{ $t('messages.register') }}
+                        </Link>
+                    </div>
+                    <div v-else>
+                        {{ authStore.user.full_name  }}
+                    </div>
                 </div>
             </div>
         </div>
         <div class="container px-0">
             <nav class="navbar navbar-light bg-white navbar-expand-xl">
-                <a href="index.html" class="navbar-brand"><h1 class="text-primary display-6">Fruitables</h1></a>
+                <Link :href="route('dashboard')" >
+                    <a><h1 class="text-primary display-6">Fruitables</h1></a>
+                </Link>
+
                 <button class="navbar-toggler py-2 px-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
                     <span class="fa fa-bars text-primary"></span>
                 </button>
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto">
-                        <Link :href="route('dashboard')" class="nav-item nav-link active">Home</Link>
-                        <Link :href="route('products.index')" class="nav-item nav-link">Shop</Link>
-                        <a href="contact.html" class="nav-item nav-link">Contact</a>
+                        <Link :href="route('dashboard')" class="nav-item nav-link active">{{ $t('messages.home') }}</Link>
+                        <Link :href="route('products.index')" class="nav-item nav-link">{{ $t('messages.shop') }}</Link>
+                        <Link :href="route('contact.index')" class="nav-item nav-link">{{ $t('messages.contact') }}</Link>
+                        <Link :href="route('about.index')" class="nav-item nav-link">{{ $t('messages.about') }}</Link>
                     </div>
                     <div class="d-flex m-3 me-0">
                         <a href="#" class="position-relative me-4 my-auto">
-                            <i class="fa fa-shopping-bag fa-2x"></i>
+                            <Link :href="route('cart.index')">
+                                <i class="fa fa-shopping-bag fa-2x"></i>
+                            </Link>
                             <span class="position-absolute bg-secondary rounded-circle d-flex align-items-center justify-content-center text-dark px-1" style="top: -5px; left: 15px; height: 20px; min-width: 20px;">{{ cartStore?.count || 0 }}</span>
                         </a>
                         <div class="dropdown" @click.stop>
@@ -43,27 +55,25 @@
                                 <i class="fas fa-user fa-2x"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" :class="{ show: isDropdownOpen }">
-                                <!--                                <li><Link class="dropdown-item"><i class="fas fa-user-edit me-2"></i>Profile</Link></li>-->
-                                <!--                                <li><Link  class="dropdown-item"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</Link></li>-->
                                 <li><hr class="dropdown-divider"></li>
 
                                 <li>
                                     <Link :href="route('cart.index')" class="dropdown-item">
                                         <i class="fas fa-shopping-cart me-2"></i>
-                                        Cart
+                                        {{ $t('messages.cart') }}
                                     </Link>
                                 </li>
                                 <li>
                                     <Link :href="route('wishlist.index')" class="dropdown-item">
                                         <i class="fas fa-heart me-2"></i>
-                                        Wishlist
+                                        {{ $t('messages.wishlist') }}
                                     </Link>
                                 </li>
                                 <li v-if="authStore.isLoggedIn"><hr class="dropdown-divider"></li>
                                 <li v-if="authStore.isLoggedIn">
                                     <Link :href="route('profile.index')" class="dropdown-item">
                                         <i class="fas fa-user me-2"></i>
-                                        My Account
+                                        {{ $t('messages.profile') }}
                                     </Link>
                                 </li>
                                 <li v-if="authStore.isLoggedIn">
@@ -72,7 +82,7 @@
                                         class="dropdown-item text-danger"
                                         style="border: none; background: none; width: 100%; text-align: left;"
                                     >
-                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                        <i class="fas fa-sign-out-alt me-2"></i> {{ $t('messages.logout') }}
                                     </button>
                                 </li>
                             </ul>
@@ -90,11 +100,18 @@ import { Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { useCartStore } from '@/stores/cart';
 import { useAuthStore } from '@/stores/auth';
-
+import { useTranslation } from '@/composables/useTranslation';
+import LanguageSwitcher from '@/Components/LanguageSwitcher.vue';
+import { useI18n } from 'vue-i18n'
 export default {
     name: 'Menu',
     components: {
-        Link
+        Link,
+        LanguageSwitcher,
+    },
+    setup() {
+        // remove local t, rely on global $t
+        return {};
     },
     data() {
         return {

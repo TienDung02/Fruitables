@@ -1,0 +1,83 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: fruitables-app
+        restart: unless-stopped
+        environment:
+            - APP_ENV=production
+            - APP_DEBUG=false
+            - APP_KEY=${APP_KEY}
+            - DB_HOST=db
+            - DB_PORT=3306
+            - DB_DATABASE=fruitables
+            - DB_USERNAME=laravel
+            - DB_PASSWORD=secret123
+            - CACHE_DRIVER=redis
+            - REDIS_HOST=redis
+        volumes:
+            - ./storage:/var/www/storage       # Mount storage để có thể ghi
+            - ./bootstrap/cache:/var/www/bootstrap/cache
+        depends_on:
+            - db
+            - redis
+        networks:
+            - fruitables
+
+    db:
+        image: mysql:8.0
+        container_name: fruitables-db
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: fruitables
+            MYSQL_ROOT_PASSWORD: root123
+            MYSQL_USER: laravel
+            MYSQL_PASSWORD: secret123
+        volumes:
+            - mysql_data:/var/lib/mysql
+            - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+        ports:
+            - "3307:3306"
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 30s
+        networks:
+            - fruitables
+
+    redis:
+        image: redis:7-alpine
+        container_name: fruitables-redis
+        restart: unless-stopped
+        command: redis-server --appendonly yes
+        volumes:
+            - redis_data:/data
+        networks:
+            - fruitables
+
+    nginx:
+        image: nginx:alpine
+        container_name: fruitables-nginx
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+            - "443:443"
+        volumes:
+            - ./public:/var/www/public:ro
+            - ./storage:/var/www/storage:ro
+            - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+        depends_on:
+            - app
+        networks:
+            - fruitables
+
+volumes:
+    mysql_data:
+    redis_data:
+
+networks:
+    fruitables:
+        driver: bridge

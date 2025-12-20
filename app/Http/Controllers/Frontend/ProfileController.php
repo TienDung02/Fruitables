@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\UserAddress;
 use App\Models\UserNotification;
 use App\Models\Ward;
+use App\Models\User;
+//use http\Client\Curl\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -19,9 +21,11 @@ class ProfileController extends Controller
     /**
      * Display the profile page
      */
+//    public function show(string $username): Response
     public function index(): Response
     {
         $user = auth()->user();
+//        $user = User::where('username', $username)->firstOrFail();
         Log::info('User Profile Accessed', $user->toArray());
 
         return Inertia::render('Frontend/Profile/Index', [

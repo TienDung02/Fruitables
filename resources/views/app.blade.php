@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title inertia>{{ config('app.name', 'Laravel') }}</title>
+        <title inertia></title>
         <link rel="icon" href="{{asset('/images/logo.png')}}" type="image/x-icon">
 
         <!-- Google Web Fonts -->
@@ -32,7 +32,7 @@
 
         <!-- Scripts -->
         @routes
-        @vite(['resources/js/app.js'])
+        @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

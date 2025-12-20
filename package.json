@@ -40,11 +40,13 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "concurrently": "^9.0.1",
+        "jquery": "^3.7.1",
         "laravel-vite-plugin": "^1.0",
         "lucide-vue-next": "^0.468.0",
         "pinia": "^3.0.3",
         "qrcode": "^1.5.4",
         "reka-ui": "^2.2.0",
+        "summernote": "^0.9.1",
         "sweetalert2": "^11.24.0",
         "swiper": "^11.2.10",
         "tailwind-merge": "^3.2.0",
@@ -53,6 +55,7 @@
         "typescript": "^5.2.2",
         "vite": "^6.2.0",
         "vue": "^3.5.13",
+        "vue-i18n": "^9.14.5",
         "ziggy-js": "^2.4.2"
     },
     "optionalDependencies": {

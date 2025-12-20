@@ -29,8 +29,20 @@ Route::get('products/bestsellers', [ProductController::class, 'bestsellers']);
 Route::get('products/featured', [ProductController::class, 'featured']);
 
 // Public routes
-Route::apiResource('categories', CategoryController::class);
-Route::apiResource('products', ProductController::class);
+Route::apiResource('categories', CategoryController::class)->names([
+    'index' => 'api.categories.index',
+    'store' => 'api.categories.store',
+    'show' => 'api.categories.show',
+    'update' => 'api.categories.update',
+    'destroy' => 'api.categories.destroy',
+]);
+Route::apiResource('products', ProductController::class)->names([
+    'index' => 'api.products.index',
+    'store' => 'api.products.store',
+    'show' => 'api.products.show',
+    'update' => 'api.products.update',
+    'destroy' => 'api.products.destroy',
+]);
 
 // MoMo Payment routes (public - không cần auth)
 Route::prefix('payment/momo')->group(function () {
@@ -155,11 +167,19 @@ Route::prefix('locations')->group(function () {
 
 // Admin routes (requires admin role)
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-    // Categories management
-    Route::apiResource('categories', CategoryController::class)->except(['index', 'show']);
+    // Categories management with admin prefix names
+    Route::apiResource('categories', CategoryController::class)->except(['index', 'show'])->names([
+        'store' => 'admin.categories.store',
+        'update' => 'admin.categories.update',
+        'destroy' => 'admin.categories.destroy',
+    ]);
 
-    // Products management
-    Route::apiResource('products', ProductController::class)->except(['index', 'show']);
+    // Products management with admin prefix names
+    Route::apiResource('products', ProductController::class)->except(['index', 'show'])->names([
+        'store' => 'admin.products.store',
+        'update' => 'admin.products.update',
+        'destroy' => 'admin.products.destroy',
+    ]);
 
     // Orders management
     Route::get('orders', [OrderController::class, 'adminIndex']);

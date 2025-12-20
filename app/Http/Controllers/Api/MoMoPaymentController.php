@@ -25,18 +25,15 @@ class MoMoPaymentController extends Controller
      */
     public function createPayment(Request $request)
     {
+        Log::info('Create MoMo Payment Request received:', $request->all());
         $request->validate([
             'items' => 'required|array',
             'shipping_type' => 'required|string|in:free,standard,fast',
             'customer_info' => 'required|array',
-            'customer_info.first_name' => 'required|string',
-            'customer_info.last_name' => 'required|string',
+            'customer_info.name' => 'required|string',
             'customer_info.email' => 'required|email',
-            'customer_info.mobile' => 'required|string',
+            'customer_info.phone' => 'required|string',
             'customer_info.address' => 'required|string',
-            'customer_info.city' => 'required|string',
-            'customer_info.country' => 'required|string',
-            'customer_info.postcode' => 'required|string',
         ]);
 
         try {
@@ -222,11 +219,11 @@ class MoMoPaymentController extends Controller
         if ($resultCode == 0) {
             // Thanh toán thành công
             return redirect()->route('checkout.success', ['order' => $orderId])
-                           ->with('success', 'Thanh toán thành công!');
+                ->with('success', 'Thanh toán thành công!');
         } else {
             // Thanh toán thất bại
             return redirect()->route('checkout.failed', ['order' => $orderId])
-                           ->with('error', 'Thanh toán thất bại!');
+                ->with('error', 'Thanh toán thất bại!');
         }
     }
 

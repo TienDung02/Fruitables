@@ -1,4 +1,4 @@
-
+@import url('base.css');
 /*** Spinner Start ***/
 #spinner {
     opacity: 0;
@@ -11,6 +11,9 @@
      transition: opacity .8s ease-out, visibility 0s linear .0s;
      visibility: visible;
      opacity: 1;
+ }
+ .bg-gray{
+     background-color: #f5f5f5d1 !important;
  }
 
  .back-to-top {
@@ -1037,7 +1040,7 @@ input[type='radio']:after {
     width: 15px;
     height: 15px;
     border-radius: 15px;
-    top: -2px;
+    top: -5px;
     left: -1px;
     position: relative;
     background-color: #fff;
@@ -1051,8 +1054,8 @@ input[type='radio']:checked:after {
     width: 15px;
     height: 15px;
     border-radius: 15px;
-    top: -2px;
-    left: -1px;
+    top: -4px;
+    left: -2px;
     position: relative;
     background-color: #8bc34a;
     content: '';
@@ -1518,3 +1521,428 @@ input[type='radio']:checked:after {
     transition: .2s ease;
 }
 /* End custom input */
+
+
+/* Custom checkout */
+/* Decorative line pattern */
+.dashed-line-pattern {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.dashed-line-pattern span {
+    flex: 1;
+    height: 3px;
+    background-color: #ee4d2d;
+}
+
+.dashed-line-pattern span:nth-child(even) {
+    background-color: #0066cc;
+}
+
+/* Delivery Address Section */
+.delivery-address {
+    background-color: white;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.delivery-address-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ee4d2d;
+    padding: 0 20px;
+
+}
+
+.delivery-address-header i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.delivery-address-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+}
+
+.address-info {
+    flex: 1;
+}
+
+.store-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #222;
+    margin-bottom: 5px;
+}
+
+.store-phone {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.store-address {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+}
+
+.address-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.change-link {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.change-link:hover {
+    text-decoration: underline;
+}
+
+/* Products Section */
+.products-section {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.shop-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.shop-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #222;
+    flex: 1;
+}
+
+.product-item {
+    display: grid;
+    grid-template-columns:1fr 120px 100px 100px;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.product-item:last-child {
+    border-bottom: none;
+}
+
+.product-checkbox {
+    margin-top: 5px;
+}
+
+.product-image {
+    width: 80px;
+    height: 80px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.product-details {
+    flex: 1;
+}
+
+.product-name {
+    font-size: 13px;
+    color: #222;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.product-variant {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+    text-align: right;
+
+}
+
+.product-price {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: right;
+
+}
+
+.product-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    width: fit-content;
+}
+
+.quantity-selector button {
+    background: none;
+    border: none;
+    width: 25px;
+    height: 25px;
+    cursor: pointer;
+    color: #666;
+    font-size: 12px;
+}
+
+.quantity-selector input {
+    width: 40px;
+    border: none;
+    text-align: center;
+    font-size: 12px;
+}
+
+.product-total {
+    text-align: right;
+    font-weight: 600;
+    color: #222;
+    font-size: 14px;
+}
+
+/* Promotion Section */
+.promotion-section {
+    background-color: #fff5f5;
+    padding: 12px 15px;
+    border-radius: 4px;
+    margin-top: 10px;
+    font-size: 12px;
+    color: #666;
+}
+
+.promotion-section strong {
+    color: #ee4d2d;
+}
+
+/* Shipping & Discount */
+.shipping-discount {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-top: 1px solid #f0f0f0;
+    margin-top: 15px;
+}
+
+.shipping-info {
+    font-size: 13px;
+    color: #666;
+}
+
+.shipping-price {
+    color: #0066cc;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Voucher Section */
+.voucher-section {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.voucher-item {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.voucher-item:hover {
+    background-color: #f9f9f9;
+}
+
+.voucher-icon {
+    font-size: 20px;
+    margin-right: 12px;
+    color: #ee4d2d;
+}
+
+.voucher-info {
+    flex: 1;
+}
+
+.voucher-name {
+    font-weight: 600;
+    font-size: 13px;
+    color: #222;
+}
+
+.voucher-desc {
+    font-size: 12px;
+    color: #999;
+}
+
+.voucher-action {
+    color: #0066cc;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Order Summary */
+.order-summary {
+    background-color: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.summary-row.total {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 15px;
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.summary-row.total .price {
+    color: #ee4d2d;
+    font-size: 18px;
+}
+
+/* Checkout Button */
+.checkout-btn {
+    background-color: #ee4d2d;
+    color: white;
+    border: none;
+    padding: 12px 40px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.checkout-btn:hover {
+    background-color: #d63d1f;
+}
+
+
+.payment-methods {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.payment-icon {
+    width: 40px;
+    height: 25px;
+    background-color: #f5f5f5;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .delivery-address-content {
+        flex-direction: column;
+    }
+
+    .address-actions {
+        margin-top: 15px;
+        width: 100%;
+    }
+    .products-header,
+    .product-item,
+    .insurance-item {
+        grid-template-columns: 1fr;
+    }
+    .product-item {
+        flex-direction: column;
+    }
+
+    .product-image {
+        width: 100%;
+        height: 150px;
+    }
+}
+.products-header {
+    display: grid;
+    grid-template-columns: 1fr 120px 120px 100px 100px;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: #666;
+    font-size: 13px;
+}
+
+.products-header > div:nth-child(2) {
+    text-align: left;
+}
+
+.products-header > div:nth-child(3),
+.products-header > div:nth-child(4),
+.products-header > div:nth-child(5) {
+    text-align: right;
+}
+.shipping-header{
+    display: grid;
+    grid-template-columns: 1px 1fr 160px 80px;
+    gap: 16px;
+    padding-bottom: 12px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    color: #666;
+    font-size: 13px;
+}
+/* End custom checkout */
+
+.my-auto i:before{
+    color: #81c408 !important;
+}

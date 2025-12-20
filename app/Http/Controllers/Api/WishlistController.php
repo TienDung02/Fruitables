@@ -66,7 +66,7 @@ class WishlistController extends Controller
     // Sync wishlist from session to database when user logs in
     public function syncWishlist(Request $request)
     {
-        Log::info('syncWishlist have been called');
+//        Log::info('syncWishlist have been called');
         $user = Auth::user();
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
@@ -78,7 +78,7 @@ class WishlistController extends Controller
             $sessionWishlist = [];
         }
 
-        Log::info('sessionWishlist in syncWishlist()', $sessionWishlist);
+//        Log::info('sessionWishlist in syncWishlist()', $sessionWishlist);
         foreach ($sessionWishlist as $item) {
             \App\Models\Wishlist::firstOrCreate([
                 'user_id' => $user->id,
@@ -96,7 +96,7 @@ class WishlistController extends Controller
                 'selected' => collect($sessionWishlist)->firstWhere('product_id', $wishlistItem->product_id)['selected'] ?? 1
             ];
         }
-        Log::info('sessionWishlistNew after sync in syncWishlist()', $sessionWishlistNew);
+//        Log::info('sessionWishlistNew after sync in syncWishlist()', $sessionWishlistNew);
         session(['wishlist' => $sessionWishlistNew]);
 
         // Get updated wishlist
@@ -114,6 +114,7 @@ class WishlistController extends Controller
     // Get wishlist IDs for frontend checking
     public function getWishlistIds()
     {
+//        Log::info('getWishlistIds() is called');
         $user = Auth::user();
 
         if ($user) {
@@ -125,7 +126,7 @@ class WishlistController extends Controller
                 $sessionWishlist = [];
             }
 
-            Log::info('sessionWishlist in getWishlistIds()', $sessionWishlist);
+//            Log::info('sessionWishlist in getWishlistIds()', $sessionWishlist);
             $wishlistIds = collect($sessionWishlist)->pluck('product_id');
         }
 

@@ -31,8 +31,7 @@ const submit = () => {
 </script>
 
 <template>
-
-    <Head title="Log in" />
+    <Head :title="$t('messages.log_in')" />
     <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
         {{ status }}
     </div>
@@ -41,7 +40,6 @@ const submit = () => {
             <!-- Left Panel - Image Background -->
             <div class="login-left-pane">
                 <img class="fruit-image-bg" src="/images/img/bg-login-2.png" alt="Fresh fruits background">
-
             </div>
 
             <!-- Right Panel - Login Form -->
@@ -53,16 +51,16 @@ const submit = () => {
                 </div>
 
                 <!-- Title -->
-                <div class="login-title">Sign in to your account</div>
+                <div class="login-title">{{ $t('messages.sign_in_to_account') }}</div>
                 <div class="login-sub">
-                    Welcome back to <b>Fruitables</b>!<br>
-                    Enjoy fresh and clean agricultural products every day.
+                    {{ $t('messages.welcome_back') }} <b>Fruitables</b>!<br>
+                    {{ $t('messages.enjoy_fresh_products') }}
                 </div>
 
                 <!-- Login Form -->
-                <form @submit.prevent="submit" >
+                <form @submit.prevent="submit">
                     <div class="mb-3">
-                        <InputLabel for="email" class="form-label" value="Email or Username" />
+                        <InputLabel for="email" class="form-label" :value="$t('messages.email_or_username')" />
 
                         <TextInput
                             id="email"
@@ -72,19 +70,19 @@ const submit = () => {
                             required
                             autofocus
                             autocomplete="username"
-                            placeholder="Enter email or username"
+                            :placeholder="$t('messages.enter_email_username')"
                         />
 
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
                     <div>
-                        <InputLabel class="form-label" for="password" value="Password" />
+                        <InputLabel class="form-label" for="password" :value="$t('messages.password')" />
 
                         <TextInput
                             id="password"
                             type="password"
                             class="mt-1 block w-full form-control"
-                            placeholder="Enter your password"
+                            :placeholder="$t('messages.enter_password')"
                             v-model="form.password"
                             required
                             autocomplete="current-password"
@@ -95,19 +93,16 @@ const submit = () => {
                     <div class="mt-4 block " style="text-align: end">
                         <label class="flex items-center">
                             <Checkbox name="remember" v-model:checked="form.remember" />
-                            <span class="ms-2 text-sm text-gray-600"
-                                >Remember me</span
-                            >
+                            <span class="ms-2 text-sm text-gray-600">{{ $t('messages.remember_me') }}</span>
                         </label>
                     </div>
 
-
                     <PrimaryButton
                         class="btn btn-fruit"
-                        :class=" { 'opacity-25': form.processing }"
+                        :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                     >
-                        Log in
+                        {{ $t('messages.log_in') }}
                     </PrimaryButton>
 
                     <div class="flex-links">
@@ -116,21 +111,17 @@ const submit = () => {
                             :href="route('password.request')"
                             class="rounded-md text-sm forgot-link text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                         >
-                            Forgot your password?
+                            {{ $t('messages.forgot_password') }}
                         </Link>
                         <span>
-                            Don't have an account?
+                            {{ $t('messages.dont_have_account') }}
                             <Link :href="route('register')" class="signup-link">
-                                Register
+                                {{ $t('messages.register') }}
                             </Link>
                         </span>
                     </div>
-
-
                 </form>
             </div>
         </div>
     </div>
-
-
 </template>

@@ -24,6 +24,10 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            'login_error' => session('login_error'),
+
+
+
         ]);
     }
 
@@ -32,14 +36,41 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
-        $request->authenticate();
+        try {
+            $request->authenticate();
 
-        $request->session()->regenerate();
+            $request->session()->regenerate();
 
-        // Tự động sync cart và wishlist sau khi đăng nhập thành công
-        $this->syncDataAfterLogin($request);
+            // Tự động sync cart và wishlist sau khi đăng nhập thành công
+            $this->syncDataAfterLogin($request);
 
-        return redirect()->intended(route('dashboard', absolute: false));
+            return redirect()->intended(route('dashboard', absolute: false))->with('success', 'Đăng nhập thành công! Chào mừng bạn quay trở lại.');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // VULNERABILITY: User Enumeration Attack
+            // Kiểm tra email có tồn tại trong hệ thống không
+
+
+//            $user = \App\Models\User::where('email', $request->email)->first();
+//            if (!$user) {
+//                // Email không tồn tại
+//                return back()->withErrors([
+//                    'email' => 'Email does not exist in system.',
+//                ])->withInput($request->only('email', 'remember'))->with('login_error', 'Email does not exist in system!');
+//            } else {
+//                // Email tồn tại nhưng password sai
+//                return back()->withErrors([
+//                    'password' => 'Incorrect password.',
+//                ])->withInput($request->only('email', 'remember'))->with('login_error', 'Incorrect password!');
+//            }
+
+
+            return back()->withErrors([
+                'email' => 'Incorrect email or password.',
+            ])->withInput($request->only('email', 'remember'))->with('login_error', 'Incorrect email or password!');
+
+
+        }
     }
 
     /**
@@ -51,12 +82,12 @@ class AuthenticatedSessionController extends Controller
             // Sync Cart từ CartController
             $cartController = new \App\Http\Controllers\Api\CartController();
             $cartController->syncCart($request);
-            Log::info('Cart synced successfully after login');
-            Log::info('1');
             // Sync Wishlist từ WishlistController
             $wishlistController = new \App\Http\Controllers\Api\WishlistController();
             $wishlistController->syncWishlist($request);
-            Log::info('Wishlist synced successfully after login');
+            // Sync Wishlist từ WishlistController
+            $checkoutSessionService = new \App\Services\CheckoutSessionService();
+            $checkoutSessionService->syncFromDatabase();
             $wishlist = $request->session()->get('wishlist', []);
             Log::info('Wishlist data after sync:', is_array($wishlist) ? $wishlist : ['data' => $wishlist]);
         } catch (\Exception $e) {
@@ -69,20 +100,24 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // Lưu cart và wishlist từ session trước khi logout
+        // Lưu cart, wishlist và shipping info từ session trước khi logout
         $wishlist = $request->session()->get('wishlist', []);
         $cart = $request->session()->get('cart', []);
+        $shippingInfo = $request->session()->get('checkout_shipping_info', []);
 
         Log::info('wishlist before logout:', is_array($wishlist) ? $wishlist : ['data' => $wishlist]);
+        Log::info('cart before logout:', is_array($cart) ? $cart : ['data' => $cart]);
+        Log::info('shipping info before logout:', is_array($shippingInfo) ? $shippingInfo : ['data' => $shippingInfo]);
 
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Lưu lại cart và wishlist vào session mới
+        // Lưu lại cart, wishlist và shipping info vào session mới
         $request->session()->put('cart', $cart);
         $request->session()->put('wishlist', $wishlist);
+//        $request->session()->put('checkout_shipping_info', $shippingInfo);
 
         Log::info('Session data restored after logout');
 

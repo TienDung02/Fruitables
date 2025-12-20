@@ -1,22 +1,22 @@
 <template>
-    <Head title="My Account"/>
+    <Head :title="$t('messages.my_account')"/>
     <Menu></Menu>
 
     <div>
         <!-- Single Page Header start -->
         <div class="container-fluid page-header py-5">
-            <h1 class="text-center text-white display-6">My Account</h1>
+            <h1 class="text-center text-white display-6">{{ $t('messages.my_account') }}</h1>
             <ol class="breadcrumb justify-content-center mb-0">
-                <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item"><a href="#">Pages</a></li>
-                <li class="breadcrumb-item active text-white">My Account</li>
+                <li class="breadcrumb-item"><a href="#">{{ $t('messages.home') }}</a></li>
+                <li class="breadcrumb-item"><a href="#">{{ $t('messages.pages') }}</a></li>
+                <li class="breadcrumb-item active text-white">{{ $t('messages.my_account') }}</li>
             </ol>
         </div>
         <!-- Single Page Header End -->
 
 
         <!-- Contact Start -->
-        <div class="container-fluid contact py-5">
+        <div class="container-fluid bg-gray contact py-5">
             <div class="container py-5 row m-auto">
                 <div class="col-3">
                     <div class="shopee-clone-user-info">
@@ -24,7 +24,7 @@
                         <div class="shopee-clone-user-details">
                             <h6 class="shopee-clone-username">nguyenvana</h6>
                             <a href="#" class="shopee-clone-edit-profile">
-                                <i class="bi bi-pencil"></i> Edit Profile
+                                <i class="bi bi-pencil"></i> {{ $t('messages.edit_profile') }}
                             </a>
                         </div>
                     </div>
@@ -32,19 +32,19 @@
                         <div class="shopee-clone-nav-section">
                             <ul class="shopee-clone-nav-list">
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'profile' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('profile')"><i class="bi bi-person shopee-clone-nav-icon me-2"></i>Profile</a>
+                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('profile')"><i class="bi bi-person shopee-clone-nav-icon me-2"></i>{{ $t('messages.profile') }}</a>
                                 </li>
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'notifications' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('notifications')"><i class="bi bi-bell shopee-clone-nav-icon me-2"></i>Notifications</a>
+                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('notifications')"><i class="bi bi-bell shopee-clone-nav-icon me-2"></i>{{ $t('messages.notifications') }}</a>
                                 </li>
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'orders' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('orders')"><i class="bi bi-bag shopee-clone-nav-icon me-2"></i>My Orders</a>
+                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('orders')"><i class="bi bi-bag shopee-clone-nav-icon me-2"></i>{{ $t('messages.my_orders') }}</a>
                                 </li>
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'address' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('address')"><i class="bi bi-geo-alt shopee-clone-nav-icon me-2"></i>Address</a>
+                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('address')"><i class="bi bi-geo-alt shopee-clone-nav-icon me-2"></i>{{ $t('messages.address') }}</a>
                                 </li>
                                 <li class="shopee-clone-nav-item" :class="{ active: activeTab === 'password' }">
-                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('password')"><i class="bi bi-key shopee-clone-nav-icon me-2"></i>Change Password</a>
+                                    <a class="shopee-clone-nav-link" @click.prevent="setActiveTab('password')"><i class="bi bi-key shopee-clone-nav-icon me-2"></i>{{ $t('messages.change_password') }}</a>
                                 </li>
                             </ul>
                         </div>
@@ -56,28 +56,27 @@
                 <div class="col-9 shopee-clone-main-content">
                     <!-- Profile Tab Content -->
                     <div v-show="activeTab === 'profile'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">My Profile</h5>
-                                <p class="shopee-clone-card-subtitle">Manage your profile information to secure your account</p>
+                                <h5 class="shopee-clone-card-title">{{ $t('messages.my_profile') }}</h5>
+                                <p class="shopee-clone-card-subtitle">{{ $t('messages.manage_profile_info') }}</p>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-8">
                                     <form class="shopee-clone-profile-form" @submit.prevent="updateProfile">
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">Username</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.username') }}</label>
                                             <div class="shopee-clone-form-value">{{ profileForm.username }} </div>
-<!--                                            <div class="shopee-clone-form-value">{{ profileForm.dob.month }} </div>-->
                                         </div>
 
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">Name</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.full_name') }}</label>
                                             <input type="text" class="form-control shopee-clone-form-input" v-model="profileForm.full_name">
                                         </div>
 
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">Email</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.email') }}</label>
                                             <div class="shopee-clone-form-value-with-action">
                                                 <span>{{ showFullEmail ? auth?.user?.email : maskEmail(auth?.user?.email) }}</span>
                                                 <a href="#" class="shopee-clone-change-link" @click.prevent="toggleEmailVisibility">
@@ -87,17 +86,17 @@
                                         </div>
 
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">Phone Number</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.phone_number') }}</label>
                                             <div class="shopee-clone-form-value-with-action" v-if="!isEditingPhone">
                                                 <span>{{ maskPhone(auth?.user?.phone) }}</span>
-                                                <a href="#" class="shopee-clone-change-link" @click.prevent="startEditPhone">Change</a>
+                                                <a href="#" class="shopee-clone-change-link" @click.prevent="startEditPhone">{{ $t('messages.change') }}</a>
                                             </div>
                                             <div v-else class="d-flex align-items-center gap-2">
                                                 <input
                                                     type="text"
                                                     class="form-control shopee-clone-form-input flex-grow-1"
                                                     v-model="phoneForm.phone"
-                                                    placeholder="Enter new phone number"
+                                                    :placeholder="$t('messages.enter_new_phone')"
                                                 >
                                                 <button
                                                     type="button"
@@ -106,20 +105,20 @@
                                                     :disabled="isLoadingPhone"
                                                 >
                                                     <span v-if="isLoadingPhone" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
-                                                    Save
+                                                    {{ $t('messages.save') }}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     class="btn btn-sm btn-secondary"
                                                     @click="cancelEditPhone"
                                                 >
-                                                    Cancel
+                                                    {{ $t('messages.cancel') }}
                                                 </button>
                                             </div>
                                         </div>
 
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">Gender</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.gender') }}</label>
                                             <div class="shopee-clone-gender-options">
                                                 <div class="form-check form-check-inline">
                                                     <input
@@ -131,7 +130,7 @@
                                                         v-model="profileForm.gender"
                                                         :disabled="isGenderDisabled"
                                                     >
-                                                    <label class="form-check-label shopee-clone-radio-label" for="male">Male</label>
+                                                    <label class="form-check-label shopee-clone-radio-label" for="male">{{ $t('messages.male') }}</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     <input
@@ -143,7 +142,7 @@
                                                         v-model="profileForm.gender"
                                                         :disabled="isGenderDisabled"
                                                     >
-                                                    <label class="form-check-label shopee-clone-radio-label" for="female">Female</label>
+                                                    <label class="form-check-label shopee-clone-radio-label" for="female">{{ $t('messages.female') }}</label>
                                                 </div>
                                                 <div class="form-check form-check-inline">
                                                     <input
@@ -155,14 +154,14 @@
                                                         v-model="profileForm.gender"
                                                         :disabled="isGenderDisabled"
                                                     >
-                                                    <label class="form-check-label shopee-clone-radio-label" for="other">Other</label>
+                                                    <label class="form-check-label shopee-clone-radio-label" for="other">{{ $t('messages.other') }}</label>
                                                 </div>
                                             </div>
-                                            <small v-if="isGenderDisabled" class="text-muted">Gender cannot be changed once set</small>
+                                            <small v-if="isGenderDisabled" class="text-muted">{{ $t('messages.gender_cannot_change') }}</small>
                                         </div>
 
                                         <div class="shopee-clone-form-group mb-3">
-                                            <label class="shopee-clone-form-label">Date of Birth</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.date_of_birth') }}</label>
                                             <div class="row g-2 w-75">
                                                 <!-- DAY -->
                                                 <div class="col-4">
@@ -171,7 +170,7 @@
                                                         v-model="profileForm.dob.day"
                                                         :disabled="isDobDisabled"
                                                     >
-                                                        <option value="">Day</option>
+                                                        <option value="">{{ $t('messages.day') }}</option>
                                                         <option v-for="day in daysInMonth" :key="day" :value="day">
                                                             {{ day }}
                                                         </option>
@@ -185,7 +184,7 @@
                                                         v-model="profileForm.dob.month"
                                                         :disabled="isDobDisabled"
                                                     >
-                                                        <option value="">Month</option>
+                                                        <option value="">{{ $t('messages.month') }}</option>
                                                         <option v-for="(month, index) in months" :key="index" :value="index + 1">
                                                             {{ month }}
                                                         </option>
@@ -199,7 +198,7 @@
                                                         v-model="profileForm.dob.year"
                                                         :disabled="isDobDisabled"
                                                     >
-                                                        <option value="">Year</option>
+                                                        <option value="">{{ $t('messages.year') }}</option>
                                                         <option v-for="year in years" :key="year" :value="year">
                                                             {{ year }}
                                                         </option>
@@ -207,12 +206,12 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div v-if="isDobDisabled" class="text-muted mb-4 text-center">Date of birth cannot be changed once set</div>
+                                        <div v-if="isDobDisabled" class="text-muted mb-4 text-center">{{ $t('messages.dob_cannot_change') }}</div>
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label"></label>
                                             <button type="submit" class="btn shopee-clone-save-btn" :disabled="isLoading">
                                                 <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                Save
+                                                {{ $t('messages.save') }}
                                             </button>
                                         </div>
                                     </form>
@@ -223,16 +222,15 @@
                                         <div class="shopee-clone-avatar-preview">
                                             <img :src="previewImage || (profileForm.avatar ? '/' + profileForm.avatar : '/images/img/User-avatar.png')" alt="Avatar" class="shopee-clone-avatar-large" />
                                         </div>
-<!--                                        <input class="btn shopee-clone-upload-btn" type="file" value="Select Image">-->
                                         <div class="file-input-wrapper">
                                             <label class="file-input-label">
-                                                Chọn Ảnh
+                                                {{ $t('messages.select_image') }}
                                                 <input type="file" id="fileInput" accept="image/jpeg,image/png" @change="onFileSelected">
                                             </label>
                                         </div>
                                         <div class="shopee-clone-avatar-note">
-                                            <p>Maximum file size 1 MB</p>
-                                            <p>Format: .JPEG, .PNG</p>
+                                            <p>{{ $t('messages.max_file_size') }}</p>
+                                            <p>{{ $t('messages.file_format') }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -242,11 +240,11 @@
 
                     <!-- Notifications Tab Content -->
                     <div v-show="activeTab === 'notifications'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h5 class="shopee-clone-card-title">Notifications</h5>
-                                    <p class="shopee-clone-card-subtitle">Manage your notifications</p>
+                                    <h5 class="shopee-clone-card-title">{{ $t('messages.notifications') }}</h5>
+                                    <p class="shopee-clone-card-subtitle">{{ $t('messages.manage_notifications') }}</p>
                                 </div>
                                 <div v-if="hasUnreadNotifications">
                                     <button
@@ -255,7 +253,7 @@
                                         :disabled="markingAllAsRead"
                                     >
                                         <i class="bi bi-check2-all"></i>
-                                        {{ markingAllAsRead ? 'Marking...' : 'Mark All as Read' }}
+                                        {{ markingAllAsRead ? $t('messages.marking') : $t('messages.mark_all_as_read') }}
                                     </button>
                                 </div>
                             </div>
@@ -310,17 +308,17 @@
                             <!-- Empty state -->
                             <div v-if="userNotifications.length === 0" class="text-center py-5">
                                 <i class="bi bi-bell-slash text-muted" style="font-size: 48px;"></i>
-                                <p class="text-muted mt-3">No notifications yet</p>
+                                <p class="text-muted mt-3">{{ $t('messages.no_notifications') }}</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Orders Tab Content -->
                     <div v-show="activeTab === 'orders'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">My Orders</h5>
-                                <p class="shopee-clone-card-subtitle">Manage your orders</p>
+                                <h5 class="shopee-clone-card-title">{{ $t('messages.my_orders') }}</h5>
+                                <p class="shopee-clone-card-subtitle">{{ $t('messages.manage_orders') }}</p>
                             </div>
 
                             <div class="shopee-clone-order-item rounded" v-for="order in userOrders" :key="order.id">
@@ -330,7 +328,7 @@
                                             :class="order.status === 'delivered' ? 'bg-success' : 'bg-warning text-dark'">
                                         {{ capitalize(order.status) }}
                                       </span>
-                                        <span class="ms-2 text-muted" style="font-size: 14px;">Order ID: #{{ order.id }}</span>
+                                        <span class="ms-2 text-muted" style="font-size: 14px;">{{ $t('messages.order_id') }}: #{{ order.id }}</span>
                                     </div>
                                     <span class="text-muted" style="font-size: 14px;">{{ formatDate(order.created_at) }}</span>
                                 </div>
@@ -338,24 +336,24 @@
                                 <!-- Danh sách item trong order -->
                                 <div v-for="(item, idx) in order.items" :key="idx" class=" mb-2 pt-2 pb-3 border-bottom">
                                     <Link :href="route('detail.index', item.product_id)" class="d-flex w-100">
-                                        <img :src="item.image || '/placeholder.svg?height=80&width=80'" alt="Product"
+                                        <img :src="'/' +item.image || '/placeholder.svg?height=80&width=80'" alt="Product"
                                              style="width: 80px; height: 80px; object-fit: cover; border-radius: 4px;">
                                         <div class="ms-3 flex-grow-1">
                                             <h6 class="mb-1 fs-5">{{ item.product_name }}</h6>
-                                            <p class="text-muted mb-1" style="font-size: 14px;">Variant: {{ item.variant_size || '-' }}</p>
+                                            <p class="text-muted mb-1" style="font-size: 14px;">{{ $t('messages.variant') }}: {{ item.variant_size || '-' }}</p>
                                             <p class="text-muted mb-0" style="font-size: 14px;">x{{ item.quantity }}</p>
                                         </div>
                                         <div class="text-end d-flex align-items-center">
-                                            <p class="mb-0 text-danger fw-bold fs-6">₫{{ formatCurrency(item.price * 1 * item.quantity) }}</p>
+                                            <p class="mb-0 text-danger fw-bold fs-6">${{ formatCurrency(item.price * 1 * item.quantity) }}</p>
                                         </div>
                                     </Link>
                                 </div>
 
                                 <div class="d-flex justify-content-end my-4 fs-5">
-                                        Total: <span class="text-danger fw-bold fs-5 ms-5">₫{{ formatCurrency(order.total) }}</span>
+                                    {{ $t('messages.total') }}: <span class="text-danger fw-bold fs-5 ms-5">${{ formatCurrency(order.total) }}</span>
                                 </div>
                                 <div class="d-flex justify-content-end mt-3">
-                                    <button class="btn btn-outline-secondary btn-sm me-2 fs-5 fw-bold px-3 py-2" @click="reorder(order)">Buy Again</button>
+                                    <button class="btn btn-outline-secondary btn-sm me-2 fs-5 fw-bold px-3 py-2" @click="reorder(order)">{{ $t('messages.buy_again') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -363,14 +361,14 @@
 
                     <!-- Address Tab Content -->
                     <div v-show="activeTab === 'address'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">My Addresses</h5>
-                                <p class="shopee-clone-card-subtitle">Manage your shipping addresses</p>
+                                <h5 class="shopee-clone-card-title">{{ $t('messages.my_addresses') }}</h5>
+                                <p class="shopee-clone-card-subtitle">{{ $t('messages.manage_shipping_addresses') }}</p>
                             </div>
 
                             <button class="btn shopee-clone-save-btn mb-4 rounded" @click="openAddressDialog">
-                                <i class="bi bi-plus-lg me-2"></i>Add New Address
+                                <i class="bi bi-plus-lg me-2"></i>{{ $t('messages.add_new_address') }}
                             </button>
 
                             <!-- Address List -->
@@ -383,12 +381,12 @@
                                             <span class="ms-2 text-muted">{{ address.phone }}</span>
                                         </div>
                                         <p class="text-muted mb-2" style="font-size: 14px;">{{ address.address }}</p>
-                                        <p class="text-muted mb-2" style="font-size: 14px;">{{ address.city }}, {{ address.country }}</p>
-                                        <span class="badge bg-danger" v-if="address.is_default">Default</span>
+                                        <p class="text-muted mb-2" style="font-size: 14px;">{{ address.province }}, {{ address.district }}, {{ address.ward }}</p>
+                                        <span class="badge bg-danger" v-if="address.is_default">{{ $t('messages.default') }}</span>
                                     </div>
                                     <div>
-                                        <a href="#" class="shopee-clone-change-link me-3" @click.prevent="editAddress(address)">Update</a>
-                                        <a href="#" class="text-muted" @click.prevent="deleteAddress(address.id)">Delete</a>
+                                        <a href="#" class="shopee-clone-change-link me-3" @click.prevent="editAddress(address)">{{ $t('messages.update') }}</a>
+                                        <a href="#" class="text-muted" @click.prevent="deleteAddress(address.id)">{{ $t('messages.delete') }}</a>
                                     </div>
                                 </div>
                             </div>
@@ -396,7 +394,7 @@
                             <!-- Empty State -->
                             <div v-if="userAddresses.length === 0" class="text-center py-5">
                                 <i class="bi bi-geo-alt" style="font-size: 3rem; color: #ccc;"></i>
-                                <p class="text-muted mt-3">No addresses added yet</p>
+                                <p class="text-muted mt-3">{{ $t('messages.no_addresses') }}</p>
                             </div>
                         </div>
 
@@ -405,24 +403,25 @@
                             <div class="modal-dialog modal-md">
                                 <div class="modal-content">
                                     <div class="modal-header">
-                                        <h5 class="modal-title">{{ isEditMode ? 'Update Address' : 'New Address' }}</h5>
+                                        <h5 class="modal-title">{{ isEditMode ? $t('messages.update_address') : $t('messages.new_address') }}</h5>
                                         <button type="button" class="btn-close" @click="closeAddressDialog"></button>
                                     </div>
                                     <div class="modal-body p-4">
                                         <form id="addressForm">
                                             <div class="row mb-3">
                                                 <div class="col-md-6">
-                                                    <input type="text" class="form-control" placeholder="Full Name" v-model="addressForm.name" required>
+                                                    <input type="text" class="form-control" :placeholder="$t('messages.full_name_placeholder')" v-model="addressForm.name" required>
                                                 </div>
                                                 <div class="col-md-6">
-                                                    <input type="tel" class="form-control" placeholder="Phone Number" v-model="addressForm.phone" required>
+                                                    <input type="tel" class="form-control" :placeholder="$t('messages.phone_number_placeholder')" v-model="addressForm.phone" required>
                                                 </div>
                                             </div>
 
+                                            <!-- Location dropdown -->
                                             <div class="position-relative mb-3">
                                                 <div class="border rounded p-2 d-flex justify-content-between align-items-center" style="cursor: pointer; min-height: 38px;" @click="toggleLocationDropdown">
                                                     <span :class="{ 'text-muted': !locationDisplayText }">
-                                                        {{ defaultAddress !== '' && locationDisplayText === '' && isEditMode ? defaultAddress : locationDisplayText !== '' ? locationDisplayText : 'City, District, Ward' }}
+                                                        {{ defaultAddress !== '' && locationDisplayText === '' && isEditMode ? defaultAddress : locationDisplayText !== '' ? locationDisplayText : $t('messages.city_district_ward') }}
                                                     </span>
                                                     <div class="d-flex align-items-center gap-2">
                                                         <button type="button" class="btn btn-sm p-0" @click.stop="clearLocation" v-if="locationDisplayText" style="border: none; background: none;">
@@ -440,7 +439,7 @@
                                                             style="cursor: pointer;"
                                                             @click="setLocationLevel('city')"
                                                         >
-                                                            City
+                                                            {{ $t('messages.city') }}
                                                         </div>
                                                         <div
                                                             class="flex-fill text-center py-2"
@@ -448,7 +447,7 @@
                                                             style="cursor: pointer;"
                                                             @click="setLocationLevel('district')"
                                                         >
-                                                            District
+                                                            {{ $t('messages.district') }}
                                                         </div>
                                                         <div
                                                             class="flex-fill text-center py-2"
@@ -456,14 +455,14 @@
                                                             style="cursor: pointer;"
                                                             @click="setLocationLevel('ward')"
                                                         >
-                                                            Ward
+                                                            {{ $t('messages.ward') }}
                                                         </div>
                                                     </div>
                                                     <div style="max-height: 250px; overflow-y: auto;">
                                                         <div
                                                             v-for="item in currentLocationList"
                                                             :key="item.id"
-                                                            class="p-2 border-bottom"
+                                                            class="py-2 px-4 border-bottom"
                                                             style="cursor: pointer;"
                                                             @click="currentLocationLevel === 'city' ? selectCity(item) : currentLocationLevel === 'district' ? selectDistrict(item) : selectWard(item)"
                                                             @mouseover="$event.target.style.backgroundColor = '#f5f5f5'"
@@ -475,24 +474,24 @@
                                                 </div>
                                             </div>
 
-                                            <textarea class="form-control mb-3" rows="3" placeholder="Street Name, Building, House No" v-model="addressForm.address" required></textarea>
+                                            <textarea class="form-control mb-3" rows="3" :placeholder="$t('messages.street_address_placeholder')" v-model="addressForm.address" required></textarea>
 
-                                            <label class="form-label">Label As:</label>
+                                            <label class="form-label">{{ $t('messages.label_as') }}</label>
                                             <div class="d-flex gap-2 mb-3">
-                                                <button type="button" class="btn btn-outline-secondary">Home</button>
-                                                <button type="button" class="btn btn-outline-secondary">Work</button>
+                                                <button type="button" class="btn btn-outline-secondary">{{ $t('messages.home') }}</button>
+                                                <button type="button" class="btn btn-outline-secondary">{{ $t('messages.work') }}</button>
                                             </div>
 
                                             <div class="form-check mb-3">
                                                 <input type="checkbox" id="defaultAddress" class="form-check-input" v-model="addressForm.is_default">
-                                                <label for="defaultAddress" class="form-check-label">Set as Default Address</label>
+                                                <label for="defaultAddress" class="form-check-label">{{ $t('messages.set_default_address') }}</label>
                                             </div>
 
                                             <div class="d-flex justify-content-end gap-2">
-                                                <button type="button" class="btn btn-secondary" @click="closeAddressDialog">Cancel</button>
+                                                <button type="button" class="btn btn-secondary" @click="closeAddressDialog">{{ $t('messages.cancel') }}</button>
                                                 <button type="button" class="btn text-white" style="background-color: #ee4d2d;" @click="saveAddress">
                                                     <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                                    Submit
+                                                    {{ $t('messages.submit') }}
                                                 </button>
                                             </div>
                                         </form>
@@ -507,33 +506,33 @@
 
                     <!-- Change Password Tab Content -->
                     <div v-show="activeTab === 'password'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">Change Password</h5>
-                                <p class="shopee-clone-card-subtitle">For security, please do not share your password with others</p>
+                                <h5 class="shopee-clone-card-title">{{ $t('messages.change_password') }}</h5>
+                                <p class="shopee-clone-card-subtitle">{{ $t('messages.security_message') }}</p>
                             </div>
 
                             <form class="shopee-clone-profile-form" @submit.prevent="changePassword">
                                 <div class="shopee-clone-form-group">
-                                    <label class="shopee-clone-form-label">Current Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter current password" v-model="passwordForm.current_password">
+                                    <label class="shopee-clone-form-label">{{ $t('messages.current_password') }}</label>
+                                    <input type="password" class="form-control shopee-clone-form-input" :placeholder="$t('messages.enter_current_password')" v-model="passwordForm.current_password">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
-                                    <label class="shopee-clone-form-label">New Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Enter new password" v-model="passwordForm.new_password">
+                                    <label class="shopee-clone-form-label">{{ $t('messages.new_password') }}</label>
+                                    <input type="password" class="form-control shopee-clone-form-input" :placeholder="$t('messages.enter_new_password')" v-model="passwordForm.new_password">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
-                                    <label class="shopee-clone-form-label">Confirm Password</label>
-                                    <input type="password" class="form-control shopee-clone-form-input" placeholder="Re-enter new password" v-model="passwordForm.new_password_confirmation">
+                                    <label class="shopee-clone-form-label">{{ $t('messages.confirm_password') }}</label>
+                                    <input type="password" class="form-control shopee-clone-form-input" :placeholder="$t('messages.reenter_new_password')" v-model="passwordForm.new_password_confirmation">
                                 </div>
 
                                 <div class="shopee-clone-form-group">
                                     <label class="shopee-clone-form-label"></label>
                                     <button type="submit" class="btn shopee-clone-save-btn" :disabled="isLoading">
                                         <span v-if="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                        Confirm
+                                        {{ $t('messages.confirm') }}
                                     </button>
                                 </div>
                             </form>
@@ -542,17 +541,17 @@
 
                     <!-- Privacy Settings Tab Content -->
                     <div v-show="activeTab === 'privacy'" class=" bg-light rounded">
-                        <div class="shopee-clone-content-card">
+                        <div class="shopee-clone-content-card rounded">
                             <div class="shopee-clone-card-header">
-                                <h5 class="shopee-clone-card-title">Privacy Settings</h5>
-                                <p class="shopee-clone-card-subtitle">Manage your privacy settings</p>
+                                <h5 class="shopee-clone-card-title">{{ $t('messages.privacy_settings') }}</h5>
+                                <p class="shopee-clone-card-subtitle">{{ $t('messages.manage_privacy') }}</p>
                             </div>
 
                             <div class="mb-4">
                                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                                     <div>
-                                        <h6 class="mb-1">Recent Activity</h6>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">Allow others to see your recent activity</p>
+                                        <h6 class="mb-1">{{ $t('messages.recent_activity') }}</h6>
+                                        <p class="text-muted mb-0" style="font-size: 14px;">{{ $t('messages.recent_activity_desc') }}</p>
                                     </div>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="recentActivity" checked>
@@ -561,8 +560,8 @@
 
                                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                                     <div>
-                                        <h6 class="mb-1">Show Phone Number</h6>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">Allow sellers to see your phone number</p>
+                                        <h6 class="mb-1">{{ $t('messages.show_phone_number') }}</h6>
+                                        <p class="text-muted mb-0" style="font-size: 14px;">{{ $t('messages.show_phone_desc') }}</p>
                                     </div>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="showPhone">
@@ -571,8 +570,8 @@
 
                                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                                     <div>
-                                        <h6 class="mb-1">Email Notifications</h6>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">Receive order and promotion notifications via email</p>
+                                        <h6 class="mb-1">{{ $t('messages.email_notifications') }}</h6>
+                                        <p class="text-muted mb-0" style="font-size: 14px;">{{ $t('messages.email_notif_desc') }}</p>
                                     </div>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="emailNotif" checked>
@@ -581,8 +580,8 @@
 
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>
-                                        <h6 class="mb-1">SMS Notifications</h6>
-                                        <p class="text-muted mb-0" style="font-size: 14px;">Receive order notifications via SMS</p>
+                                        <h6 class="mb-1">{{ $t('messages.sms_notifications') }}</h6>
+                                        <p class="text-muted mb-0" style="font-size: 14px;">{{ $t('messages.sms_notif_desc') }}</p>
                                     </div>
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="smsNotif" checked>
@@ -598,101 +597,17 @@
 
 
         <!-- Footer Start -->
-        <div class="container-fluid bg-dark text-white-50 footer pt-5 mt-5">
-            <div class="container py-5">
-                <div class="pb-4 mb-4" style="border-bottom: 1px solid rgba(226, 175, 24, 0.5) ;">
-                    <div class="row g-4">
-                        <div class="col-lg-3">
-                            <a href="#">
-                                <h1 class="text-primary mb-0">Fruitables</h1>
-                                <p class="text-secondary mb-0">Fresh products</p>
-                            </a>
-                        </div>
-                        <div class="col-lg-6">
-                            <div class="position-relative mx-auto">
-                                <input class="form-control border-0 w-100 py-3 px-4 rounded-pill" type="number" placeholder="Your Email">
-                                <button type="submit" class="btn btn-primary border-0 border-secondary py-3 px-4 position-absolute rounded-pill text-white" style="top: 0; right: 0;">Subscribe Now</button>
-                            </div>
-                        </div>
-                        <div class="col-lg-3">
-                            <div class="d-flex justify-content-end pt-3">
-                                <a class="btn  btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-twitter"></i></a>
-                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-facebook-f"></i></a>
-                                <a class="btn btn-outline-secondary me-2 btn-md-square rounded-circle" href=""><i class="fab fa-youtube"></i></a>
-                                <a class="btn btn-outline-secondary btn-md-square rounded-circle" href=""><i class="fab fa-linkedin-in"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-5">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="footer-item">
-                            <h4 class="text-light mb-3">Why People Like us!</h4>
-                            <p class="mb-4">typesetting, remaining essentially unchanged. It was
-                                popularised in the 1960s with the like Aldus PageMaker including of Lorem Ipsum.</p>
-                            <a href="" class="btn border-secondary py-2 px-4 rounded-pill text-primary">Read More</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="d-flex flex-column text-start footer-item">
-                            <h4 class="text-light mb-3">Shop Info</h4>
-                            <a class="btn-link" href="">About Us</a>
-                            <a class="btn-link" href="">Contact Us</a>
-                            <a class="btn-link" href="">Privacy Policy</a>
-                            <a class="btn-link" href="">Terms & Condition</a>
-                            <a class="btn-link" href="">Return Policy</a>
-                            <a class="btn-link" href="">FAQs & Help</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="d-flex flex-column text-start footer-item">
-                            <h4 class="text-light mb-3">Account</h4>
-                            <a class="btn-link" href="">My Account</a>
-                            <a class="btn-link" href="">Shop details</a>
-                            <a class="btn-link" href="">Shopping Cart</a>
-                            <a class="btn-link" href="">Wishlist</a>
-                            <a class="btn-link" href="">Order History</a>
-                            <a class="btn-link" href="">International Orders</a>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="footer-item">
-                            <h4 class="text-light mb-3">Contact</h4>
-                            <p>Address: 1429 Netus Rd, NY 48247</p>
-                            <p>Email: Example@gmail.com</p>
-                            <p>Phone: +0123 4567 8910</p>
-                            <p>Payment Accepted</p>
-                            <img src="img/payment.png" class="img-fluid" alt="">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <Footer></Footer>
         <!-- Footer End -->
 
-        <!-- Copyright Start -->
-        <div class="container-fluid copyright bg-dark py-4">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
-                        <span class="text-light"><a href="#"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, All right reserved.</span>
-                    </div>
-                    <div class="col-md-6 my-auto text-center text-md-end text-white">
-                        <!--/*** This template is free as long as you keep the below author’s credit link/attribution link/backlink. ***/-->
-                        <!--/*** If you'd like to use the template without the below author’s credit link/attribution link/backlist, ***/-->
-                        <!--/*** you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". ***/-->
-                        Designed By <a class="border-bottom" href="https://htmlcodex.com">HTML Codex</a> Distributed By <a class="border-bottom" href="https://themewagon.com">ThemeWagon</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Copyright End -->
+
     </div>
 </template>
 
 <script lang="ts">
 import {Head, Link} from '@inertiajs/vue3';
 import Menu from '../Includes/Menu.vue';
+import Footer from '@/Pages/Frontend/Includes/Footer.vue';
 import axios from "axios";
 import Swal from 'sweetalert2';
 axios.defaults.withCredentials = true;
@@ -702,6 +617,7 @@ export default {
         Menu,
         Head,
         Link,
+        Footer,
     },
     props: {
         auth: Object,
@@ -833,12 +749,15 @@ export default {
         this.userNotifications = this.notifications || [];
         this.userOrders = this.orders || [];
 
-        this.addressForm.name = this.userAddresses[0].name;
-        this.addressForm.phone = this.userAddresses[0].phone;
-        this.addressForm.address = this.userAddresses[0].address;
-        console.log('userAdded', this.userAddresses);
-        if (this.userAddresses && this.userAddresses[0].province.length > 0 && this.userAddresses[0].district.length > 0 && this.userAddresses[0].ward.length > 0) {
-            this.defaultAddress = this.userAddresses[0].province + ', ' + this.userAddresses[0].district + ', ' + this.userAddresses[0].ward;
+        console.log('this.userAddresses', this.userAddresses);
+        if (this.userAddresses.length > 0) {
+            this.addressForm.name = this.userAddresses[0].name;
+            this.addressForm.phone = this.userAddresses[0].phone;
+            this.addressForm.address = this.userAddresses[0].address;
+            console.log('userAdded', this.userAddresses);
+            if (this.userAddresses[0].province.length > 0 && this.userAddresses[0].district.length > 0 && this.userAddresses[0].ward.length > 0) {
+                this.defaultAddress = this.userAddresses[0].province + ', ' + this.userAddresses[0].district + ', ' + this.userAddresses[0].ward;
+            }
         }
         // Initialize profile form
         if (this.auth?.user) {
@@ -889,7 +808,6 @@ export default {
             const n = Number(value) || 0;
             return n.toLocaleString('vi-VN', { maximumFractionDigits: 2 });
         },
-        reorder(row) { console.log('Reorder row', row.rowId); },
 
         setActiveTab(tab) {
             this.activeTab = tab;

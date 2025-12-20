@@ -31,7 +31,10 @@ class UserAddress extends Model
     {
         return $this->belongsTo(User::class);
     }
-
+    public function ward()
+    {
+        return $this->belongsTo(Ward::class, 'ward_id', 'id');
+    }
     /**
      * Get full name
      */
