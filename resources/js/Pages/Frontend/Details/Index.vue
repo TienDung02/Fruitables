@@ -523,7 +523,7 @@ export default {
             try {
                 if (this.user) {
                     await this.cartStore.addToCart(this.selectedVariantId, this.quantity);
-                    this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+                    this.showNotification(this.$t('messages.product_added_to_cart_success'), 'success');
                 } else {
                     // User not logged in, add to session
                     await axios.post('/api/session/cart', {
@@ -533,20 +533,14 @@ export default {
 
                     // Update cart count
                     await this.cartStore.fetchCartCount();
-                    this.showNotification('Đã thêm sản phẩm vào giỏ hàng thành công!', 'success');
+                    this.showNotification(this.$t('messages.product_added_to_cart_success'), 'success');
                 }
             } catch (error) {
                 console.error('Lỗi khi thêm vào giỏ hàng:', error);
-                this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
+                this.showNotification(this.$t('messages.add_to_cart_failed'), 'error');
             }
         },
         async buyNow() {
-            // Lọc ra các sản phẩm đã được chọn
-            // const selectedItems = this.cartItems.filter(item => item.selected === 1);
-            // if (selectedItems.length === 0) {
-            //     alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
-            //     return;
-            // }
             console.log('this this.selectedVariantId', this.selectedVariantId)
             const response_cartDraft = await axios.post('/api/session/cart/draft', {
                 variantId: this.selectedVariantId,
@@ -583,7 +577,7 @@ export default {
                 console.log('Checkout response:', response.data);
 
                 if (!response.data.success) {
-                    alert(response.data.message || 'Có lỗi xảy ra khi tạo đơn hàng');
+                    this.showNotification(response.data.message || this.$t('messages.error_creating_order'), 'error');
                     return;
                 }
 
@@ -592,8 +586,8 @@ export default {
                 console.log('User type:', response.data.user_type || 'session-based');
 
                 if (!checkoutId) {
-                    alert('Không lấy được mã đơn hàng, vui lòng thử lại!');
-                    // return;
+                    this.showNotification(this.$t('messages.cannot_get_order_code'), 'error');
+                    return;
                 }
 
                 // Chỉ chuyển hướng nếu checkoutId hợp lệ
@@ -608,14 +602,14 @@ export default {
                     console.error("Error headers:", error.response.headers);
 
                     if (error.response.status === 405) {
-                        alert("Lỗi method không được hỗ trợ. Vui lòng thử lại sau.");
+                        this.showNotification(this.$t('messages.method_not_supported_error'), 'error');
                     } else if (error.response.status === 401) {
-                        alert("Phiên làm việc đã hết hạn. Vui lòng tải lại trang và thử lại.");
+                        this.showNotification(this.$t('messages.session_expired_error'), 'error');
                     } else {
-                        alert(error.response.data.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                        this.showNotification(error.response.data.message || this.$t('messages.general_error_try_again'), 'error');
                     }
                 } else {
-                    alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                    this.showNotification(this.$t('messages.general_error_try_again'), 'error');
                 }
             } finally {
                 this.loading = false;

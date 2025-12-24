@@ -22,7 +22,7 @@ class ProductVariantFactory extends Factory
         $sizes = [null, '100g', '200g', '500g', '1kg'];
         $unit = $this->faker->randomElement($units);
         $size = $this->faker->randomElement($sizes);
-        $price = $this->faker->randomFloat(2, 5, 100);
+        $price = $this->faker->numberBetween(500, 2000);
         $salePrice = $this->faker->boolean(30) ? $price * 0.8 : null;
         return [
             'unit' => $unit,

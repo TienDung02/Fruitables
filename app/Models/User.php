@@ -58,6 +58,22 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Get the user's name attribute (accessor for backward compatibility)
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->full_name ?? $this->username ?? $this->email ?? 'Unknown User';
+    }
+
+    /**
+     * Get the user's display name
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->full_name ?? $this->username ?? $this->email ?? 'Unknown User';
+    }
+
     public function cart()
     {
         return $this->hasOne(Cart::class);

@@ -12,7 +12,7 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
-        'product_variant_id', // Thay đổi từ product_id thành product_variant_id
+        'productVariant_id',
         'quantity',
         'price'
         // Loại bỏ 'total' vì không có trong database
@@ -36,7 +36,7 @@ class OrderItem extends Model
      */
     public function productVariant(): BelongsTo
     {
-        return $this->belongsTo(ProductVariant::class);
+        return $this->belongsTo(ProductVariant::class, 'productVariant_id', 'id');
     }
 
     /**
@@ -44,7 +44,7 @@ class OrderItem extends Model
      */
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class, 'product_variant_id', 'id');
+        return $this->belongsTo(Product::class, 'productVariant_id', 'id');
     }
 
     /**

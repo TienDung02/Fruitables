@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>I18n Debug Test</title>
+</head>
+<body>
+    <h1>Testing i18n in Development Mode</h1>
+
+    <div id="test-results"></div>
+
+    <script>
+        // Test localStorage access
+        console.log('🔍 Testing localStorage access...');
+        try {
+            localStorage.setItem('test', 'value');
+            localStorage.removeItem('test');
+            console.log('✅ localStorage working');
+        } catch(e) {
+            console.error('❌ localStorage error:', e);
+        }
+
+        // Test if window.changeLocale is available
+        console.log('🔍 Testing global changeLocale function...');
+        if (typeof window.changeLocale === 'function') {
+            console.log('✅ window.changeLocale is available');
+        } else {
+            console.log('⚠️ window.changeLocale not yet available (will be set after app loads)');
+        }
+
+        // Test locale-changed event
+        console.log('🔍 Testing locale-changed event...');
+        window.addEventListener('locale-changed', (event) => {
+            console.log('✅ locale-changed event received:', event.detail);
+        });
+
+        // Results
+        document.getElementById('test-results').innerHTML = `
+            <h2>Debug Results:</h2>
+            <p>Check browser console for detailed logs</p>
+            <p>Time: ${new Date().toLocaleString()}</p>
+        `;
+    </script>
+</body>
+</html>
+

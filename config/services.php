@@ -33,13 +33,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
-    'momo' => [
-        'partner_code' => env('MOMO_PARTNER_CODE'),
-        'access_key' => env('MOMO_ACCESS_KEY'),
-        'secret_key' => env('MOMO_SECRET_KEY'),
-        'endpoint' => env('MOMO_ENDPOINT', 'https://test-payment.momo.vn'),
-        'return_url' => env('APP_URL') . '/payment/momo/return',
-        'notify_url' => env('APP_URL') . '/api/payment/momo/notify',
+    'sepay' => [
+        'api_token' => env('SEPAY_API_TOKEN'),
+        'webhook_secret' => env('SEPAY_WEBHOOK_SECRET'),
+        'account_number' => env('SEPAY_ACCOUNT_NUMBER'),
+        'account_name' => env('SEPAY_ACCOUNT_NAME'),
+        'bank_code' => env('SEPAY_BANK_CODE'),
     ],
+
 ];

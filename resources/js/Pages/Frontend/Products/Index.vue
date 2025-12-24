@@ -934,7 +934,7 @@ export default {
                 // User is logged in, use database API
                 const token = this.csrf_token || (this.$page && this.$page.props && this.$page.props.csrf_token) || '';
                 if (!token) {
-                    this.showNotification('Không lấy được CSRF token, vui lòng tải lại trang!', 'error');
+                    this.showNotification(this.$t('messages.csrf_token_error'), 'error');
                     return;
                 }
 
@@ -944,9 +944,9 @@ export default {
                             headers: { 'X-XSRF-TOKEN': token }
                         });
                         this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
-                        this.showNotification('Removed from wishlist!', 'success');
+                        this.showNotification(this.$t('messages.removed_from_wishlist'), 'success');
                     } catch (error) {
-                        this.showNotification('Removed from wishlist failed!', 'error');
+                        this.showNotification(this.$t('messages.removed_from_wishlist_failed'), 'error');
                         console.error(error);
                     }
                 } else {
@@ -955,12 +955,12 @@ export default {
                             headers: { 'X-XSRF-TOKEN': token }
                         });
                         this.wishlistIds.push(productId);
-                        this.showNotification('Added to wishlist!', 'success');
+                        this.showNotification(this.$t('messages.added_to_wishlist'), 'success');
                     } catch (error) {
                         if (error.response && error.response.status === 409) {
-                            this.showNotification('Sản phẩm đã có trong danh sách yêu thích!', 'warning');
+                            this.showNotification(this.$t('messages.product_already_in_wishlist'), 'warning');
                         } else {
-                            this.showNotification('Added to wishlist failed!', 'error');
+                            this.showNotification(this.$t('messages.added_to_wishlist_failed'), 'error');
                         }
                         console.error(error);
                     }
@@ -974,18 +974,18 @@ export default {
                             data: { product_id: productId }
                         });
                         this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
-                        this.showNotification('Removed from wishlist!', 'success');
+                        this.showNotification(this.$t('messages.removed_from_wishlist'), 'success');
                     } catch (error) {
-                        this.showNotification('Remove from wishlist failed!', 'error');
+                        this.showNotification(this.$t('messages.removed_from_wishlist_failed'), 'error');
                         console.error(error);
                     }
                 } else {
                     try {
                         await axios.post('/api/session/wishlist', { product_id: productId });
                         this.wishlistIds.push(productId);
-                        this.showNotification('Added to wishlist!', 'success');
+                        this.showNotification(this.$t('messages.added_to_wishlist'), 'success');
                     } catch (error) {
-                        this.showNotification('Added to wishlist failed!', 'error');
+                        this.showNotification(this.$t('messages.added_to_wishlist_failed'), 'error');
                         console.error(error);
                     }
                 }

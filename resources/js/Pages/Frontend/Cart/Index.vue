@@ -161,6 +161,7 @@ import axios from 'axios';
 import { useCartStore } from '@/stores/cart';
 import { Checkbox } from '@/Components/ui/checkbox/index.js';
 import Footer from '@/Pages/Frontend/Includes/Footer.vue';
+import Swal from "sweetalert2";
 axios.defaults.withCredentials = true;
 export default {
     components: {
@@ -390,7 +391,7 @@ export default {
             // Lọc ra các sản phẩm đã được chọn
             const selectedItems = this.cartItems.filter(item => item.selected === 1);
             if (selectedItems.length === 0) {
-                alert("Vui lòng chọn ít nhất một sản phẩm để thanh toán.");
+                this.showNotification(this.$t('messages.please_select_at_least_one_product'), 'warning');
                 return;
             }
 
@@ -422,7 +423,7 @@ export default {
                 console.log('Checkout response:', response.data);
 
                 if (!response.data.success) {
-                    alert(response.data.message || 'Có lỗi xảy ra khi tạo đơn hàng');
+                    this.showNotification(response.data.message || this.$t('messages.error_creating_order'), 'error');
                     return;
                 }
 
@@ -431,7 +432,7 @@ export default {
                 console.log('User type:', response.data.user_type || 'session-based');
 
                 if (!checkoutId) {
-                    alert('Không lấy được mã đơn hàng, vui lòng thử lại!');
+                    this.showNotification(this.$t('messages.cannot_get_order_code'), 'error');
                     return;
                 }
 
@@ -447,18 +448,47 @@ export default {
                     console.error("Error headers:", error.response.headers);
 
                     if (error.response.status === 405) {
-                        alert("Lỗi method không được hỗ trợ. Vui lòng thử lại sau.");
+                        this.showNotification(this.$t('messages.method_not_supported_error'), 'error');
                     } else if (error.response.status === 401) {
-                        alert("Phiên làm việc đã hết hạn. Vui lòng tải lại trang và thử lại.");
+                        this.showNotification(this.$t('messages.session_expired_error'), 'error');
                     } else {
-                        alert(error.response.data.message || "Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                        this.showNotification(error.response.data.message || this.$t('messages.general_error_try_again'), 'error');
                     }
                 } else {
-                    alert("Đã có lỗi xảy ra. Vui lòng thử lại sau.");
+                    this.showNotification(this.$t('messages.general_error_try_again'), 'error');
                 }
             } finally {
                 this.loading = false;
             }
+        },
+        showNotification(message, type = 'success') {
+            let icon = 'success';
+            const title = message;
+
+            switch(type) {
+                case 'success':
+                    icon = 'success';
+                    break;
+                case 'error':
+                    icon = 'error';
+                    break;
+                case 'warning':
+                    icon = 'warning';
+                    break;
+                case 'info':
+                    icon = 'info';
+                    break;
+                default:
+                    icon = 'success';
+            }
+
+            Swal.fire({
+                position: "top-end",
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 1500,
+            });
         },
 
     },

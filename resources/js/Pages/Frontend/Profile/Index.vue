@@ -22,7 +22,7 @@
                     <div class="shopee-clone-user-info">
                         <img :src="profileForm.avatar ? '/' + profileForm.avatar : '/images/img/User-avatar.png'" alt="Avatar" class="shopee-clone-avatar">
                         <div class="shopee-clone-user-details">
-                            <h6 class="shopee-clone-username">nguyenvana</h6>
+                            <h6 class="shopee-clone-username">{{ profileForm.username }}</h6>
                             <a href="#" class="shopee-clone-edit-profile">
                                 <i class="bi bi-pencil"></i> {{ $t('messages.edit_profile') }}
                             </a>
@@ -694,6 +694,7 @@ export default {
             markingAllAsRead: false,
             markingAsRead: {} as any,
         };
+
     },
 
     computed: {
@@ -791,7 +792,10 @@ export default {
             this.isGenderDisabled = !!this.auth.user.gender;
             this.isDobDisabled = !!this.auth.user.dob;
         }
-
+        if (window.location.hash) {
+            const tab = window.location.hash.replace('#', '');
+            this.activeTab = tab;
+        }
         // Load location data
         this.loadLocationData();
     },
@@ -1176,14 +1180,14 @@ export default {
             if (file) {
                 // Kiểm tra kích thước file (1MB = 1024*1024 bytes)
                 if (file.size > 1024 * 1024) {
-                    alert('File size must be less than 1MB');
+                    this.showNotification(this.$t('messages.file_size_too_large'), 'warning');
                     return;
                 }
 
                 // Kiểm tra định dạng file
                 const allowedTypes = ['image/jpeg', 'image/png'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('Only JPEG and PNG formats are allowed');
+                    this.showNotification(this.$t('messages.invalid_file_format'), 'warning');
                     return;
                 }
 
@@ -1231,6 +1235,35 @@ export default {
             } catch (error) {
                 console.error('Error loading wards:', error);
             }
+        },
+        showNotification(message, type = 'success') {
+            let icon = 'success';
+            const title = message;
+
+            switch(type) {
+                case 'success':
+                    icon = 'success';
+                    break;
+                case 'error':
+                    icon = 'error';
+                    break;
+                case 'warning':
+                    icon = 'warning';
+                    break;
+                case 'info':
+                    icon = 'info';
+                    break;
+                default:
+                    icon = 'success';
+            }
+
+            Swal.fire({
+                position: "top-end",
+                icon: icon,
+                title: title,
+                showConfirmButton: false,
+                timer: 1500,
+            });
         },
     }
 }

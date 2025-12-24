@@ -81,6 +81,7 @@ class OrderController extends Controller
         try {
             // Create order
             $order = Order::create([
+                'id' => 'ORD_' . time() . '_' . \Illuminate\Support\Str::random(8), // Generate unique ID
                 'user_id' => $user->id,
                 'order_number' => 'ORD-' . time() . '-' . $user->id,
                 'status' => 'pending',

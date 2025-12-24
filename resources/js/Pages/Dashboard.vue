@@ -433,7 +433,7 @@ export default {
                     </div>
                     <div class="text-white bg-primary px-3 py-1 rounded position-absolute" style="top: 10px; right: 10px;">{{ $t('messages.vegetable') }}</div>
                     <div class="p-4 rounded-bottom">
-                        <h4>{{ $t('messages.bell_papper') }}</h4>
+                        <h4>{{ $t('messages.bell_pepper') }}</h4>
                         <p>Lorem ipsum dolor sit amet consectetur adipisicing elit sed do eiusmod te incididunt</p>
                         <div class="d-flex justify-content-between flex-lg-wrap">
                             <p class="text-dark fs-5 fw-bold mb-0">$7.99 / {{ $t('messages.kg') }}</p>

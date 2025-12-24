@@ -1946,3 +1946,49 @@ input[type='radio']:checked:after {
 .my-auto i:before{
     color: #81c408 !important;
 }
+
+/* Additional custom Sepay */
+#sepayQRModal .modal-content {
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#sepayQRModal .modal-header {
+    padding: 1.25rem 1.5rem;
+}
+
+#sepayQRModal .alert {
+    border-radius: 8px;
+}
+
+#sepayQRModal .badge {
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+}
+
+#sepayQRModal .border-end {
+    border-color: #dee2e6 !important;
+}
+
+#sepayQRModal img {
+    transition: opacity 0.3s ease;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    #sepayQRModal .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    #sepayQRModal .border-end {
+        border-right: none !important;
+        border-bottom: 1px solid #dee2e6 !important;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    #sepayQRModal .col-md-7 {
+        padding-left: 0 !important;
+    }
+}

@@ -25,8 +25,6 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-//        $user = User::where('username', $username)->firstOrFail();
-        Log::info('User Profile Accessed', $user->toArray());
 
         return Inertia::render('Frontend/Profile/Index', [
             'auth' => [

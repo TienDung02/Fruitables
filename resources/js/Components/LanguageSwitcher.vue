@@ -21,7 +21,7 @@
             >
                 <button
                     class="dropdown-item d-flex align-items-center gap-2"
-                    :class="{ active: lang.code === $i18n.locale }"
+                    :class="{ active: lang.code === currentLocale }"
                     @click="selectLang(lang.code)"
                 >
                     <img :src="lang.flag" class="flag square" alt="">
@@ -31,66 +31,83 @@
         </ul>
     </div>
 </template>
-<script>
-export default {
-    name: 'LanguageSwitcher',
 
-    data() {
-        return {
-            isDropdownOpen: false,
-            languages: [
-                { code: 'ru', label: 'RU', flag: '/images/flag/ru.png' },
-                { code: 'en', label: 'EN', flag: '/images/flag/en.png' },
-                { code: 'jp', label: 'JP', flag: '/images/flag/jp.png' },
-                { code: 'vi', label: 'VI', flag: '/images/flag/vi.png' },
-            ],
-        }
-    },
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 
-    computed: {
-        currentLang() {
-            return (
-                this.languages.find(
-                    l => l.code === this.$i18n.locale
-                ) || this.languages[0]
-            )
-        },
-    },
+const { locale } = useI18n()
+const dropdown = ref(null)
+const isDropdownOpen = ref(false)
 
-    methods: {
-        toggleDropdown() {
-            this.isDropdownOpen = !this.isDropdownOpen
-        },
+const languages = ref([
+    { code: 'ru', label: 'RU', flag: '/images/flag/ru.png' },
+    { code: 'en', label: 'EN', flag: '/images/flag/en.png' },
+    { code: 'jp', label: 'JP', flag: '/images/flag/jp.png' },
+    { code: 'vi', label: 'VI', flag: '/images/flag/vi.png' },
+])
 
-        selectLang(lang) {
-            this.$i18n.locale = lang
-            localStorage.setItem('locale', lang)
-            this.isDropdownOpen = false
-        },
+const currentLocale = computed(() => locale.value)
 
-        handleClickOutside(e) {
-            if (!this.$refs.dropdown.contains(e.target)) {
-                this.isDropdownOpen = false
-            }
-        },
-    },
+const currentLang = computed(() => {
+    return languages.value.find(l => l.code === currentLocale.value) || languages.value[3] // default to Vietnamese
+})
 
-    mounted() {
-        const saved = localStorage.getItem('locale')
-        if (saved) {
-            this.$i18n.locale = saved
-        }
-
-        document.addEventListener('click', this.handleClickOutside)
-    },
-
-    beforeUnmount() {
-        document.removeEventListener('click', this.handleClickOutside)
-    },
+const toggleDropdown = () => {
+    isDropdownOpen.value = !isDropdownOpen.value
 }
 
+const selectLang = (langCode) => {
+    try {
+        // Update i18n locale
+        locale.value = langCode
+
+        // Save to localStorage
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('locale', langCode)
+        }
+
+        // Emit custom event for currency system
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('locale-changed', {
+                detail: { locale: langCode }
+            }))
+        }
+
+        console.log('🌐 Language changed to:', langCode)
+    } catch (error) {
+        console.error('Error changing language:', error)
+    }
+
+    isDropdownOpen.value = false
+}
+
+const handleClickOutside = (e) => {
+    if (dropdown.value && !dropdown.value.contains(e.target)) {
+        isDropdownOpen.value = false
+    }
+}
+
+onMounted(() => {
+    // Initialize locale from storage if different from current
+    try {
+        const saved = localStorage.getItem('locale')
+        if (saved && saved !== locale.value) {
+            selectLang(saved)
+        }
+    } catch (e) {
+        console.warn('Could not restore locale from localStorage:', e)
+    }
+
+    document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+    document.removeEventListener('click', handleClickOutside)
+})
 </script>
-<style>
+
+<style scoped>
 .language-switcher {
     position: relative;
     margin-right: 2rem;
@@ -109,15 +126,17 @@ export default {
     padding: 0;
     margin-top: 1rem;
 }
+
 .language-switcher li:hover, .language-switcher button:hover {
-    border-radius: 10px ;
+    border-radius: 10px;
     background: #fff;
     color: #81c408;
     font-weight: bolder;
     text-shadow: 1px 1px 1px #ffb524;
 }
+
 .language-switcher li, .language-switcher button {
-    border-radius: 10px ;
+    border-radius: 10px;
 }
 
 .language-switcher .dropdown-item.active {

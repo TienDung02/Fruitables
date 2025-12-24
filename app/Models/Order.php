@@ -22,10 +22,12 @@ class Order extends Model
         'subtotal',
         'shipping_cost',
         'total',
-        'payment_method',
         'payment_status',
         'shipping_method',
-        'customer_info',
+        'customer_name',
+        'customer_email',
+        'customer_phone',
+        'customer_address',
         'notes',
         'payment_request_id',
         'payment_data',
@@ -37,13 +39,12 @@ class Order extends Model
         'subtotal' => 'decimal:2',
         'shipping_cost' => 'decimal:2',
         'total' => 'decimal:2',
-        'customer_info' => 'array',
         'payment_data' => 'array',
         'paid_at' => 'datetime',
     ];
 
     const STATUS_PENDING = 'pending';
-    const STATUS_CONFIRMED = 'confirmed'; // Thêm status confirmed theo migration
+    const STATUS_CONFIRMED = 'confirmed';
     const STATUS_PROCESSING = 'processing';
     const STATUS_SHIPPED = 'shipped';
     const STATUS_DELIVERED = 'delivered';

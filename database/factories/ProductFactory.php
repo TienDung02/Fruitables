@@ -24,8 +24,10 @@ class ProductFactory extends Factory
         ];
 
         $name = $this->faker->randomElement($products);
-        $price = $this->faker->randomFloat(2, 5, 50);
-        $salePrice = $this->faker->boolean(30) ? $price * 0.8 : null;
+        // Sửa giá từ USD sang VND: từ 500 VND đến 2000 VND
+        $price = $this->faker->numberBetween(500, 2000);
+        // Sale price giảm 10-30% so với giá gốc
+        $salePrice = $this->faker->boolean(30) ? $price * $this->faker->randomFloat(2, 0.7, 0.9) : null;
 
         // ✅ Get random subcategory (Level 2) from existing categories
         $subcategory = Category::whereNotNull('parent_id')->inRandomOrder()->first();
@@ -65,8 +67,10 @@ class ProductFactory extends Factory
     public function onSale(): static
     {
         return $this->state(function (array $attributes) {
+            // Sửa sale price để phù hợp với VND và đảm bảo không vượt quá 2000 VND
+            $salePrice = $attributes['price'] * $this->faker->randomFloat(2, 0.7, 0.9);
             return [
-                'sale_price' => $attributes['price'] * 0.8,
+                'sale_price' => round($salePrice),
             ];
         });
     }

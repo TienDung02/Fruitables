@@ -34,7 +34,7 @@ class OrderItemFactory extends Factory
 
         return [
             'order_id' => Order::factory(),
-            'product_variant_id' => $productVariant->id,
+            'productVariant_id' => $productVariant->id,
             'quantity' => $this->faker->numberBetween(1, 5),
             'price' => $price,
         ];
@@ -63,7 +63,7 @@ class OrderItemFactory extends Factory
             }
 
             return [
-                'product_variant_id' => $productVariant->id,
+                'productVariant_id' => $productVariant->id,
                 'price' => $productVariant->sale_price ?? $productVariant->price,
             ];
         });

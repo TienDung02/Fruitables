@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             ProvinceSeeder::class,
             DistrictSeeder::class,
             WardSeeder::class,
+            CurrencySeeder::class,
 
             // Product related
             CategorySeeder::class,

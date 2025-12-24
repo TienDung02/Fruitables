@@ -31,13 +31,13 @@
                     <div class="col-md-4">
                         <div class="stat-item">
                             <p class="stat-label">{{ $t('messages.total_value') }}</p>
-                            <span class="stat-number" id="totalValue">${{ totalValue }}</span>
+                            <span class="stat-number" id="totalValue">{{ formatPrice(totalValue) }}</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="stat-item">
                             <p class="stat-label">{{ $t('messages.savings') }}</p>
-                            <span class="stat-number" id="savedAmount">${{ saveValue }}</span>
+                            <span class="stat-number" id="savedAmount">{{ formatPrice(saveValue) }}</span>
                         </div>
                     </div>
                 </div>
@@ -96,9 +96,9 @@
                                                 <p>{{ product.description?.substring(0, 100) || $t('messages.lorem_ipsum_short') }}...</p>
                                                 <div class="d-flex justify-content-between flex-lg-wrap">
                                                     <p class="text-dark fs-5 fw-bold mb-0 d-flex">
-                                                        <span v-if="product.variants[0].sale_price" class="text-danger">${{ product.variants[0].sale_price }} / {{product.variants[0].size}}</span>
-                                                        <span v-if="product.variants[0].sale_price" class="text-decoration-line-through opacity-75 fs-6 ms-3">${{ product.variants[0].price }} / {{product.variants[0].size}}</span>
-                                                        <span v-else>${{ product.variants[0].price }} / kg</span>
+                                                        <span v-if="product.variants[0].sale_price" class="text-danger">{{ formatPrice(product.variants[0].sale_price) }} / {{product.variants[0].size}}</span>
+                                                        <span v-if="product.variants[0].sale_price" class="text-decoration-line-through opacity-75 fs-6 ms-3">{{ formatPrice(product.variants[0].price) }} / {{product.variants[0].size}}</span>
+                                                        <span v-else>{{ formatPrice(product.variants[0].price) }} / kg</span>
                                                     </p>
 
                                                     <!-- Add to Cart Button -->
@@ -130,7 +130,7 @@
                                                             @click="addToCart(product)"
                                                             :disabled="addToCartLoading[product.id]"
                                                             class="btn border border-secondary rounded-pill h-100 px-3 text-primary fs-5">
-                                                            <div v-if="addToCartLoading[product.id]" class="spinner-border spinner-border-sm me-2" role="status"></div>
+                                                            <span v-if="addToCartLoading[product.id]" class="spinner-border spinner-border-sm me-2" role="status"></span>
                                                             <i v-else class="fa fa-shopping-bag me-2 text-primary"></i>
                                                             {{ addToCartLoading[product.id] ? $t('messages.adding') : $t('messages.add_to_cart') }}
                                                         </button>
@@ -150,22 +150,49 @@
     <!-- Fruits Shop End-->
 
     <!-- Footer Start -->
-    <Footer />
+    <FooterComponent />
     <!-- Footer End -->
 </template>
 
 <script lang="ts">
 import MenuComponent from '../Includes/Menu.vue';
 import Search from '../Includes/Search.vue';
-import Footer from '@/Pages/Frontend/Includes/Footer.vue';
+import FooterComponent from '@/Pages/Frontend/Includes/Footer.vue';
 import axios from "axios";
 import Swal from 'sweetalert2';
+import { useCurrency } from '@/composables/useCurrency';
+import { onUnmounted } from 'vue';
+
+interface Product {
+    id: number;
+    name: string;
+    description?: string;
+    category?: {
+        name: string;
+    };
+    media?: Array<{
+        file_path: string;
+        is_primary: boolean;
+    }>;
+    variants: Array<{
+        id: number;
+        price: number;
+        sale_price?: number;
+        size: string;
+    }>;
+}
+
+interface CartItem {
+    id: number;
+    productVariant_id: number;
+    quantity: number;
+}
 
 export default {
     components: {
         MenuComponent,
         Search,
-        Footer,
+        FooterComponent,
     },
     props: {
         auth: {
@@ -174,38 +201,70 @@ export default {
             default: () => ({})
         }
     },
+    setup() {
+        const {
+            currentCurrency,
+            currencyInfo,
+            formatPrice,
+            convertAndFormatPrice,
+            setCurrencyFromLocale,
+            initializeCurrency,
+            cleanup
+        } = useCurrency();
+
+        // Cleanup on unmount
+        onUnmounted(() => {
+            cleanup();
+        });
+
+        return {
+            currentCurrency,
+            currencyInfo,
+            formatPrice,
+            convertAndFormatPrice,
+            setCurrencyFromLocale,
+            initializeCurrency,
+            cleanup
+        };
+    },
     data() {
         return {
-            products: [],
-            wishlistIds: [],
-            user: null,
+            products: [] as Product[],
+            wishlistIds: [] as number[],
+            user: null as any,
             loading: true,
-            error: null,
+            error: null as string | null,
             totalValue: 0,
             saveValue: 0,
-            quantities: {},
-            addToCartLoading: {},
+            quantities: {} as Record<number, number>,
+            addToCartLoading: {} as Record<number, boolean>,
         }
     },
     computed: {
-        totalOriginalPrice() {
+        totalOriginalPrice(): number {
             if (!Array.isArray(this.products)) return 0;
-            return this.products.reduce((sum, p) => sum + (p.price || 0), 0);
+            return this.products.reduce((sum: number, p: Product) => sum + (p.variants[0]?.price || 0), 0);
         },
-        totalDiscountedPrice() {
+        totalDiscountedPrice(): number {
             if (!Array.isArray(this.products)) return 0;
-            return this.products.reduce((sum, p) => sum + (p.sale_price || p.price || 0), 0);
+            return this.products.reduce((sum: number, p: Product) => sum + (p.variants[0]?.sale_price || p.variants[0]?.price || 0), 0);
         },
-        totalSavedAmount() {
+        totalSavedAmount(): number {
             return this.totalOriginalPrice - this.totalDiscountedPrice;
         },
     },
     async mounted() {
+        // Initialize currency system first
+        await this.initializeCurrency();
+
         // Get user from auth prop or API
         this.user = this.auth?.user || null;
 
         // Initialize wishlist from session or database
         await this.initializeWishlist();
+
+        // Watch for locale changes
+        this.watchLocaleChanges();
 
         this.loading = false;
     },
@@ -214,9 +273,6 @@ export default {
             if (this.user) {
                 // User is logged in, sync session wishlist & cart to database first
                 try {
-                    // await axios.get('/sanctum/csrf-cookie');
-                    // await axios.post('/api/sync-session');
-
                     // Get wishlist products from database
                     const res = await axios.get('/api/wishlist');
                     this.products = res.data || [];
@@ -236,7 +292,7 @@ export default {
                     this.products = res.data.data || [];
                     console.log('this.products', this.products)
                     // Get wishlist IDs from session
-                    this.wishlistIds = this.products.map(p => p.id);
+                    this.wishlistIds = this.products.map((p: Product) => p.id);
                 } catch (error) {
                     console.error('❌ Session wishlist error:', error);
                     this.products = [];
@@ -247,13 +303,14 @@ export default {
             // Initialize quantities for each product
             this.initializeQuantities();
 
+            // Convert prices after loading products
+            await this.convertProductPrices();
             await this.fetchWishlistTotalValue();
             await this.fetchWishlistSaveValue();
         },
 
         initializeQuantities() {
-            this.products.forEach(product => {
-                // Vue 3: Sử dụng direct assignment thay vì this.$set
+            this.products.forEach((product: Product) => {
                 this.quantities[product.id] = 1;
             });
         },
@@ -274,44 +331,68 @@ export default {
             }
         },
 
+        // New method to convert product prices based on current locale
+        async convertProductPrices() {
+            if (!this.products.length || !this.currentCurrency) return;
+
+            try {
+                const response = await axios.post('/api/currency/convert-prices', {
+                    products: this.products,
+                    locale: (this as any).$i18n?.locale || 'vi'
+                });
+
+                if (response.data.success) {
+                    this.products = response.data.products;
+                }
+            } catch (error) {
+                console.error('Failed to convert product prices:', error);
+            }
+        },
+
+        // Watch for locale changes and update currency accordingly
+        watchLocaleChanges() {
+            // Listen to i18n locale changes
+            this.$watch(() => (this as any).$i18n?.locale, async (newLocale: string) => {
+                await this.setCurrencyFromLocale(newLocale);
+                await this.convertProductPrices();
+                await this.fetchWishlistTotalValue();
+                await this.fetchWishlistSaveValue();
+            });
+        },
+
         async fetchWishlistTotalValue() {
             this.totalValue = 0;
-            console.log('products', this.products);
             for (const product of this.products) {
-                // console.log('product', product)
-                // console.log('product.variants', product.variants)
-                // console.log('product.variants[0].price', product.variants[0].price)
-
-                this.totalValue += Number(product.variants[0].price);
+                this.totalValue += Number(product.variants[0]?.price || 0);
             }
-            this.totalValue = Math.round(this.totalValue * 100) / 100;
+            this.totalValue = Math.round(this.totalValue * Math.pow(10, this.currencyInfo?.decimals || 2)) / Math.pow(10, this.currencyInfo?.decimals || 2);
         },
 
         async fetchWishlistSaveValue() {
             let totalvalue2 = 0;
             this.saveValue = 0;
             for (const product of this.products) {
-                if (product.variants[0].sale_price) {
+                if (product.variants[0]?.sale_price) {
                     totalvalue2 += Number(product.variants[0].sale_price);
                 } else {
-                    totalvalue2 += Number(product.variants[0].price);
+                    totalvalue2 += Number(product.variants[0]?.price || 0);
                 }
             }
             this.saveValue = this.totalValue - totalvalue2;
-            this.saveValue = Math.round(this.saveValue * 100) / 100;
+            this.saveValue = Math.round(this.saveValue * Math.pow(10, this.currencyInfo?.decimals || 2)) / Math.pow(10, this.currencyInfo?.decimals || 2);
         },
 
-        async toggleWishlist(productId) {
+        async toggleWishlist(productId: number) {
             if (this.user) {
                 // User is logged in, use database API
                 if (this.isInWishlist(productId)) {
                     try {
                         await axios.delete(`/api/wishlist/${productId}`);
-                        this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
-                        this.products = this.products.filter(p => p.id !== productId);
-                        this.showNotification('Đã xóa khỏi danh sách yêu thích!', 'success');
+                        this.wishlistIds = this.wishlistIds.filter((id: number) => id !== productId);
+                        this.products = this.products.filter((p: Product) => p.id !== productId);
+                        this.showNotification((this as any).$t('messages.wishlist_removed_success'), 'success');
                     } catch (error) {
-                        this.showNotification('Xóa khỏi yêu thích thất bại!', 'error');
+                        this.showNotification((this as any).$t('messages.wishlist_remove_failed'), 'error');
                         console.error(error);
                     }
                 } else {
@@ -320,9 +401,9 @@ export default {
                         this.wishlistIds.push(productId);
                         // Refresh products list
                         await this.fetchWishlistProductsFromApi();
-                        this.showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+                        this.showNotification((this as any).$t('messages.wishlist_added_success'), 'success');
                     } catch (error) {
-                        this.showNotification('Thêm vào yêu thích thất bại!', 'error');
+                        this.showNotification((this as any).$t('messages.wishlist_add_failed'), 'error');
                         console.error(error);
                     }
                 }
@@ -333,11 +414,11 @@ export default {
                         await axios.delete('/api/session/wishlist', {
                             data: { product_id: productId }
                         });
-                        this.wishlistIds = this.wishlistIds.filter(id => id !== productId);
-                        this.products = this.products.filter(p => p.id !== productId);
-                        this.showNotification('Đã xóa khỏi danh sách yêu thích!', 'success');
+                        this.wishlistIds = this.wishlistIds.filter((id: number) => id !== productId);
+                        this.products = this.products.filter((p: Product) => p.id !== productId);
+                        this.showNotification((this as any).$t('messages.wishlist_removed_success'), 'success');
                     } catch (error) {
-                        this.showNotification('Xóa khỏi yêu thích thất bại!', 'error');
+                        this.showNotification((this as any).$t('messages.wishlist_remove_failed'), 'error');
                         console.error(error);
                     }
                 } else {
@@ -346,9 +427,9 @@ export default {
                         this.wishlistIds.push(productId);
                         // Refresh products list
                         await this.fetchWishlistProductsFromApi();
-                        this.showNotification('Đã thêm vào danh sách yêu thích!', 'success');
+                        this.showNotification((this as any).$t('messages.wishlist_added_success'), 'success');
                     } catch (error) {
-                        this.showNotification('Thêm vào yêu thích thất bại!', 'error');
+                        this.showNotification((this as any).$t('messages.wishlist_add_failed'), 'error');
                         console.error(error);
                     }
                 }
@@ -358,73 +439,63 @@ export default {
             await this.fetchWishlistSaveValue();
         },
 
-        isInWishlist(productId) {
+        isInWishlist(productId: number): boolean {
             return this.wishlistIds.includes(productId);
         },
 
-
-
-        increaseQuantity(productId) {
+        increaseQuantity(productId: number) {
             if (!this.quantities[productId]) {
                 this.quantities[productId] = 1;
             }
             this.quantities[productId]++;
         },
-        decreaseQuantity(productId) {
+
+        decreaseQuantity(productId: number) {
             if (this.quantities[productId] && this.quantities[productId] > 1) {
                 this.quantities[productId]--;
             }
         },
-        async addToCart(product) {
+
+        async addToCart(product: Product) {
             const productId = product.id;
-            const productVariantId = product.variants[0].id; // Lấy variant đầu tiên
+            const productVariantId = product.variants[0]?.id; // Lấy variant đầu tiên
             const quantity = this.quantities[productId] || 1;
 
             this.addToCartLoading[productId] = true;
 
             try {
                 if (this.user) {
-                    // User đã đăng nhập - sử dụng database API
                     const cartRes = await axios.get('/api/cart');
-                    const cartItems = cartRes.data.data || [];
-
-                    const existingItem = cartItems.find(item => item.productVariant_id === productVariantId);
+                    const cartItems: CartItem[] = cartRes.data.data || [];
+                    const existingItem = cartItems.find((item: CartItem) => item.productVariant_id === productVariantId);
 
                     if (existingItem) {
-                        // Nếu variant đã có trong giỏ hàng, cập nhật số lượng
                         await axios.put(`/api/cart/${existingItem.id}`, {
                             quantity: existingItem.quantity + quantity
                         });
                     } else {
-                        // Nếu variant chưa có, thêm mới
                         await axios.post('/api/cart', {
                             productVariant_id: productVariantId,
                             quantity: quantity
                         });
                     }
                 } else {
-                    // User chưa đăng nhập - sử dụng session API
                     await axios.post('/api/session/cart', {
                         productVariant_id: productVariantId,
                         quantity: quantity
                     });
                 }
 
-                this.showNotification('Sản phẩm đã được thêm vào giỏ hàng!', 'success');
-
-                // Reset quantity về 1 sau khi thêm thành công
-                this.quantities[productId] = 1;
-
+                this.showNotification((this as any).$t('messages.cart_add_success'), 'success');
             } catch (error) {
-                this.showNotification('Thêm vào giỏ hàng thất bại!', 'error');
                 console.error('Add to cart error:', error);
             } finally {
                 this.addToCartLoading[productId] = false;
             }
         },
-        showNotification(message, type = 'success') {
-            let icon = 'success';
-            const title = message;
+
+        showNotification(message: string, type: string = 'success') {
+            let icon: 'success' | 'error' | 'warning' | 'info' = 'success';
 
             switch(type) {
                 case 'success':
@@ -446,7 +517,7 @@ export default {
             Swal.fire({
                 position: "top-end",
                 icon: icon,
-                title: title,
+                title: message,
                 showConfirmButton: false,
                 timer: 1500,
             });

@@ -11,7 +11,6 @@ use App\Http\Controllers\Frontend\ProductDetailController;
 use App\Http\Controllers\Frontend\CheckoutController;
 use App\Http\Controllers\Frontend\AboutController;
 use App\Http\Controllers\Frontend\ProfileController;
-use App\Http\Controllers\Api\MoMoPaymentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LanguageController;
 use Illuminate\Foundation\Application;
@@ -22,10 +21,6 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
-
-
-// MoMo return URLs
-Route::get('/payment/momo/return', [MoMoPaymentController::class, 'handleReturn'])->name('payment.momo.return');
 
 
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
@@ -76,6 +71,43 @@ Route::get('/test-translation', function () {
 // Language switching routes
 Route::get('/language/switch', [LanguageController::class, 'switch'])->name('language.switch.get');
 Route::post('/language/switch', [LanguageController::class, 'switch'])->name('language.switch');
+
+// Test QR code endpoint
+Route::get('/test-qr', function() {
+    try {
+        $vietQRService = new App\Services\VietQRService();
+
+        // Test data
+        $qrContent = $vietQRService->generateVietQRString(
+            '1234567890',    // account number
+            '970415',        // bank code
+            'CONG TY FRUITABLES', // account name
+            50000,           // amount
+            'Test payment',  // description
+            'TEST001'        // order code
+        );
+
+        $qrFormats = $vietQRService->generateMultipleQRFormats($qrContent);
+
+        return response()->json([
+            'success' => true,
+            'qr_content' => $qrContent,
+            'qr_formats' => $qrFormats,
+            'test_info' => [
+                'content_length' => strlen($qrContent),
+                'starts_with_vietqr' => str_starts_with($qrContent, '000201'),
+                'has_crc' => str_contains($qrContent, '63')
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ], 500);
+    }
+});
 
 require __DIR__.'/auth.php';
 

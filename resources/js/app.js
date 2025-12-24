@@ -7,6 +7,7 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createPinia } from 'pinia';
 import i18n from './i18n'
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
@@ -24,11 +25,21 @@ createInertiaApp({
             .use(ZiggyVue)
             .use(pinia);
 
-        // Global $t using Inertia's shared props
+        // Enhanced global $t function that works with both Vue i18n and Inertia props
         app.config.globalProperties.$t = (key, fallback = null) => {
             try {
+                // First try Vue i18n
+                if (i18n.global.t && typeof i18n.global.t === 'function') {
+                    const i18nResult = i18n.global.t(key);
+                    if (i18nResult && i18nResult !== key) {
+                        return i18nResult;
+                    }
+                }
+
+                // Fallback to Inertia's shared props if i18n doesn't have the key
                 const pageProps = app.config.globalProperties.$page?.props || {};
                 const translations = pageProps.translations || {};
+
                 // Resolve dot-notation
                 const segments = String(key).split('.');
                 let current = translations;
@@ -41,19 +52,39 @@ createInertiaApp({
                 }
                 return current ?? fallback ?? key;
             } catch (e) {
+                console.warn('Translation error for key:', key, e);
                 return fallback ?? key;
             }
         };
 
-        // Optional: basic error handler
+        // Enhanced error handler for better debugging in dev mode
         app.config.errorHandler = (err, instance, info) => {
-            console.error('Vue Error:', err, info);
+            // Only log in development mode
+            if (import.meta.env.DEV) {
+                console.error('Vue Error:', err);
+                console.error('Component:', instance);
+                console.error('Error Info:', info);
+            }
             return false;
         };
 
-        return app.mount(el);
-    },
-    progress: {
-        color: '#4B5563',
+        // Initialize locale from storage after app is mounted
+        app.mount(el);
+
+        // Restore locale after mounting to avoid hydration mismatches
+        if (typeof window !== 'undefined') {
+            const savedLocale = localStorage.getItem('locale');
+            if (savedLocale && i18n.global.locale.value !== savedLocale) {
+                console.log('🔄 Restoring saved locale:', savedLocale);
+                i18n.global.locale.value = savedLocale;
+
+                // Emit event for currency system
+                window.dispatchEvent(new CustomEvent('locale-changed', {
+                    detail: { locale: savedLocale }
+                }));
+            }
+        }
+
+        return app;
     },
 });

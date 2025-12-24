@@ -59,8 +59,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may specify the default timezone for your application, which
-    | will be used by the PHP date and date-time functions. The timezone
-    | is set to the "UTC" timezone as the default value.
+    | will be used by the PHP date and date-time functions. We have gone
+    | ahead and set this to a sensible default for you out of the box.
     |
     */
 
@@ -143,6 +143,23 @@ return [
     'maintenance' => [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SePay Payment Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configuration for SePay payment integration using bank account
+    |
+    */
+
+    'sepay' => [
+        'secret_key' => env('SEPAY_SECRET_KEY'),
+        'account_number' => env('SEPAY_ACCOUNT_NUMBER'),
+        'account_name' => env('SEPAY_ACCOUNT_NAME'),
+        'bank_code' => env('SEPAY_BANK_CODE'),
+        'bank_name' => env('BANK_NAME', 'TP BANK'),
     ],
 
     /*

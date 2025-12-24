@@ -7,13 +7,11 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\UserAddressController;
-use App\Http\Controllers\Api\MoMoPaymentController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\LocationController;
-//use App\Http\Controllers\Api\UserProfileController;
-//use App\Http\Controllers\Api\UserNotificationController;
-//use App\Http\Controllers\Api\UserOrderController;
-//use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\CurrencyController;
+use App\Http\Controllers\SepayController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +25,7 @@ Route::get('dashboard/products/bestsellers', [DashboardController::class, 'bests
 
 Route::get('products/bestsellers', [ProductController::class, 'bestsellers']);
 Route::get('products/featured', [ProductController::class, 'featured']);
+
 
 // Public routes
 Route::apiResource('categories', CategoryController::class)->names([
@@ -44,12 +43,20 @@ Route::apiResource('products', ProductController::class)->names([
     'destroy' => 'api.products.destroy',
 ]);
 
-// MoMo Payment routes (public - không cần auth)
-Route::prefix('payment/momo')->group(function () {
-    Route::post('create', [MoMoPaymentController::class, 'createPayment']);
-    Route::post('notify', [MoMoPaymentController::class, 'handleCallback']);
-    Route::get('check-status', [MoMoPaymentController::class, 'checkStatus']);
-    Route::post('regenerate-qr', [MoMoPaymentController::class, 'regenerateQR']);
+// Payment routes - SePay Integration (Cải tiến)
+Route::prefix('payment')->group(function () {
+    // Routes không cần auth (webhooks và tạo payment trực tiếp)
+    Route::post('sepay/webhook', [PaymentController::class, 'sepayWebhook']);
+    Route::post('sepay/create', [PaymentController::class, 'createSepayPayment']);
+
+    // Routes khớp với frontend calls
+    Route::get('sepay/check-status', [PaymentController::class, 'checkSepayPaymentStatus']);
+    Route::post('sepay/verify-qr', [PaymentController::class, 'verifyPaymentByQR']);
+
+    // Routes cũ (giữ để backward compatibility)
+//    Route::post('/check-status', [PaymentController::class, 'checkPaymentStatus']);
+//    Route::post('/generate-qr', [PaymentController::class, 'generatePaymentQR']);
+    Route::get('/banks', [PaymentController::class, 'getBankList']);
 });
 
 // Session-based routes (for non-authenticated users)
@@ -157,6 +164,11 @@ Route::middleware('auth:sanctum')->group(function () {
 //        Route::post('{id}/reorder', [UserOrderController::class, 'reorder']);
 //    });
 });
+// Order management routes
+Route::prefix('orders')->group(function () {
+    Route::put('{orderId}/status', [PaymentController::class, 'updateOrderStatus']);
+});
+
 // Location routes (public - không cần auth)
 Route::prefix('locations')->group(function () {
     Route::get('provinces', [LocationController::class, 'getProvinces']);

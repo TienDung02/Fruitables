@@ -24,42 +24,40 @@ class OrderFactory extends Factory
         $shippingCost = $this->faker->randomElement([0, 500, 1000, 1500]) / 100; // Free, 5.00, 10.00, 15.00
         $total = $subtotal + $shippingCost;
 
+        // Lấy user ngẫu nhiên từ database hoặc tạo mới nếu không có
+        $user = User::inRandomOrder()->first() ?? User::factory()->create();
+
         return [
             'id' => $this->generateUniqueOrderNumber(),
-            'user_id' => User::factory(),
+            'user_id' => $user->id,
             'status' => $this->faker->randomElement([
-                'pending',
-                'confirmed',
-                'processing',
-                'shipped',
-                'delivered',
-                'cancelled'
+                Order::STATUS_PENDING,
+                Order::STATUS_CONFIRMED,
+                Order::STATUS_PROCESSING,
+                Order::STATUS_SHIPPED,
+                Order::STATUS_DELIVERED,
+                Order::STATUS_CANCELLED
             ]),
             'subtotal' => $subtotal,
             'shipping_cost' => $shippingCost,
             'total' => $total,
-            'payment_method' => $this->faker->randomElement(['cod', 'momo', 'card']),
             'payment_status' => $this->faker->randomElement([
                 Order::PAYMENT_STATUS_PENDING,
                 Order::PAYMENT_STATUS_PAID,
                 Order::PAYMENT_STATUS_FAILED,
                 Order::PAYMENT_STATUS_REFUNDED
             ]),
-            'shipping_method' => $this->faker->randomElement(['standard', 'express', 'overnight']),
-            'customer_info' => [
-                'name' => $this->faker->name(),
-                'email' => $this->faker->email(),
-                'phone' => $this->faker->phoneNumber(),
-                'address' => $this->faker->address(),
-                'city' => $this->faker->city(),
-                'postal_code' => $this->faker->postcode(),
-                'country' => $this->faker->country(),
-            ],
+            'shipping_method' => $this->faker->randomElement(['free', 'standard', 'fast']),
+            'customer_name' => $user->full_name ?: ($user->username ?: $user->email),
+            'customer_email' => $user->email,
+            'customer_phone' => $user->phone ?? $this->faker->phoneNumber(),
+            'customer_address' => $user->address ?? $this->faker->address(),
             'notes' => $this->faker->optional(0.3)->sentence(),
             'payment_request_id' => $this->faker->optional(0.7)->uuid(),
             'payment_data' => $this->faker->optional(0.5)->randomElement([
-                ['transaction_ref' => $this->faker->uuid()],
-                ['card_last_four' => $this->faker->numerify('****')],
+                ['payment_method' => 'sepay', 'transaction_ref' => $this->faker->uuid()],
+                ['payment_method' => 'cod', 'reference' => $this->faker->bothify('COD-####-****')],
+                ['payment_method' => 'bank_transfer', 'bank_ref' => $this->faker->bothify('BT-########')],
                 null
             ]),
             'transaction_id' => $this->faker->optional(0.6)->uuid(),
@@ -120,8 +118,65 @@ class OrderFactory extends Factory
      */
     public function forExistingUser(): static
     {
+        return $this->state(function (array $attributes) {
+            $user = User::inRandomOrder()->first() ?? User::factory()->create();
+
+            return [
+                'user_id' => $user->id,
+                // Sử dụng cùng logic an toàn như ở definition()
+                'customer_name' => $user->full_name ?: ($user->username ?: $user->email),
+                'customer_email' => $user->email,
+                'customer_phone' => $user->phone ?? fake()->phoneNumber(),
+                'customer_address' => $user->address ?? fake()->address(),
+            ];
+        });
+    }
+
+    /**
+     * Create order for guest checkout (no user_id).
+     */
+    public function guest(): static
+    {
         return $this->state(fn (array $attributes) => [
-            'user_id' => User::inRandomOrder()->first()?->id ?? User::factory(),
+            'user_id' => null,
+            'customer_name' => fake()->name(),
+            'customer_email' => fake()->email(),
+            'customer_phone' => fake()->phoneNumber(),
+            'customer_address' => fake()->address(),
+        ]);
+    }
+
+    /**
+     * Create order with SePay payment method.
+     */
+    public function sepayPayment(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_status' => Order::PAYMENT_STATUS_PAID,
+            'payment_data' => [
+                'payment_method' => 'sepay',
+                'transaction_ref' => $this->faker->uuid(),
+                'bank_code' => '970423',
+                'account_number' => $this->faker->numerify('##########')
+            ],
+            'transaction_id' => $this->faker->uuid(),
+            'paid_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
+        ]);
+    }
+
+    /**
+     * Create order with COD payment method.
+     */
+    public function codPayment(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'payment_status' => Order::PAYMENT_STATUS_PENDING,
+            'payment_data' => [
+                'payment_method' => 'cod',
+                'reference' => $this->faker->bothify('COD-####-****')
+            ],
+            'transaction_id' => null,
+            'paid_at' => null,
         ]);
     }
 }
