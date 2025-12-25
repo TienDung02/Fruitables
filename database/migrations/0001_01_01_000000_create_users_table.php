@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('username', 191)->unique()->nullable();
             $table->string('full_name')->nullable();
-            $table->string('email', 191)->unique();
+            $table->string('emails', 191)->unique();
             $table->string('phone')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
             $table->date('dob')->nullable();
@@ -30,7 +30,7 @@ return new class extends Migration
 
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('email', 191)->primary();
+            $table->string('emails', 191)->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
