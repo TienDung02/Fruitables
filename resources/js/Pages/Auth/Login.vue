@@ -1,50 +1,21 @@
-<script setup>
-import Checkbox from '@/Components/Checkbox.vue';
-import GuestLayout from '@/Layouts/GuestLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import Register from '@/Pages/Auth/Register.vue';
-
-defineProps({
-    canResetPassword: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
-
-const form = useForm({
-    email: '',
-    password: '',
-    remember: false,
-});
-
-const submit = () => {
-    form.post(route('login'), {
-        onFinish: () => form.reset('password'),
-    });
-};
-</script>
-
 <template>
     <Head :title="$t('messages.log_in')" />
-    <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-        {{ status }}
+
+    <!-- Hiển thị flash login_error -->
+    <div v-if="flash?.login_error" class="mb-4 text-sm font-medium text-red-600">
+        {{ flash.login_error }}
     </div>
+
     <div class="main-login-bg">
         <div class="login-container">
-            <!-- Left Panel - Image Background -->
+            <!-- Left Panel -->
             <div class="login-left-pane">
                 <img class="fruit-image-bg" src="/images/img/bg-login-2.png" alt="Fresh fruits background">
             </div>
 
-            <!-- Right Panel - Login Form -->
+            <!-- Right Panel -->
             <div class="login-right-pane">
-                <!-- Brand Logo -->
+                <!-- Brand -->
                 <div class="fruitable-brand">
                     <span class="fruitable-logo-circle"><img class="w-75 h-75" src="/images/logo.png" alt=""></span>
                     Fruitables
@@ -57,27 +28,25 @@ const submit = () => {
                     {{ $t('messages.enjoy_fresh_products') }}
                 </div>
 
-                <!-- Login Form -->
+                <!-- Form -->
                 <form @submit.prevent="submit">
                     <div class="mb-3">
-                        <InputLabel for="email" class="form-label" :value="$t('messages.email_or_username')" />
-
+                        <InputLabel for="emails" class="form-label" :value="$t('messages.email_or_username')" />
                         <TextInput
-                            id="email"
+                            id="emails"
                             type="email"
                             class="form-control mt-1 block w-full"
-                            v-model="form.email"
+                            v-model="form.emails"
                             required
                             autofocus
                             autocomplete="username"
                             :placeholder="$t('messages.enter_email_username')"
                         />
-
-                        <InputError class="mt-2" :message="form.errors.email" />
+                        <InputError :message="form.errors.emails" class="mt-2 text-danger"/>
                     </div>
-                    <div>
-                        <InputLabel class="form-label" for="password" :value="$t('messages.password')" />
 
+                    <div>
+                        <InputLabel for="password" class="form-label" :value="$t('messages.password')" />
                         <TextInput
                             id="password"
                             type="password"
@@ -87,8 +56,10 @@ const submit = () => {
                             required
                             autocomplete="current-password"
                         />
-
-                        <InputError class="mt-2" :message="form.errors.password" />
+                        <InputError :message="form.errors.password" class="mt-2 text-danger"/>
+                    </div>
+                    <div v-if="flash?.login_error" class="mb-4 text-sm font-medium text-danger">
+                        {{ $t('messages.invalid_credentials') }}
                     </div>
                     <div class="mt-4 block " style="text-align: end">
                         <label class="flex items-center">
@@ -97,19 +68,15 @@ const submit = () => {
                         </label>
                     </div>
 
-                    <PrimaryButton
-                        class="btn btn-fruit"
-                        :class="{ 'opacity-25': form.processing }"
-                        :disabled="form.processing"
-                    >
+                    <PrimaryButton :disabled="form.processing" class="btn btn-fruit">
                         {{ $t('messages.log_in') }}
                     </PrimaryButton>
 
-                    <div class="flex-links">
+                    <div class="flex-links mt-2">
                         <Link
                             v-if="canResetPassword"
                             :href="route('password.request')"
-                            class="rounded-md text-sm forgot-link text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                            class="forgot-link"
                         >
                             {{ $t('messages.forgot_password') }}
                         </Link>
@@ -125,3 +92,62 @@ const submit = () => {
         </div>
     </div>
 </template>
+
+<script setup>
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import InputError from '@/Components/InputError.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import Swal from "sweetalert2";
+import { useI18n } from 'vue-i18n';
+
+defineProps({
+    canResetPassword: Boolean,
+    status: String,
+    flash: Object,
+});
+
+const form = useForm({
+    emails: '',
+    password: '',
+    remember: false,
+});
+const { t } = useI18n();
+const submit = () => {
+    console.log('🚀 Sending login request...');
+
+    form.post(route('login'), {
+        onStart: () => {
+            console.log('⏳ Request started');
+        },
+        onSuccess: (page) => {
+            console.log('✅ Login successful');
+            console.log('📦 Page props:', page.props);
+
+            if (page.props.flash?.success) {
+                Swal.fire('Thành công!', page.props.flash.success, 'success');
+            }
+        },
+        onError: (errors) => {
+            console.log('❌ Login failed');
+            console.log('🐛 Errors:', errors);
+
+            // Hiển thị lỗi đầu tiên
+            Swal.fire({
+                position: "top-end",
+                icon: "error",
+                title: t('messages.invalid_credentials'),
+                showConfirmButton: false,
+                timer: 1500
+            });
+        },
+        onFinish: () => {
+            console.log('✅ Request finished');
+            console.log('🔍 Form errors:', form.errors);
+            form.reset('password');
+        },
+    });
+};
+</script>

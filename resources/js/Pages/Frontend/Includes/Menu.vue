@@ -164,7 +164,6 @@ export default {
         // Watch for page props changes (detect navigation after logout)
         '$page.props': {
             handler(newProps, oldProps) {
-                console.log('Page props changed:', { newProps, oldProps });
                 // If we detect logout success, reload immediately
                 if (newProps?.flash?.logout_success && !oldProps?.flash?.logout_success) {
                     console.log('Logout success detected via page props!');

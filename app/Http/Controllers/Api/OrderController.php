@@ -10,6 +10,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Log;
+
 class OrderController extends Controller
 {
     /**
@@ -42,6 +44,7 @@ class OrderController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        Log::info('Order store method called', $request->all());
         $user = Auth::user();
 
         if (!$user) {
@@ -50,18 +53,23 @@ class OrderController extends Controller
                 'message' => 'User not authenticated'
             ], 401);
         }
-
+        Log::info('sau check user', ['user_id' => $user->id]);
+        $request->merge($request->input('customer_info', []));
         $validated = $request->validate([
-            'shipping_address' => 'required|string|max:500',
+            'address' => 'required|string|max:500',
+            'ward_id' => 'required|int',
+            'email' => 'required|email|max:500',
             'phone' => 'required|string|max:20',
             'notes' => 'nullable|string|max:1000'
         ]);
-
+        Log::info('Sau validate', $validated);
         // Get cart items
         $cartItems = Cart::with('Products')
             ->where('user_id', $user->id)
             ->get();
 
+
+        Log::info('$cartItems', $cartItems);
         if ($cartItems->isEmpty()) {
             return response()->json([
                 'success' => false,

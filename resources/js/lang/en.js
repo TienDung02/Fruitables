@@ -321,7 +321,7 @@ export default {
     show_phone_number: 'Show Phone Number',
     show_phone_desc: 'Allow sellers to see your phone number',
     email_notifications: 'Email Notifications',
-    email_notif_desc: 'Receive order and promotion notifications via email',
+    email_notif_desc: 'Receive order and promotion notifications via emails',
     sms_notifications: 'SMS Notifications',
     sms_notif_desc: 'Receive order notifications via SMS',
 
@@ -337,8 +337,8 @@ export default {
     // Auth Pages
     sign_in_to_account: 'Sign in to your account',
     enjoy_fresh_products: 'Enjoy fresh and clean agricultural products every day.',
-    email_or_username: 'Email or Username',
-    enter_email_username: 'Enter email or username',
+    email_or_username: 'Email',
+    enter_email_username: 'Enter emails',
     enter_password: 'Enter your password',
     enter_confirm_password: 'Confirm Password',
     remember_me: 'Remember me',
@@ -363,6 +363,7 @@ export default {
     // Dashboard Stats
     total_orders: 'Total Orders',
     total_sales: 'Total Sales',
+    total_products: 'Total Products',
     total_customers: 'Total Customers',
     pending_orders: 'Pending Orders',
     completed_orders: 'Completed Orders',
@@ -462,6 +463,12 @@ export default {
     order_confirmed: 'Order confirmed',
     view_orders: 'View Orders',
     payment_success: 'Payment Success',
+    registration_email_sent: 'Please check your emails for instructions on how to complete your registration.',
+      emails: 'Emails',
+      invalid_credentials: 'The login information is incorrect.',
+    placeholder_email_address: 'Enter your email address',
+    placeholder_phone: 'Enter your phone number',
+    placeholder_full_name: 'Enter your full name'
 
   }
 }

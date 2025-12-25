@@ -19,7 +19,7 @@ export const useAuthStore = defineStore('auth', {
             try {
                 const response = await axios.get('/api/user');
                 this.user = response.data;
-                console.log('User data loaded:', this.user);
+                // console.log('User data loaded:', this.user);
                 this.isLoggedIn = true;
 
                 // Sync session data when user is authenticated

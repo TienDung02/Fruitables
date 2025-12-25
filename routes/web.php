@@ -17,12 +17,17 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+require __DIR__.'/auth.php';
 // Home page
 Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
 
-
+Route::post('/test-validation', function() {
+    throw \Illuminate\Validation\ValidationException::withMessages([
+        'test' => 'This is a test error',
+    ]);
+});
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
@@ -33,13 +38,13 @@ Route::get('/detail/{id}', [ProductDetailController::class, 'index'])->name('det
 Route::get('/checkout/{checkoutId}', [CheckoutController::class, 'index'])->name('checkout.index');
 Route::post('/buyNow/{buyNow}', [CheckoutController::class, 'buyNow'])->name('checkout.buy-now');
 
-Route::get('/login', function () {
-    return Inertia::render('Auth/Login');
-})->name('login');
-
-Route::get('/register', function () {
-    return Inertia::render('Auth/Register');
-})->name('register');
+//Route::get('/login', function () {
+//    return Inertia::render('Auth/Login');
+//})->name('login');
+//
+//Route::get('/register', function () {
+//    return Inertia::render('Auth/Register');
+//})->name('register');
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout');
@@ -109,7 +114,7 @@ Route::get('/test-qr', function() {
     }
 });
 
-require __DIR__.'/auth.php';
+
 
 // Route 404 - PHẢI đặt cuối cùng để bắt tất cả routes không tồn tại
 Route::fallback(function () {

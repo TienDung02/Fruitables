@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
-
+use Illuminate\Http\JsonResponse;
 class AuthenticatedSessionController extends Controller
 {
     /**
@@ -25,54 +25,28 @@ class AuthenticatedSessionController extends Controller
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
             'login_error' => session('login_error'),
-
-
-
         ]);
     }
 
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request)
     {
-        try {
-            $request->authenticate();
+        Log::info('=== BẮT ĐẦU ĐĂNG NHẬP ===', [
+            'email' => $request->input('emails'),
+        ]);
 
-            $request->session()->regenerate();
+        $request->authenticate();
 
-            // Tự động sync cart và wishlist sau khi đăng nhập thành công
-            $this->syncDataAfterLogin($request);
+        $request->session()->regenerate();
+        $this->syncDataAfterLogin($request);
 
-            return redirect()->intended(route('dashboard', absolute: false))->with('success', 'Đăng nhập thành công! Chào mừng bạn quay trở lại.');
+        Log::info('=== ĐĂNG NHẬP THÀNH CÔNG ===');
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // VULNERABILITY: User Enumeration Attack
-            // Kiểm tra email có tồn tại trong hệ thống không
-
-
-//            $user = \App\Models\User::where('email', $request->email)->first();
-//            if (!$user) {
-//                // Email không tồn tại
-//                return back()->withErrors([
-//                    'email' => 'Email does not exist in system.',
-//                ])->withInput($request->only('email', 'remember'))->with('login_error', 'Email does not exist in system!');
-//            } else {
-//                // Email tồn tại nhưng password sai
-//                return back()->withErrors([
-//                    'password' => 'Incorrect password.',
-//                ])->withInput($request->only('email', 'remember'))->with('login_error', 'Incorrect password!');
-//            }
-
-
-            return back()->withErrors([
-                'email' => 'Incorrect email or password.',
-            ])->withInput($request->only('email', 'remember'))->with('login_error', 'Incorrect email or password!');
-
-
-        }
+        return redirect()->intended(route('dashboard'))
+            ->with('success', 'Đăng nhập thành công!');
     }
-
     /**
      * Sync cart and wishlist from session to database after login
      */

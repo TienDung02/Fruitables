@@ -64,7 +64,7 @@ class OrderService
 
             $orderData['id'] = $this->generateOrderId();
             $orderData['customer_name'] = $customerInfo['name'];
-            $orderData['customer_email'] = $customerInfo['email'];
+            $orderData['customer_email'] = $customerInfo['emails'];
             $orderData['customer_phone'] = $customerInfo['phone'];
             $orderData['customer_address'] = $customerInfo['detail_address'];
             $orderData['user_id'] = $userId;
@@ -394,7 +394,7 @@ class OrderService
 
             $orderData['id'] = $this->generateOrderId();
             $orderData['customer_name'] = $customerInfo['name'];
-            $orderData['customer_email'] = $customerInfo['email'];
+            $orderData['customer_email'] = $customerInfo['emails'];
             $orderData['customer_phone'] = $customerInfo['phone'];
             $orderData['customer_address'] = $customerInfo['detail_address'];
             $orderData['user_id'] = null; // Guest order
@@ -411,7 +411,7 @@ class OrderService
 
             Log::info('Created guest order', [
                 'order_id' => $order->id,
-                'customer_email' => $customerInfo['email'] ?? 'no-email',
+                'customer_email' => $customerInfo['emails'] ?? 'no-emails',
                 'total' => $order->total
             ]);
 

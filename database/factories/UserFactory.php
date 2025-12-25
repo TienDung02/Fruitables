@@ -29,7 +29,7 @@ class UserFactory extends Factory
         return [
             'username' => fake()->unique()->userName(),
             'full_name' => $firstName . ' ' . $lastName,
-            'email' => fake()->unique()->safeEmail(),
+            'emails' => fake()->unique()->safeEmail(),
             'phone' => fake()->optional(0.8)->phoneNumber(),
             'gender' => fake()->optional(0.7)->randomElement(['male', 'female', 'other']),
             'dob' => ($dob = fake()->optional(0.6)->dateTimeBetween('-60 years', '-18 years'))
@@ -45,7 +45,7 @@ class UserFactory extends Factory
     }
 
     /**
-     * Indicate that the model's email address should be unverified.
+     * Indicate that the model's emails address should be unverified.
      */
     public function unverified(): static
     {

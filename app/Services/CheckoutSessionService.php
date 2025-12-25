@@ -87,6 +87,22 @@ class CheckoutSessionService
         }
 
         $sessionShippingInfo = $this->getShippingInfo();
+        if ($sessionShippingInfo === null) {
+            return $defaultAddress ? [
+                'id' => $defaultAddress->id,
+                'name' => $defaultAddress->name,
+                'phone' => $defaultAddress->phone,
+                'address' => $defaultAddress->address,
+                'ward_id' => $defaultAddress->ward_id,
+                'synced_from_db' => true,
+                'user_id' => $defaultAddress->user_id,
+                'full_address' => $defaultAddress->address . ', ' .
+                    ($defaultAddress->ward->name ?? '') . ', ' .
+                    ($defaultAddress->ward->district->name ?? '') . ', ' .
+                    ($defaultAddress->ward->district->province->name ?? '')
+            ] : null;
+        }
+        Log::info('Session shipping info before sync', ['shipping_info' => $sessionShippingInfo]);
 
         // Tạo thông tin shipping đầy đủ bao gồm tất cả địa chỉ
         if ($defaultAddress) {
@@ -158,10 +174,10 @@ class CheckoutSessionService
             $errors['phone'] = 'Số điện thoại không hợp lệ';
         }
 
-        if (empty($shippingInfo['email'])) {
-            $errors['email'] = 'Email là bắt buộc';
-        } elseif (!filter_var($shippingInfo['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Email không hợp lệ';
+        if (empty($shippingInfo['emails'])) {
+            $errors['emails'] = 'Email là bắt buộc';
+        } elseif (!filter_var($shippingInfo['emails'], FILTER_VALIDATE_EMAIL)) {
+            $errors['emails'] = 'Email không hợp lệ';
         }
 
         if (empty($shippingInfo['address'])) {

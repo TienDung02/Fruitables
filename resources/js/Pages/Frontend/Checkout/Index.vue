@@ -25,7 +25,7 @@
                             <div class="col-md-12 ">
                                 <div class="form-item w-100">
                                     <label class="form-label my-3">{{ $t('messages.full_name') }}<sup>*</sup></label>
-                                    <input type="text" class="form-control" v-model="formData.name" required>
+                                    <input type="text" class="form-control" :placeholder="$t('messages.placeholder_full_name')" v-model="formData.name" required>
                                 </div>
                             </div>
                         </div>
@@ -91,11 +91,11 @@
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">{{ $t('messages.phone') }}<sup>*</sup></label>
-                            <input type="tel" class="form-control" v-model="formData.phone" required>
+                            <input type="tel" class="form-control" :placeholder="$t('messages.placeholder_phone')" v-model="formData.phone" required>
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">{{ $t('messages.email_address') }} <sup>*</sup></label>
-                            <input type="email" class="form-control" v-model="formData.email" required>
+                            <input type="email" class="form-control" :placeholder="$t('messages.placeholder_email_address')" v-model="formData.email" required>
                         </div>
                         <hr>
                         <div class="form-item">
@@ -211,11 +211,6 @@
                                         {{ $t('messages.sepay_banking_qr') }}
                                         <span class="badge bg-success ms-2 small">{{ $t('messages.recommended') }}</span>
                                     </label>
-                                </div>
-
-                                <div class="form-check text-start my-3">
-                                    <input type="radio" class="form-check-input" id="payment-bank" value="bank_transfer" v-model="selectedPaymentMethod">
-                                    <label class="form-check-label" for="payment-bank">{{ $t('messages.direct_bank_transfer') }}</label>
                                 </div>
                                 <div class="form-check text-start my-3">
                                     <input type="radio" class="form-check-input" id="payment-cod" value="cod" v-model="selectedPaymentMethod">
@@ -758,6 +753,7 @@ export default {
 
             // Kiểm tra cơ bản
             if (!this.shippingInfo || !this.shippingInfo.shipping_info) {
+                console.log('No shipping info available');
                 return false;
             }
 
@@ -765,6 +761,7 @@ export default {
 
             // Kiểm tra dữ liệu hợp lệ
             if (!shippingData || typeof shippingData !== 'object') {
+                console.log('Invalid shipping data format');
                 return false;
             }
 
@@ -779,6 +776,7 @@ export default {
                             shippingData.current.address
                         ));
                 }
+                console.log('No synced shipping data from database');
                 return false;
             }
 
@@ -788,6 +786,7 @@ export default {
 
             // Kiểm tra có ít nhất một trường có dữ liệu không rỗng
             return keys.some(key => {
+                console.log('Checking shipping data key:', key);
                 const value = shippingData[key];
                 return value !== null && value !== undefined && value !== '';
             });
@@ -893,7 +892,7 @@ export default {
                     this.formData.phone = current.phone || '';
                     this.formData.ward_id = current.ward_id || '';
 
-                    // Gán email từ user auth nếu có
+                    // Gán emails từ user auth nếu có
                     if (this.auth && this.auth.user && this.auth.user.email) {
                         this.formData.email = this.auth.user.email;
                     }
@@ -968,6 +967,46 @@ export default {
                     await this.processOtherPayment(orderData)
                 }
 
+                // Sau khi mua hàng thành công, kiểm tra nếu user chưa có địa chỉ giao hàng
+                if (!this.shippingInfo || !this.shippingInfo.shipping_info) {
+                    // Hiện alert hỏi lưu địa chỉ
+                    const result = await Swal.fire({
+                        title: 'Bạn có muốn lưu địa chỉ nhận hàng này không?',
+                        text: 'Địa chỉ sẽ được lưu vào hồ sơ của bạn để sử dụng cho các lần mua sau.',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Có',
+                        cancelButtonText: 'Không',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    });
+                    if (result.isConfirmed) {
+                        // Gọi API lưu địa chỉ
+                        try {
+                            await axios.post('/api/profile/address', {
+                                name: this.formData.name,
+                                phone: this.formData.phone,
+                                address: this.formData.address || this.formData.detail_address,
+                                ward_id: this.formData.ward_id,
+                                is_default: true,
+                                label: 'home'
+                            });
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Đã lưu địa chỉ giao hàng!',
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        } catch (e) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lưu địa chỉ thất bại!',
+                                text: e.response?.data?.message || 'Vui lòng thử lại.',
+                                showConfirmButton: true
+                            });
+                        }
+                    }
+                }
             } catch (error) {
                 console.error('Order error:', error)
                 Swal.fire({
@@ -1057,7 +1096,7 @@ export default {
         async processOtherPayment(orderData) {
             try {
                 // Sử dụng Inertia để xử lý các phương thức thanh toán khác
-                router.post('/checkout/process', {
+                router.post('/api/orders', {
                     ...orderData,
                     payment_method: this.selectedPaymentMethod
                 })
@@ -1316,7 +1355,7 @@ export default {
                 return false;
             }
 
-            // Kiểm tra định dạng email
+            // Kiểm tra định dạng emails
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(this.formData.email)) {
                 Swal.fire({

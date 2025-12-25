@@ -324,6 +324,7 @@ export default {
     email_notif_desc: '注文やプロモーションの通知をメールで受信',
     sms_notifications: 'SMS通知',
     sms_notif_desc: '注文の通知をSMSで受信',
+      emails: 'Emails',
 
     // Wishlist/Index Page
     favorite_products: 'お気に入り商品',
@@ -338,8 +339,8 @@ export default {
     sign_in_to_account: 'アカウントにサインイン',
     welcome_back: 'おかえりなさい',
     enjoy_fresh_products: '毎日新鮮でクリーンな農産物をお楽しみください。',
-    email_or_username: 'メールまたはユーザー名',
-    enter_email_username: 'メールまたはユーザー名を入力',
+    email_or_username: 'メール',
+    enter_email_username: 'メールを入力してください',
     enter_password: 'パスワードを入力',
     enter_confirm_password: 'パスワードの確認',
     remember_me: 'ログイン状態を保持',
@@ -465,5 +466,12 @@ export default {
     view_orders: '注文を見る',
     payment_success: '支払い成功',
 
+    invalid_credentials: 'ログイン情報が正しくありません。',
+    registration_email_sent: '登録を完了するための手順が記載されたメールをご確認ください。',
+
+    // Placeholder messages
+    placeholder_email_address: 'メールアドレスを入力してください',
+    placeholder_phone: '電話番号を入力してください',
+    placeholder_full_name: '氏名を入力してください'
   }
 }

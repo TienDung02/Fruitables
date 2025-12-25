@@ -94,7 +94,7 @@
                                     </div>
                                 </div>
 
-                                <button class="btn border border-secondary rounded-pill px-3 text-primary" @click="addToCart()">
+                                <button class="btn border border-secondary rounded-pill px-3 text-primary me-4" @click="addToCart()">
                                     <i class="fa fa-shopping-bag me-2 text-primary"></i>
                                     <span>{{ $t('messages.add_to_cart') }}</span>
                                 </button>
@@ -558,7 +558,6 @@ export default {
                 // console.log('Sending checkout request with items:', selectedItems);
                 console.log('User authentication status:', this.auth?.user ? 'authenticated' : 'guest');
 
-                // Chọn API endpoint phù hợp dựa vào trạng thái đăng nhập
                 const checkoutUrl = this.auth?.user
                     ? '/api/cart/checkout'        // User đã đăng nhập
                     : '/api/session/cart/checkout'; // User chưa đăng nhập

@@ -32,7 +32,7 @@ class ProfileController extends Controller
                     'id' => $user->id,
                     'username' => $user->username,
                     'full_name' => $user->full_name,
-                    'email' => $user->email,
+                    'emails' => $user->email,
                     'phone' => $user->phone,
                     'gender' => $user->gender,
                     'dob' => $user->dob?->format('Y-m-d'),

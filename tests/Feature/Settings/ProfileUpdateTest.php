@@ -19,7 +19,7 @@ test('profile information can be updated', function () {
         ->actingAs($user)
         ->patch('/settings/profile', [
             'name' => 'Test User',
-            'email' => 'test@example.com',
+            'emails' => 'test@example.com',
         ]);
 
     $response
@@ -33,14 +33,14 @@ test('profile information can be updated', function () {
     expect($user->email_verified_at)->toBeNull();
 });
 
-test('email verification status is unchanged when the email address is unchanged', function () {
+test('emails verification status is unchanged when the emails address is unchanged', function () {
     $user = User::factory()->create();
 
     $response = $this
         ->actingAs($user)
         ->patch('/settings/profile', [
             'name' => 'Test User',
-            'email' => $user->email,
+            'emails' => $user->email,
         ]);
 
     $response

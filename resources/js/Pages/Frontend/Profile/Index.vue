@@ -76,7 +76,7 @@
                                         </div>
 
                                         <div class="shopee-clone-form-group">
-                                            <label class="shopee-clone-form-label">{{ $t('messages.email') }}</label>
+                                            <label class="shopee-clone-form-label">{{ $t('messages.emails') }}</label>
                                             <div class="shopee-clone-form-value-with-action">
                                                 <span>{{ showFullEmail ? auth?.user?.email : maskEmail(auth?.user?.email) }}</span>
                                                 <a href="#" class="shopee-clone-change-link" @click.prevent="toggleEmailVisibility">
@@ -833,7 +833,7 @@ export default {
             return ''
         },
         maskEmail(email) {
-            if (!email) return 'No email';
+            if (!email) return 'No emails';
             const [name, domain] = email.split('@');
             if (name.length <= 2) return email;
             const maskedName = name.charAt(0) + '*'.repeat(name.length - 2) + name.charAt(name.length - 1);

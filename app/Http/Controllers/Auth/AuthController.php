@@ -27,7 +27,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'emails' => 'required|emails',
             'password' => 'required',
         ]);
 
@@ -40,7 +40,7 @@ class AuthController extends Controller
         }
 
         throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
+            'emails' => __('auth.failed'),
         ]);
     }
 
@@ -59,13 +59,13 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'emails' => 'required|string|emails|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
-            'email' => $validated['email'],
+            'emails' => $validated['emails'],
             'password' => Hash::make($validated['password']),
         ]);
 

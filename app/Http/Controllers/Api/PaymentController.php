@@ -39,7 +39,7 @@ class PaymentController extends Controller
                 'shipping_type' => 'required|string|in:free,standard,fast',
                 'customer_info' => 'required|array',
                 'customer_info.name' => 'required|string',
-                'customer_info.email' => 'required|email',
+                'customer_info.emails' => 'required|emails',
                 'customer_info.phone' => 'required|string',
                 'customer_info.detail_address' => 'required|string',
             ]);

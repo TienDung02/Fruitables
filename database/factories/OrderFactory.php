@@ -25,7 +25,7 @@ class OrderFactory extends Factory
         $total = $subtotal + $shippingCost;
 
         // Lấy user ngẫu nhiên từ database hoặc tạo mới nếu không có
-        $user = User::inRandomOrder()->first() ?? User::factory()->create();
+        $user = User::inRandomOrder()->first();
 
         return [
             'id' => $this->generateUniqueOrderNumber(),
@@ -49,7 +49,7 @@ class OrderFactory extends Factory
             ]),
             'shipping_method' => $this->faker->randomElement(['free', 'standard', 'fast']),
             'customer_name' => $user->full_name ?: ($user->username ?: $user->email),
-            'customer_email' => $user->email,
+            'customer_email' => $user->emails,
             'customer_phone' => $user->phone ?? $this->faker->phoneNumber(),
             'customer_address' => $user->address ?? $this->faker->address(),
             'notes' => $this->faker->optional(0.3)->sentence(),
@@ -125,7 +125,7 @@ class OrderFactory extends Factory
                 'user_id' => $user->id,
                 // Sử dụng cùng logic an toàn như ở definition()
                 'customer_name' => $user->full_name ?: ($user->username ?: $user->email),
-                'customer_email' => $user->email,
+                'customer_email' => $user->emails,
                 'customer_phone' => $user->phone ?? fake()->phoneNumber(),
                 'customer_address' => $user->address ?? fake()->address(),
             ];
