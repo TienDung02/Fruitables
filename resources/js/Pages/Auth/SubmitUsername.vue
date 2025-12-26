@@ -20,7 +20,7 @@ const submit = () => {
         onSuccess: () => {
             Swal.fire({
                 icon: 'success',
-                title: 'Username đã được lưu!',
+                title: $t('messages.username_saved_success'),
                 timer: 1500,
                 showConfirmButton: false,
             });
@@ -29,7 +29,7 @@ const submit = () => {
             console.error(errors);
             Swal.fire({
                 icon: 'error',
-                title: 'Lưu username thất bại!',
+                title: $t('messages.username_save_failed'),
                 timer: 1500,
                 showConfirmButton: false,
             });
@@ -58,7 +58,7 @@ const submit = () => {
                 </div>
 
                 <!-- Title -->
-                <div class="login-title">{{ $t('messages.sign_in_to_account') }}</div>
+                <div class="login-title">{{ $t('messages.create_account') }}</div>
                 <div class="login-sub">
                     {{ $t('messages.welcome_back') }} <b>Fruitables</b>!<br>
                     {{ $t('messages.enjoy_fresh_products') }}
@@ -67,7 +67,7 @@ const submit = () => {
                 <!-- Login Form -->
                 <form @submit.prevent="submit">
                     <div class="mt-4">
-                        <InputLabel for="username" class="form-label" :value="'Nhập tên người dùng'" />
+                        <InputLabel for="username" class="form-label" :value="$t('messages.enter_username')" />
 
                         <TextInput
                             id="username"

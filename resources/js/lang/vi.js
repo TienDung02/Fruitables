@@ -473,5 +473,16 @@ export default {
     save_address_text: 'Địa chỉ sẽ được lưu vào hồ sơ của bạn để sử dụng cho các lần mua sau.',
     save_address_success: 'Đã lưu địa chỉ giao hàng!',
     save_address_failed: 'Lưu địa chỉ thất bại!',
+    create_account: 'Tạo tài khoản của bạn',
+    generate_secure_password: 'Tạo mật khẩu an toàn',
+    strong_password: 'Mật khẩu mạnh',
+    go_to_login: 'Đi đến trang đăng nhập',
+    auto_generated_password_info: 'Đây là mật khẩu mạnh được hệ thống tạo tự động. Bạn có thể copy và lưu lại.',
+    enter_username: 'Nhập tên người dùng',
+    copy: 'Sao chép',
+    username_saved_success: 'Username đã được lưu!',
+    username_save_failed: 'Lưu username thất bại!',
+    password_copied_success: 'Password đã được copy!',
+    copy_failed: 'Copy thất bại!',
   }
 }

@@ -478,5 +478,16 @@ export default {
     save_address_text: 'Адрес будет сохранён в вашем профиле для будущих покупок.',
     save_address_success: 'Адрес доставки сохранён!',
     save_address_failed: 'Не удалось сохранить адрес!',
+    create_account: 'Создайте свой аккаунт',
+    generate_secure_password: 'Создать безопасный пароль',
+    strong_password: 'Надёжный пароль',
+    go_to_login: 'Перейти на страницу входа',
+    auto_generated_password_info: 'Это надёжный пароль, автоматически сгенерированный системой. Вы можете скопировать и сохранить его.',
+    copy: 'Копировать',
+    enter_username: 'Введите имя пользователя',
+    username_saved_success: 'Имя пользователя сохранено!',
+    username_save_failed: 'Не удалось сохранить имя пользователя!',
+    password_copied_success: 'Пароль скопирован!',
+    copy_failed: 'Не удалось скопировать!',
   }
 }

@@ -481,5 +481,16 @@ export default {
     save_address_text: '住所は今後の購入のためにプロフィールに保存されます。',
     save_address_success: '配送先住所が保存されました！',
     save_address_failed: '住所の保存に失敗しました！',
+    create_account: 'アカウントを作成する',
+    generate_secure_password: '安全なパスワードを作成',
+    strong_password: '強力なパスワード',
+    go_to_login: 'ログインページへ',
+    auto_generated_password_info: 'これはシステムによって自動生成された強力なパスワードです。コピーして保存できます。',
+    copy: 'コピー',
+    enter_username: 'ユーザー名を入力してください',
+    username_saved_success: 'ユーザー名が保存されました！',
+    username_save_failed: 'ユーザー名の保存に失敗しました！',
+    password_copied_success: 'パスワードがコピーされました！',
+    copy_failed: 'コピーに失敗しました！',
   }
 }

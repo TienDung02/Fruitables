@@ -17,18 +17,18 @@
                 </div>
 
                 <!-- Title -->
-                <div class="login-title">Tạo mật khẩu an toàn</div>
+                <div class="login-title">{{ $t('messages.generate_secure_password') }}</div>
                 <div class="login-sub">
-                    Đây là mật khẩu mạnh được hệ thống tạo tự động. Bạn có thể copy và lưu lại.
+                    {{ $t('messages.auto_generated_password_info') }}
                 </div>
 
                 <!-- Password -->
                 <div class="mt-4">
-                    <label class="form-label">Mật khẩu mạnh</label>
+                    <label class="form-label">{{ $t('messages.strong_password') }}</label>
                     <div class="d-flex align-items-center">
                         <input type="text" class="form-control me-2" :value="password" readonly ref="passwordInput">
                         <button type="button" class="btn btn-secondary" @click="copyPassword">
-                            Copy
+                            {{ $t('messages.copy') }}
                         </button>
                     </div>
                 </div>
@@ -36,7 +36,7 @@
                 <!-- Next Button -->
                 <div class="mt-4">
                     <Link :href="route('login')" class="btn btn-fruit w-100">
-                        Đi đến trang đăng nhập
+                        {{ $t('messages.go_to_login') }}
                     </Link>
                 </div>
             </div>

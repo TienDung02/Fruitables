@@ -17,7 +17,7 @@
                 </div>
 
                 <!-- Title -->
-                <div class="login-title">{{ $t('messages.sign_in_to_account') }}</div>
+                <div class="login-title">{{ $t('messages.create_account') }}</div>
                 <div class="login-sub">
                     {{ $t('messages.welcome_back') }} <b>Fruitables</b>!<br>
                     {{ $t('messages.enjoy_fresh_products') }}
