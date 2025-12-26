@@ -167,6 +167,7 @@ class CartController extends Controller
      */
     public function checkoutInfo(): JsonResponse
     {
+        Log::info('method checkoutInfo in CartController called');
         return response()->json([
             'message' => 'This endpoint requires POST method for checkout process.',
             'usage' => 'Send POST request with selected items to initiate checkout',
@@ -206,6 +207,8 @@ class CartController extends Controller
             ]);
 
             $selectedItems = $request->input('items');
+            $type = $request->input('type');
+            Log::info('CartController log type',  ['type' => $type]);
 
             if (!$selectedItems || !is_array($selectedItems)) {
                 return response()->json([
@@ -219,6 +222,8 @@ class CartController extends Controller
             // Tạo checkout ID với prefix cho authenticated user
             $checkoutId = uniqid('user_checkout_');
             session()->put("checkout_data_{$checkoutId}", $selectedItems);
+            session()->put("checkout_type_{$checkoutId}", $type);
+            Log::info('Cart controller', ['$checkoutId' => $checkoutId]);
 
             Log::info('Authenticated checkout data stored in session', [
                 'checkout_id' => $checkoutId,
@@ -253,6 +258,7 @@ class CartController extends Controller
 
         // Get session cart - đảm bảo luôn là array
         $sessionCart = session('cart', []);
+        Log::info('Session Cart received', ['cart' => $sessionCart]);
 
         // Kiểm tra và đảm bảo $sessionCart là array
         if (!is_array($sessionCart)) {

@@ -23,11 +23,6 @@ Route::get('/', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
 
-Route::post('/test-validation', function() {
-    throw \Illuminate\Validation\ValidationException::withMessages([
-        'test' => 'This is a test error',
-    ]);
-});
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');

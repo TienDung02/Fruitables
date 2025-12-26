@@ -76,6 +76,10 @@ Route::prefix('session')->group(function () {
     Route::post('wishlist/selected', [SessionController::class, 'updateSessionWishlistSelected']);
     Route::delete('wishlist', [SessionController::class, 'removeFromSessionWishlist']);
     Route::delete('wishlist/clear', [SessionController::class, 'clearSessionWishlist']);
+
+
+    Route::post('orders', [SessionController::class, 'storeOrder']);
+//    Route::delete('wishlist/clear', [SessionController::class, 'clearSessionWishlist']);
 });
 
 // Authenticated routes

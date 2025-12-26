@@ -16,24 +16,29 @@ class OrderService
     /**
      * Tạo hoặc lấy order pending hiện tại cho user
      */
-    public function getOrCreatePendingOrder($cartItems, $shippingType, $customerInfo)
+    public function getOrCreatePendingOrder($cartItems, $shippingType, $customerInfo, $paymentMethod)
     {
+        Log::info('getOrCreatePendingOrder is called in OrderService');
         try {
             DB::beginTransaction();
 
             $userId = Auth::id();
+            Log::info('$cartItems', ['cartItems' => $cartItems]);
+            Log::info('$customerInfo', ['customerInfo' => $customerInfo]);
 
             // Kiểm tra xem user đã có order pending chưa
             $existingOrder = Order::where('user_id', $userId)
                 ->where('status', Order::STATUS_PENDING)
+                ->where('payment_method', 'sepay')
                 ->where('payment_status', Order::PAYMENT_STATUS_PENDING)
                 ->first();
 
             if ($existingOrder) {
+                Log::info('Existing pending order found', $existingOrder->toArray());
                 // Cập nhật order existing với thông tin mới
                 Log::info('Updating existing pending order');
                 $orderData = $this->calculateOrderData($cartItems, $shippingType, $customerInfo);
-
+                Log::info('sau calculateOrderData');
                 $existingOrder->update($orderData);
 
                 // Xóa order items cũ và tạo mới
@@ -61,19 +66,24 @@ class OrderService
                 'shipping_cost' => $orderData['shipping_cost'],
                 'total' => $orderData['total']
             ]);
+            Log::info('$paymentMethod', ['$paymentMethod' => $paymentMethod]);
+            Log::info('$shippingType', ['shippingType' => $shippingType]);
+
 
             $orderData['id'] = $this->generateOrderId();
             $orderData['customer_name'] = $customerInfo['name'];
-            $orderData['customer_email'] = $customerInfo['emails'];
+            $orderData['customer_email'] = $customerInfo['email'];
             $orderData['customer_phone'] = $customerInfo['phone'];
             $orderData['customer_address'] = $customerInfo['detail_address'];
             $orderData['user_id'] = $userId;
             $orderData['order_number'] = Order::generateOrderNumber();
             $orderData['status'] = Order::STATUS_PENDING;
             $orderData['payment_status'] = Order::PAYMENT_STATUS_PENDING;
-
+            $orderData['payment_method'] = $paymentMethod;
+            $orderData['shipping_method'] = $shippingType;
+            Log::info('Order created', ['orderData' => $orderData]);
             $order = Order::create($orderData);
-
+            Log::info('Order created', ['order' => $order->toArray()]);
             // Tạo order items
             $this->createOrderItems($order, $cartItems);
 
@@ -106,8 +116,6 @@ class OrderService
     private function calculateOrderData($cartItems, $shippingType, $customerInfo)
     {
         $subtotal = 0;
-
-
         foreach ($cartItems as $item) {
             $price = $item['product_variant']['sale_price'] ?? $item['product_variant']['price'];
             $subtotal += $price * $item['quantity'];
@@ -383,26 +391,31 @@ class OrderService
     /**
      * Kiểm tra và tạo order cho guest user (không đăng nhập)
      */
-    public function createGuestOrder($cartItems, $shippingType, $customerInfo)
+    public function createGuestOrder($cartItems, $shippingType, $customerInfo, $paymentMethod)
     {
-
+        Log::info('createGuestOrder is called in OrderService');
         try {
             DB::beginTransaction();
-
             $orderData = $this->calculateOrderData($cartItems, $shippingType, $customerInfo);
-            Log::info('Customer Info', $customerInfo);
+            Log::info('$paymentMethod', ['$paymentMethod' => $paymentMethod]);
+            Log::info('$shippingType', ['shippingType' => $shippingType]);
+            Log::info('$cartItems', ['cartItems' => $cartItems]);
+            Log::info('$customerInfo', ['customerInfo' => $customerInfo]);
 
             $orderData['id'] = $this->generateOrderId();
             $orderData['customer_name'] = $customerInfo['name'];
-            $orderData['customer_email'] = $customerInfo['emails'];
+            $orderData['customer_email'] = $customerInfo['email'];
             $orderData['customer_phone'] = $customerInfo['phone'];
             $orderData['customer_address'] = $customerInfo['detail_address'];
             $orderData['user_id'] = null; // Guest order
             $orderData['order_number'] = Order::generateOrderNumber();
             $orderData['status'] = Order::STATUS_PENDING;
             $orderData['payment_status'] = Order::PAYMENT_STATUS_PENDING;
-
+            $orderData['payment_method'] = $paymentMethod;
+            $orderData['shipping_method'] = $shippingType;
+            Log::info('Order created', ['orderData' => $orderData]);
             $order = Order::create($orderData);
+            Log::info('Order created', ['order' => $order->toArray()]);
 
             // Tạo order items
             $this->createOrderItems($order, $cartItems);

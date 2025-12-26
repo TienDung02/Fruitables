@@ -23,6 +23,7 @@ class Order extends Model
         'shipping_cost',
         'total',
         'payment_status',
+        'payment_method',
         'shipping_method',
         'customer_name',
         'customer_email',

@@ -472,6 +472,14 @@ export default {
     // Placeholder messages
     placeholder_email_address: 'メールアドレスを入力してください',
     placeholder_phone: '電話番号を入力してください',
-    placeholder_full_name: '氏名を入力してください'
+    placeholder_full_name: '氏名を入力してください',
+    payment_cod_success: '注文が正常に配置されました。',
+    payment_failed: '支払いに失敗しました。',
+    try_again: '後ほどもう一度お試しください。',
+    qr_code_reloaded: 'QRコードが正常に再読み込みされました。',
+    save_address_title: 'この配送先住所を保存しますか？',
+    save_address_text: '住所は今後の購入のためにプロフィールに保存されます。',
+    save_address_success: '配送先住所が保存されました！',
+    save_address_failed: '住所の保存に失敗しました！',
   }
 }

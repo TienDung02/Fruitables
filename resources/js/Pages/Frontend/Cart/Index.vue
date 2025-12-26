@@ -410,15 +410,19 @@ export default {
                     : '/api/session/cart/checkout'; // User chưa đăng nhập
 
                 // Gửi API với chỉ những sản phẩm đã chọn
-                const response = await axios.post(checkoutUrl, {
-                    items: selectedItems
-                }, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                const response = await axios.post(
+                    checkoutUrl,
+                    {
+                        type: 'cart',
+                        items: JSON.parse(JSON.stringify(selectedItems)),
+                    },
+                    {
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        }
                     }
-                });
+                );
 
                 console.log('Checkout response:', response.data);
 

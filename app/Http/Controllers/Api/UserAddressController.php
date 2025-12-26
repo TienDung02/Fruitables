@@ -42,6 +42,7 @@ class UserAddressController extends Controller
             'label' => 'nullable|string|max:255',
             'is_default' => 'boolean'
         ]);
+        Log::info('validator', ['$validator' => $validator]);
 
         if ($validator->fails()) {
             return response()->json([

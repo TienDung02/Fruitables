@@ -242,20 +242,26 @@ class SepayPaymentService
                     'content' => $transactionContent
                 ]);
                 continue;
+            }else{
+                Log::info('Order ID found in transaction content', [
+                    'order_id' => $orderId,
+                    'transaction_content' => $transactionContent
+                ]);
             }
 
-            Log::info('✅ Order ID found in transaction content', [
-                'order_id' => $orderId,
-                'transaction_content' => $transactionContent
-            ]);
 
             // 3. Kiểm tra số tiền khớp
-            if (abs($transactionAmount - $orderAmount) > 0.01) {
+            if (abs($transactionAmount - $orderAmount) > 1) {
                 Log::debug('Amount mismatch', [
                     'expected' => $orderAmount,
                     'actual' => $transactionAmount
                 ]);
                 continue;
+            }else{
+                Log::info('Amount matches', [
+                    'order_id' => $orderId,
+                    'amount' => $transactionAmount
+                ]);
             }
 
             // 4. Kiểm tra thời gian giao dịch phải sau khi tạo đơn
@@ -265,6 +271,11 @@ class SepayPaymentService
                     'order_created_at' => $orderCreatedAt
                 ]);
                 continue;
+            }else{
+                Log::info('Transaction date is valid', [
+                    'transaction_date' => $transactionDate,
+                    'order_created_at' => $orderCreatedAt
+                ]);
             }
 
             // ✅ Tất cả điều kiện đều khớp!

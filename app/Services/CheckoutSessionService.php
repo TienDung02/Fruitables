@@ -59,11 +59,12 @@ class CheckoutSessionService
 
 
         // Format tất cả địa chỉ
-        $formattedAddresses = $allAddresses->map(function ($address) {
+        $formattedAddresses = $allAddresses->map(function ($address) use ($user) {
             $ward = Ward::query()->with('district.province')->find($address->ward_id);
             return [
                 'id' => $address->id,
                 'name' => $address->name,
+                'email' => $user->emails,
                 'phone' => $address->phone,
                 'address' => $address->address,
                 'ward_id' => $address->ward_id,
@@ -76,33 +77,38 @@ class CheckoutSessionService
             ];
         })->toArray();
 
+//        Log::info('Formatted addresses from DB', ['addresses' => $formattedAddresses]);
         // Lấy địa chỉ mặc định (để làm current shipping info)
         $defaultAddress = $allAddresses->where('is_default', true)->first();
 
-//        Log::info('$defaultAddress', ['default_address' => $defaultAddress]);
+        Log::info('$defaultAddress', ['default_address' => $defaultAddress]);
 
         if (!$defaultAddress) {
             // Nếu không có địa chỉ mặc định, lấy địa chỉ đầu tiên
             $defaultAddress = $allAddresses->first();
+            Log::info('$defaultAddress', ['default_address' => $defaultAddress]);
+            if ($defaultAddress === null) {
+                return $defaultAddress ? [
+                    'id' => $defaultAddress->id,
+                    'name' => $defaultAddress->name,
+                    'phone' => $defaultAddress->phone,
+                    'email' => $user->emails,
+                    'address' => $defaultAddress->address,
+                    'ward_id' => $defaultAddress->ward_id,
+                    'synced_from_db' => true,
+                    'user_id' => $defaultAddress->user_id,
+                    'full_address' => $defaultAddress->address . ', ' .
+                        ($defaultAddress->ward->name ?? '') . ', ' .
+                        ($defaultAddress->ward->district->name ?? '') . ', ' .
+                        ($defaultAddress->ward->district->province->name ?? '')
+                ] : null;
+            }
         }
 
-        $sessionShippingInfo = $this->getShippingInfo();
-        if ($sessionShippingInfo === null) {
-            return $defaultAddress ? [
-                'id' => $defaultAddress->id,
-                'name' => $defaultAddress->name,
-                'phone' => $defaultAddress->phone,
-                'address' => $defaultAddress->address,
-                'ward_id' => $defaultAddress->ward_id,
-                'synced_from_db' => true,
-                'user_id' => $defaultAddress->user_id,
-                'full_address' => $defaultAddress->address . ', ' .
-                    ($defaultAddress->ward->name ?? '') . ', ' .
-                    ($defaultAddress->ward->district->name ?? '') . ', ' .
-                    ($defaultAddress->ward->district->province->name ?? '')
-            ] : null;
-        }
-        Log::info('Session shipping info before sync', ['shipping_info' => $sessionShippingInfo]);
+//        $sessionShippingInfo = $this->getShippingInfo();
+//        Log::info('sessionShippingInfo', ['sessionShippingInfo' => $sessionShippingInfo]);
+
+//        Log::info('Session shipping info before sync', ['shipping_info' => $sessionShippingInfo]);
 
         // Tạo thông tin shipping đầy đủ bao gồm tất cả địa chỉ
         if ($defaultAddress) {
@@ -112,6 +118,7 @@ class CheckoutSessionService
                 'current' => [
                     'name' => $defaultAddress->name,
                     'phone' => $defaultAddress->phone,
+                    'email' => $user->emails,
                     'address' => $defaultAddress->address,
                     'ward_id' => $defaultAddress->ward_id,
                     'full_address' => $defaultAddress->address . ', ' .
@@ -132,6 +139,7 @@ class CheckoutSessionService
                 'current' => [
                     'name' => $user->name ?? '',
                     'phone' => $user->phone ?? '',
+                    'email' => $user->emails ?? '',
                     'address' => '',
                     'full_address' => $defaultAddress->address . ', ' .
                         ($ward->name ?? '') . ', ' .

@@ -34,6 +34,17 @@ class CheckoutController extends Controller
 
         // Lấy shipping info từ session
         $shippingData = $this->checkoutSessionService->prepareResponseData();
+        Log::info('shippingData for checkout: ', ['shippingData' => $shippingData]);
+
+        $session_key_data = 'checkout_data_' . $checkoutId;
+        $session_key_type = 'checkout_type_' . $checkoutId;
+        Log::info('Session Key for checkout data: ', ['session_key' => $session_key_data]);
+        Log::info('Session Key for checkout data: ', ['session_key' => $session_key_type]);
+        // Lấy thông tin cart từ session
+        $Cart = session($session_key_data, []);
+        $type = session($session_key_type, []);
+        Log::info('checkout Session Cart received', ['cart' => $Cart]);
+        Log::info('checkout Session Type received', ['type' => $type]);
 
         return Inertia::render('Frontend/Checkout/Index', [
             'auth' => [

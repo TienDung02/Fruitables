@@ -21,6 +21,7 @@ return new class extends Migration
             $table->enum('payment_status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
             $table->string('shipping_method', 100)->nullable(); // Giới hạn độ dài
             $table->string('customer_name');
+            $table->string('payment_method')->nullable();
             $table->string('customer_email');
             $table->string('customer_phone');
             $table->string('customer_address');

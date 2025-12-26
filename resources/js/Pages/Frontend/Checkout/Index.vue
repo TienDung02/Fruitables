@@ -255,7 +255,7 @@
                 </div>
             </form>
         </div>
-        <div class="container p-5" id="have-shipping-info" v-show="hasShippingInfo && auth && auth.user">
+        <div class="container p-5" id="have-shipping-info" v-show="showShippingSection">
 
             <!-- Delivery Address Section -->
             <div class="delivery-address">
@@ -276,7 +276,7 @@
                         <div class="store-address">{{ shippingInfo?.shipping_info?.current?.full_address || '' }}</div>
                     </div>
                     <div class="address-actions">
-                        <span class="border rounded border-secondary py-2 px-3 text-uppercase text-primary">Default</span>
+                        <span class="border rounded border-secondary py-2 px-3 text-uppercase text-primary">{{ $t('messages.default') }}</span>
                         <a href="#" class="change-link text-secondary">{{ $t('messages.change') }}</a>
                     </div>
                 </div>
@@ -577,20 +577,6 @@
                                     </div>
                                 </div>
 
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-start">
-                                        <i class="fas fa-hashtag text-primary me-3 mt-1"></i>
-                                        <div class="flex-grow-1">
-                                            <small class="text-muted d-block">{{ $t('messages.reference_code') }}</small>
-                                            <p class="mb-0">
-                                            <span class="badge bg-warning text-dark fs-6 font-monospace">
-                                                {{ sepayPaymentData.bank_info.reference_code || '777888' }}
-                                            </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <!-- Instructions -->
                                 <div class="border-top pt-3">
                                     <h6 class="text-uppercase text-muted mb-3" style="font-size: 0.85rem;">
@@ -676,6 +662,7 @@ export default {
                 notes: '',
                 detail_address: '',
             },
+            // user_info:
             defaultAddress: '',
             showLocationDropdown: false,
             currentLocationLevel: 'city',
@@ -748,48 +735,95 @@ export default {
         total() {
             return parseFloat((this.subtotal + this.shippingCost).toFixed(2));
         },
-        hasShippingInfo() {
-            console.log('shippingInfo:', this.shippingInfo.shipping_info);
 
-            // Kiểm tra cơ bản
+        // javascript
+        hasShippingInfo() {
+            console.log('hasShippingInfo: shippingInfo raw:', this.shippingInfo);
             if (!this.shippingInfo || !this.shippingInfo.shipping_info) {
-                console.log('No shipping info available');
+                console.log('hasShippingInfo => false (missing shippingInfo or shipping_info)');
                 return false;
             }
 
             const shippingData = this.shippingInfo.shipping_info;
-
-            // Kiểm tra dữ liệu hợp lệ
             if (!shippingData || typeof shippingData !== 'object') {
-                console.log('Invalid shipping data format');
+                console.log('hasShippingInfo => false (invalid shippingData format)');
                 return false;
             }
 
-            // Nếu user đã đăng nhập
+            try { console.log('hasShippingInfo: shippingData keys =', Object.keys(shippingData)); } catch(e) { console.log(e); }
+
             if (this.shippingInfo.is_logged_in) {
-                // Kiểm tra dữ liệu từ database
-                if (shippingData.synced_from_db) {
-                    return shippingData.total_addresses > 0 ||
-                        (shippingData.current && (
-                            shippingData.current.name ||
-                            shippingData.current.phone ||
-                            shippingData.current.address
-                        ));
+                console.log('hasShippingInfo: user is logged in, synced_from_db =', !!shippingData.synced_from_db);
+
+                if (!shippingData.synced_from_db) {
+                    console.log('hasShippingInfo => false (logged in but not synced_from_db)');
+                    return false;
                 }
-                console.log('No synced shipping data from database');
-                return false;
+
+                // check total_addresses
+                const hasAddresses = Number(shippingData.total_addresses) > 0;
+                // check current object fields if present
+                const current = shippingData.current;
+                const currentExists = !!current && typeof current === 'object';
+                const currentFields = {
+                    name: currentExists ? (current.name ?? '') : '',
+                    phone: currentExists ? (current.phone ?? '') : '',
+                    address: currentExists ? (current.address ?? '') : '',
+                    full_address: currentExists ? (current.full_address ?? '') : ''
+                };
+                const presentCurrent = Object.values(currentFields).filter(v => String(v).trim() !== '').length > 0;
+
+                // check top-level shippingData fields (some responses place fields at root)
+                const topFields = {
+                    name: shippingData.name ?? '',
+                    phone: shippingData.phone ?? '',
+                    address: shippingData.address ?? '',
+                    full_address: shippingData.full_address ?? ''
+                };
+                const presentTop = Object.values(topFields).filter(v => String(v).trim() !== '').length > 0;
+
+                console.log('hasShippingInfo: total_addresses =', shippingData.total_addresses, ', hasAddresses =', hasAddresses);
+                console.log('hasShippingInfo: current exists =', currentExists, ', presentCurrent =', presentCurrent, ', presentTop =', presentTop);
+                console.log('hasShippingInfo: present top fields =', topFields, ' current fields =', current);
+
+                const result = hasAddresses || presentCurrent || presentTop;
+                console.log('hasShippingInfo (logged in) =>', !!result, ' (reason: ' + (hasAddresses ? 'total_addresses>0' : presentCurrent ? 'current has fields' : presentTop ? 'top-level has fields' : 'none') + ')');
+                return !!result;
             }
 
-            // Nếu chưa đăng nhập, kiểm tra dữ liệu session
-            const keys = Object.keys(shippingData);
-            if (keys.length === 0) return false;
+            // guest path unchanged
+            const keysToCheck = ['name', 'address', 'phone', 'ward_id', 'full_address'];
+            const available = [];
+            const unavailable = [];
 
-            // Kiểm tra có ít nhất một trường có dữ liệu không rỗng
-            return keys.some(key => {
-                console.log('Checking shipping data key:', key);
-                const value = shippingData[key];
-                return value !== null && value !== undefined && value !== '';
+            keysToCheck.forEach(k => {
+                const v = shippingData[k];
+                const ok = v !== null && v !== undefined && String(v).trim() !== '';
+                if (ok) available.push({ key: k, value: v });
+                else unavailable.push(k);
             });
+
+            console.log('hasShippingInfo (guest): available keys =', available, ', unavailable =', unavailable);
+
+            const hasAny = available.length > 0;
+            console.log('hasShippingInfo (guest) =>', !!hasAny, (hasAny ? 'some guest fields present' : 'no useful guest fields'));
+            return !!hasAny;
+        },
+
+        showShippingSection() {
+            console.log('showShippingSection: auth =', this.auth);
+            const authPresent = !!(this.auth && this.auth.user);
+            console.log('showShippingSection: auth.user present =', authPresent);
+            const shippingPresent = !!this.hasShippingInfo;
+            console.log('showShippingSection: hasShippingInfo =', shippingPresent);
+            const visible = shippingPresent && authPresent;
+            if (!visible) {
+                if (!shippingPresent) console.log('showShippingSection => false (no shipping info)');
+                if (!authPresent) console.log('showShippingSection => false (no authenticated user)');
+            } else {
+                console.log('showShippingSection => true (will display section)');
+            }
+            return visible;
         },
 
         // Tính toán ngày nhận hàng dự kiến
@@ -840,6 +874,8 @@ export default {
     mounted() {
         this.loadShippingInfoToForm();
 
+        console.log('auth', this.auth)
+        console.log('auth.user', this.auth.user)
         // this.loadUserInfo()
         this.loadLocationData();
         // Khởi tạo modal
@@ -884,13 +920,14 @@ export default {
                 const shippingData = this.shippingInfo.shipping_info;
                 console.log('Loading shipping info to form:', shippingData);
 
-                // Nếu user đã đăng nhập và có dữ liệu từ database
+                // Nếu user đã đăng nhập và có d��� liệu từ database
                 if (this.shippingInfo.is_logged_in && shippingData.synced_from_db && shippingData.current) {
                     const current = shippingData.current;
                     this.formData.name = current.name || '';
                     this.formData.detail_address = current.full_address || '';
                     this.formData.phone = current.phone || '';
                     this.formData.ward_id = current.ward_id || '';
+                    this.formData.email = current.email || '';
 
                     // Gán emails từ user auth nếu có
                     if (this.auth && this.auth.user && this.auth.user.email) {
@@ -927,6 +964,7 @@ export default {
             console.log('selectedPaymentMethod:', this.selectedPaymentMethod);
             console.log('selectedItems:', this.selectedItems);
             console.log('selectedShipping:', this.selectedShipping);
+            console.log('$checkoutId:', this.checkoutId);
 
             if (!this.validateForm()) {
                 console.log('Form validation failed');
@@ -953,7 +991,9 @@ export default {
                     items: this.selectedItems,
                     shipping_type: this.selectedShipping,
                     customer_info: this.formData,
-                    payment_method: this.selectedPaymentMethod
+                    payment_method: this.selectedPaymentMethod,
+                    checkoutId: this.checkoutId,
+                    ward_id: this.selectedWard ?? '',
                 }
 
                 console.log('Order data prepared:', orderData);
@@ -964,49 +1004,41 @@ export default {
                     await this.processSepayPayment(orderData)
                 } else {
                     console.log('Processing other payment method...');
-                    await this.processOtherPayment(orderData)
-                }
+                    let paymentResult = await this.processOtherPayment(orderData);
+                    if (!this.shippingInfo && this.auth && this.auth.user || !this.shippingInfo.shipping_info && this.auth && this.auth.user) {
+                        await this.saveShippingInfo();
+                    }
 
-                // Sau khi mua hàng thành công, kiểm tra nếu user chưa có địa chỉ giao hàng
-                if (!this.shippingInfo || !this.shippingInfo.shipping_info) {
-                    // Hiện alert hỏi lưu địa chỉ
-                    const result = await Swal.fire({
-                        title: 'Bạn có muốn lưu địa chỉ nhận hàng này không?',
-                        text: 'Địa chỉ sẽ được lưu vào hồ sơ của bạn để sử dụng cho các lần mua sau.',
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Có',
-                        cancelButtonText: 'Không',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false
-                    });
-                    if (result.isConfirmed) {
-                        // Gọi API lưu địa chỉ
-                        try {
-                            await axios.post('/api/profile/address', {
-                                name: this.formData.name,
-                                phone: this.formData.phone,
-                                address: this.formData.address || this.formData.detail_address,
-                                ward_id: this.formData.ward_id,
-                                is_default: true,
-                                label: 'home'
-                            });
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Đã lưu địa chỉ giao hàng!',
-                                showConfirmButton: false,
-                                timer: 1500
-                            });
-                        } catch (e) {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Lưu địa chỉ thất bại!',
-                                text: e.response?.data?.message || 'Vui lòng thử lại.',
-                                showConfirmButton: true
-                            });
-                        }
+                    // Kiểm tra kết quả thanh toán
+                    if (paymentResult && paymentResult.success) {
+                        Swal.fire({
+                            title: this.$t('messages.payment_cod_success'),
+                            icon: "success",
+                            draggable: true,
+                            confirmButtonText: this.$t('messages.view_orders'),
+                            allowOutsideClick: false,
+                            allowEscapeKey: false
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                if (this.auth && this.auth.user) {
+                                    this.$inertia.visit('/profile#orders');
+                                } else {
+                                    this.$inertia.visit(route('dashboard'));
+                                }
+                            }
+                        });
+                    } else {
+                        // Hiển thị thông báo lỗi nếu thanh toán thất bại
+                        Swal.fire({
+                            icon: 'error',
+                            title: this.$t('messages.payment_failed') || 'Thanh toán thất bại!',
+                            text: paymentResult && paymentResult.message ? paymentResult.message : (this.$t('messages.try_again') || 'Vui lòng thử lại.'),
+                            showConfirmButton: true
+                        });
                     }
                 }
+
+
             } catch (error) {
                 console.error('Order error:', error)
                 Swal.fire({
@@ -1044,6 +1076,44 @@ export default {
                 console.error('Error loading districts:', error);
             }
         },
+        async saveShippingInfo() {
+            const result = await Swal.fire({
+                title: this.$t('messages.save_address_title'),
+                text: this.$t('messages.save_address_text'),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Có',
+                cancelButtonText: 'Không',
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+            if (result.isConfirmed) {
+                // Gọi API lưu địa chỉ
+                try {
+                    await axios.post('/api/profile/addresses', {
+                        name: this.formData.name,
+                        phone: this.formData.phone,
+                        address: this.formData.address + this.formData.detail_address,
+                        ward_id: this.formData.ward_id,
+                        is_default: true,
+                        label: 'home'
+                    });
+                    Swal.fire({
+                        icon: 'success',
+                        title: this.$t('messages.save_address_success'),
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } catch (e) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: this.$t('messages.save_address_failed'),
+                        text: e.response?.data?.message || this.$t('messages.try_again'),
+                        showConfirmButton: true
+                    });
+                }
+            }
+        },
 
         async loadWards(districtId) {
             try {
@@ -1059,14 +1129,23 @@ export default {
             try {
                 console.log('Processing SePay payment with existing PaymentController:', orderData);
 
-                const response = await axios.post('/api/payment/sepay/create', orderData, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-
+                let response;
+                if (this.auth && this.auth.user) {
+                    response = await axios.post('/api/payment/sepay/create', orderData, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                }else {
+                    response = await axios.post('/api/session/orders', {
+                        ...orderData,
+                        payment_method: this.selectedPaymentMethod
+                    }, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                }
                 console.log('SePay API response:', response.data);
 
                 if (response.data.success) {
@@ -1079,6 +1158,7 @@ export default {
 
                     this.sepayModal.show()
                     this.startSepayPaymentStatusCheck()
+                    return response.data;
                 } else {
                     throw new Error(response.data.message || 'Không thể tạo thanh toán SePay')
                 }
@@ -1096,10 +1176,29 @@ export default {
         async processOtherPayment(orderData) {
             try {
                 // Sử dụng Inertia để xử lý các phương thức thanh toán khác
-                router.post('/api/orders', {
-                    ...orderData,
-                    payment_method: this.selectedPaymentMethod
-                })
+                let response;
+                if (this.auth && this.auth.user) {
+                    response = await axios.post('/api/orders', {
+                        ...orderData,
+                        payment_method: this.selectedPaymentMethod
+                    }, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                }else {
+                    response = await axios.post('/api/session/orders', {
+                        ...orderData,
+                        payment_method: this.selectedPaymentMethod
+                    }, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                }
+
+                if (response.data.success) {
+                    console.log('response', response.data)
+                    return response.data;
+                } else {
+                    throw new Error(response.data.message || 'Đặt hàng thất bại');
+                }
             } catch (error) {
                 console.error('Other payment error:', error)
                 throw error
@@ -1199,6 +1298,7 @@ export default {
                 this.isCheckingStatus ||
                 !this.isModalOpen ||
                 this.isPaymentSuccessful) {
+                console.log('Skipping SePay status check - conditions not met');
                 return;
             }
 
@@ -1226,19 +1326,24 @@ export default {
                         if (this.sepayModal) {
                             this.sepayModal.hide();
                         }
+                        if (!this.shippingInfo || !this.shippingInfo.shipping_info) {
+                            await this.saveShippingInfo();
+                        }
 
-                        // Hiển thị thông báo thành công với SweetAlert
                         Swal.fire({
-                            title: this.$t('messages.payment_success') || "Thanh toán thành công!",
+                            title: this.$t('messages.payment_success'),
                             icon: "success",
                             draggable: true,
-                            confirmButtonText: this.$t('messages.view_orders') || "Xem đơn hàng",
+                            confirmButtonText: this.$t('messages.view_orders'),
                             allowOutsideClick: false,
                             allowEscapeKey: false
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                // Redirect đến profile với tab orders được mở sẵn
-                                this.$inertia.visit('/profile#orders');
+                                if (this.auth && this.auth.user) {
+                                    this.$inertia.visit('/profile#orders');
+                                } else {
+                                    this.$inertia.visit(route('dashboard'));
+                                }
                             }
                         });
 
@@ -1329,22 +1434,39 @@ export default {
                 throw error;
             }
         },
-        formatCurrency(amount) {
-            // Format currency với dấu phẩy phân cách hàng nghìn - luôn VND
-            if (!amount && amount !== 0) return '0';
-            return new Intl.NumberFormat('vi-VN').format(amount);
-        },
 
-        formatTime(seconds) {
-            if (seconds === 0) return '0s';
-            const minutes = Math.floor(seconds / 60);
-            seconds = seconds % 60;
-            return `${minutes > 0 ? `${minutes}m ` : ''}${seconds}s`;
-        },
 
         // Add missing validation method
+        // javascript
         validateForm() {
-            if (!this.formData.name || !this.formData.phone || !this.formData.email) {
+            // normalize and inspect inputs
+            const raw = {
+                name: this.formData.name,
+                phone: this.formData.phone,
+                email: this.formData.email,
+                address: this.formData.address,
+                ward_id: this.formData.ward_id,
+                detail_address: this.formData.detail_address
+            };
+
+            const name = (raw.name ?? '').toString().trim();
+            const phoneRaw = (raw.phone ?? '').toString();
+            const phoneSanitized = phoneRaw.replace(/\D/g, '');
+            const email = (raw.email ?? '').toString().trim();
+            const address = (raw.address ?? '').toString().trim();
+            const detail = (raw.detail_address ?? '').toString().trim();
+
+            console.log('validateForm start — raw:', raw);
+            console.log('validateForm — normalized:', { name, phoneRaw, phoneSanitized, email, address, detail });
+
+            // required fields check
+            const missing = [];
+            if (!name) missing.push('name');
+            if (!phoneSanitized) missing.push('phone');
+            if (!email) missing.push('email');
+
+            if (missing.length) {
+                console.log('validateForm => missing required fields:', missing);
                 Swal.fire({
                     position: "top-end",
                     icon: "error",
@@ -1355,9 +1477,11 @@ export default {
                 return false;
             }
 
-            // Kiểm tra định dạng emails
+            // email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(this.formData.email)) {
+            const emailValid = emailRegex.test(email);
+            console.log('validateForm => email check:', { email, emailValid });
+            if (!emailValid) {
                 Swal.fire({
                     position: "top-end",
                     icon: "error",
@@ -1368,9 +1492,11 @@ export default {
                 return false;
             }
 
-            // Kiểm tra số điện thoại
+            // phone format (sanitized)
             const phoneRegex = /^[0-9]{10,11}$/;
-            if (!phoneRegex.test(this.formData.phone.replace(/\D/g, ''))) {
+            const phoneValid = phoneRegex.test(phoneSanitized);
+            console.log('validateForm => phone check:', { phoneRaw, phoneSanitized, phoneValid });
+            if (!phoneValid) {
                 Swal.fire({
                     position: "top-end",
                     icon: "error",
@@ -1381,8 +1507,10 @@ export default {
                 return false;
             }
 
-            // Kiểm tra địa chỉ chi tiết
-            if (!this.formData.address && !this.formData.detail_address) {
+            // address presence
+            const hasAddress = address !== '' || detail !== '';
+            console.log('validateForm => address check:', { address, detail, hasAddress });
+            if (!hasAddress) {
                 Swal.fire({
                     position: "top-end",
                     icon: "error",
@@ -1393,6 +1521,7 @@ export default {
                 return false;
             }
 
+            console.log('validateForm => all checks passed');
             return true;
         },
 

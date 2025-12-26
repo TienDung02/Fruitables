@@ -464,11 +464,18 @@ export default {
     view_orders: 'View Orders',
     payment_success: 'Payment Success',
     registration_email_sent: 'Please check your emails for instructions on how to complete your registration.',
-      emails: 'Emails',
-      invalid_credentials: 'The login information is incorrect.',
+    emails: 'Emails',
+    invalid_credentials: 'The login information is incorrect.',
     placeholder_email_address: 'Enter your email address',
     placeholder_phone: 'Enter your phone number',
-    placeholder_full_name: 'Enter your full name'
-
+    placeholder_full_name: 'Enter your full name',
+    payment_cod_success: 'Your order has been placed successfully!',
+    payment_failed: 'Payment Failed.',
+    try_again: 'Please try again later.',
+    qr_code_reloaded: 'QR code reloaded successfully!',
+    save_address_title: 'Do you want to save this delivery address?',
+    save_address_text: 'The address will be saved to your profile for future purchases.',
+    save_address_success: 'Delivery address saved!',
+    save_address_failed: 'Failed to save address!',
   }
 }

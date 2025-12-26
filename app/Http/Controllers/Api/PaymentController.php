@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Ward;
 use App\Services\SepayPaymentService;
 use App\Services\OrderService;
 use App\Services\VietQRService;
@@ -37,26 +38,29 @@ class PaymentController extends Controller
             $validated = $request->validate([
                 'items' => 'required|array',
                 'shipping_type' => 'required|string|in:free,standard,fast',
+                'payment_method' => 'required|string',
                 'customer_info' => 'required|array',
                 'customer_info.name' => 'required|string',
-                'customer_info.emails' => 'required|emails',
+                'customer_info.email' => 'required|email',
                 'customer_info.phone' => 'required|string',
-                'customer_info.detail_address' => 'required|string',
+                'customer_info.address' => 'required|string',
+                'customer_info.ward_id' => 'int',
             ]);
-
+            if ($validated['customer_info']['ward_id'] == null) {
+                $detail_adress = $validated['customer_info']['address'];
+            }else {
+                $ward_id = $validated['customer_info']['ward_id'];
+                $ward = Ward::find($ward_id);
+                $detail_adress = $validated['customer_info']['address'] . ', ' . $ward->name . ', ' . $ward->district->name . ', ' . $ward->district->province->name;
+            }
+            $validated['customer_info']['detail_address'] = $detail_adress;
             // Tạo hoặc cập nhật pending order
             if (Auth::check()) {
                 $order = $this->orderService->getOrCreatePendingOrder(
                     $validated['items'],
                     $validated['shipping_type'],
-                    $validated['customer_info']
-                );
-            } else {
-                Log::info('Creating guest order for SePay');
-                $order = $this->orderService->createGuestOrder(
-                    $validated['items'],
-                    $validated['shipping_type'],
-                    $validated['customer_info']
+                    $validated['customer_info'],
+                    $validated['payment_method']
                 );
             }
 

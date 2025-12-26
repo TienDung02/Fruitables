@@ -562,9 +562,12 @@ export default {
                     ? '/api/cart/checkout'        // User đã đăng nhập
                     : '/api/session/cart/checkout'; // User chưa đăng nhập
 
+                console.log('Using checkout URL:', checkoutUrl);
+
                 // Gửi API với chỉ những sản phẩm đã chọn
                 const response = await axios.post(checkoutUrl, {
-                    items: response_cartDraft.data
+                    items: response_cartDraft.data,
+                    type: 'buynow',
                 }, {
                     headers: {
                         'Content-Type': 'application/json',

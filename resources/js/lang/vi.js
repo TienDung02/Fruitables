@@ -464,6 +464,14 @@ export default {
     registration_email_sent: 'Vui lòng kiểm tra email để nhận hướng dẫn hoàn tất đăng ký.',
     placeholder_email_address: 'Nhập email của bạn',
     placeholder_phone: 'Nhập số điện thoại của bạn',
-    placeholder_full_name: 'Nhập họ và tên của bạn'
+    placeholder_full_name: 'Nhập họ và tên của bạn',
+    payment_cod_success: 'Đặt hàng thành công!',
+    payment_failed: 'Thanh toán thất bại. Vui lòng thử lại sau.',
+    try_again: 'Vui lòng thử lại sau',
+    qr_code_reloaded: 'Mã QR đã được tải lại thành công!',
+    save_address_title: 'Bạn có muốn lưu địa chỉ nhận hàng này không?',
+    save_address_text: 'Địa chỉ sẽ được lưu vào hồ sơ của bạn để sử dụng cho các lần mua sau.',
+    save_address_success: 'Đã lưu địa chỉ giao hàng!',
+    save_address_failed: 'Lưu địa chỉ thất bại!',
   }
 }

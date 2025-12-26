@@ -3,14 +3,29 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\ProductVariant;
+use App\Models\Ward;
+use App\Services\OrderService;
+use App\Services\VietQRService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 class SessionController extends Controller
 {
+    private $orderService;
+    private $vietQRService;
+
+    public function __construct(
+        OrderService $orderService,
+        VietQRService $vietQRService,
+    ) {
+        $this->orderService = $orderService;
+        $this->vietQRService = $vietQRService;
+    }
     /**
      * Get session cart with product details
      */
@@ -191,7 +206,7 @@ class SessionController extends Controller
      */
     public function checkout(Request $request): JsonResponse
     {
-        Log::info('method checkout in SessionController called');
+        Log::info('SessionController log request', $request->all());
         try {
             // Kiểm tra nếu user đã đăng nhập thì từ chối và chuyển hướng
             $user = auth()->user();
@@ -211,6 +226,8 @@ class SessionController extends Controller
             ]);
 
             $selectedItems = $request->input('items');
+            $type = $request->input('type');
+            Log::info('SessionController log type', ['type' => $type]);
 
             if (!$selectedItems || !is_array($selectedItems)) {
                 return response()->json([
@@ -223,6 +240,7 @@ class SessionController extends Controller
 
             $checkoutId = uniqid('session_checkout_'); // Tạo ID với prefix khác để phân biệt
             session()->put("checkout_data_{$checkoutId}", $selectedItems);
+            session()->put("checkout_type_{$checkoutId}", $type);
 
             Log::info('Guest session checkout data stored', [
                 'checkout_id' => $checkoutId,
@@ -443,5 +461,143 @@ class SessionController extends Controller
             'success' => true,
             'count' => $count
         ]);
+    }
+    public function storeOrder(Request $request)
+    {
+        Log::info('Guest order store method called', $request->all());
+        $checkoutId = $request->input('checkoutId');
+        $session_key_data = 'checkout_data_' . $checkoutId;
+        $session_key_type = 'checkout_type_' . $checkoutId;
+        $type = session($session_key_type, []);
+        $Cart = session($session_key_data, []);
+
+        $validated = $request->validate([
+            'items' => 'required|array',
+            'shipping_type' => 'required|string|in:free,standard,fast',
+            'payment_method' => 'required|string',
+            'customer_info.name' => 'required|string',
+            'customer_info.email' => 'required|email',
+            'customer_info.phone' => 'required|string',
+            'customer_info.address' => 'required|string',
+            'customer_info.ward_id' => 'required|int',
+        ]);
+
+        $ward_id = $validated['customer_info']['ward_id'];
+        $ward = Ward::find($ward_id);
+        $detail_adress = $validated['customer_info']['address'] . ', ' . $ward->name . ', ' . $ward->district->name . ', ' . $ward->district->province->name;
+        $validated['customer_info']['detail_address'] = $detail_adress;
+        if ($validated['payment_method'] == 'sepay'){
+            try {
+                Log::info('Creating guest order for SePay');
+                $order = $this->orderService->createGuestOrder(
+                    $validated['items'],
+                    $validated['shipping_type'],
+                    $validated['customer_info'],
+                    $validated['payment_method']
+                );
+                // Lấy thông tin tài khoản ngân hàng từ config
+                $bankAccount = config('payment.bank_account');
+
+                // Tạo VietQR content
+                $orderInfo = ($order->id);
+                Log::info('oderInfo: ' . $orderInfo);
+                $orderCode = (string)($order->id);
+                Log::info('$orderCode: ' . $orderInfo);
+                $amount = (int) $order->total;
+
+                $qrContent = $this->vietQRService->generateVietQRString(
+                    $bankAccount['account_number'],
+                    $bankAccount['bank_code'],
+                    $bankAccount['account_name'],
+                    $amount,
+                    $orderInfo,
+                    $orderCode
+                );
+
+                // Cập nhật order với thông tin payment
+                $order->update([
+                    'payment_method' => 'sepay',
+                    'payment_status' => Order::PAYMENT_STATUS_PENDING
+                ]);
+
+                Log::info('VietQR payment created for order', [
+                    'order_id' => $order->id,
+                    'total' => $amount,
+                    'qr_content_length' => strlen($qrContent)
+                ]);
+                // Remove ordered items from session cart
+                $sessionCart = session('cart', []);
+                $paidProductVariantIds = $order->orderItems()->pluck('productVariant_id')->toArray();
+
+                $filteredSessionCart = array_values(array_filter(
+                    $sessionCart,
+                    function ($item) use ($paidProductVariantIds) {
+                        return !in_array($item['productVariant_id'], $paidProductVariantIds);
+                    }
+                ));
+
+                if (empty($filteredSessionCart)) {
+                    session()->forget('cart');
+                    Log::info('Session cart cleared for guest');
+                } else {
+                    session(['cart' => $filteredSessionCart]);
+                    Log::info('Session cart after guest order', $filteredSessionCart);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'order_id' => $order->id,
+                    'order_number' => $orderCode,
+                    'qr_content' => $qrContent, // Mã QR chuẩn VietQR
+                    'qr_formats' => $this->vietQRService->generateMultipleQRFormats($qrContent), // Multiple QR formats
+                    'amount' => $amount,
+                    'transfer_content' => $orderInfo,
+                    'account_number' => $bankAccount['account_number'],
+                    'bank_info' => $bankAccount
+                ]);
+
+            } catch (\Exception $e) {
+                Log::error('VietQR Payment Creation Error', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment creation failed: ' . $e->getMessage()
+                ], 500);
+            }
+        }else {
+            $order = $this->orderService->createGuestOrder(
+                $validated['items'],
+                $validated['shipping_type'],
+                $validated['customer_info'],
+                $validated['payment_method']
+            );
+
+            // Remove ordered items from session cart
+            $sessionCart = session('cart', []);
+            $paidProductVariantIds = $order->orderItems()->pluck('productVariant_id')->toArray();
+
+            $filteredSessionCart = array_values(array_filter(
+                $sessionCart,
+                function ($item) use ($paidProductVariantIds) {
+                    return !in_array($item['productVariant_id'], $paidProductVariantIds);
+                }
+            ));
+
+            if (empty($filteredSessionCart)) {
+                session()->forget('cart');
+                Log::info('Session cart cleared for guest');
+            } else {
+                session(['cart' => $filteredSessionCart]);
+                Log::info('Session cart after guest order', $filteredSessionCart);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đặt hàng thành công!',
+            ]);
+        }
     }
 }

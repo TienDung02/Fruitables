@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Cart;
+use App\Models\Ward;
+use App\Services\OrderService;
+use App\Services\SepayPaymentService;
+use App\Services\VietQRService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +19,13 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
+    private $orderService;
+
+    public function __construct(
+        OrderService $orderService,
+    ) {
+        $this->orderService = $orderService;
+    }
     /**
      * Display a listing of user's orders.
      */
@@ -45,8 +57,13 @@ class OrderController extends Controller
     public function store(Request $request): JsonResponse
     {
         Log::info('Order store method called', $request->all());
+        $checkoutId = $request->input('checkoutId');
+        Log::info('checkoutId: ' . $checkoutId);
         $user = Auth::user();
-
+        $session_key_data = 'checkout_data_' . $checkoutId;
+        $session_key_type = 'checkout_type_' . $checkoutId;
+        $type = session($session_key_type, []);
+        $Cart = session($session_key_data, []);
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -54,85 +71,126 @@ class OrderController extends Controller
             ], 401);
         }
         Log::info('sau check user', ['user_id' => $user->id]);
-        $request->merge($request->input('customer_info', []));
+//        $request->merge($request);
         $validated = $request->validate([
-            'address' => 'required|string|max:500',
-            'ward_id' => 'required|int',
-            'email' => 'required|email|max:500',
-            'phone' => 'required|string|max:20',
-            'notes' => 'nullable|string|max:1000'
+            'items' => 'required|array',
+            'shipping_type' => 'required|string|in:free,standard,fast',
+            'payment_method' => 'required|string',
+            'customer_info.name' => 'required|string',
+            'customer_info.email' => 'required|email',
+            'customer_info.phone' => 'required|string',
+            'customer_info.address' => 'required|string',
+            'customer_info.ward_id' => 'int',
         ]);
-        Log::info('Sau validate', $validated);
-        // Get cart items
-        $cartItems = Cart::with('Products')
-            ->where('user_id', $user->id)
-            ->get();
-
-
-        Log::info('$cartItems', $cartItems);
-        if ($cartItems->isEmpty()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cart is empty'
-            ], 400);
+        if ($validated['customer_info']['ward_id'] == null) {
+            $detail_adress = $validated['customer_info']['address'];
+        }else {
+            $ward_id = $validated['customer_info']['ward_id'];
+            $ward = Ward::find($ward_id);
+            $detail_adress = $validated['customer_info']['address'] . ', ' . $ward->name . ', ' . $ward->district->name . ', ' . $ward->district->province->name;
         }
+        $validated['customer_info']['detail_address'] = $detail_adress;
+        Log::info('sau check validate');
+        if (Auth::check()) {
+            Log::info('check user', ['user_id' => Auth::id()]);
+            $order = $this->orderService->getOrCreatePendingOrder(
+                $validated['items'],
+                $validated['shipping_type'],
+                $validated['customer_info'],
+                $validated['payment_method']
+            );
+        }
+        if ($order->user_id) {
 
-        // Calculate totals
-        $subtotal = $cartItems->sum(function ($item) {
-            return $item->quantity * $item->product->effective_price;
-        });
-        $tax = $subtotal * 0.1; // 10% tax
-        $total = $subtotal + $tax;
+            $userCart = Cart::where('user_id', $order->user_id)->first();
 
-        DB::beginTransaction();
-
-        try {
-            // Create order
-            $order = Order::create([
-                'id' => 'ORD_' . time() . '_' . \Illuminate\Support\Str::random(8), // Generate unique ID
-                'user_id' => $user->id,
-                'order_number' => 'ORD-' . time() . '-' . $user->id,
-                'status' => 'pending',
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total,
-                'shipping_address' => $validated['shipping_address'],
-                'phone' => $validated['phone'],
-                'notes' => $validated['notes'] ?? null
-            ]);
-
-            // Create order items
-            foreach ($cartItems as $cartItem) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $cartItem->product_id,
-                    'quantity' => $cartItem->quantity,
-                    'price' => $cartItem->product->effective_price
+            if (!$userCart) {
+                Log::warning('User cart not found', [
+                    'user_id' => $order->user_id
                 ]);
-
-                // Update Products stock
-                $cartItem->product->decrement('stock_quantity', $cartItem->quantity);
             }
 
-            // Clear cart
-            Cart::where('user_id', $user->id)->delete();
+            // Lấy productVariant_id đã thanh toán
+            $paidProductVariantIds = $order->orderItems()
+                ->pluck('productVariant_id')
+                ->toArray();
 
-            DB::commit();
+            Log::info('Paid product variants', [
+                'product_variant_ids' => $paidProductVariantIds
+            ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Order placed successfully',
-                'data' => $order->load(['orderItems.Products.media'])
-            ], 201);
+            // Lấy cart_item ID cần xóa
+            $targetCartItemIds = CartItem::where('cart_id', $userCart->id)
+                ->whereIn('productVariant_id', $paidProductVariantIds)
+                ->pluck('id')
+                ->toArray();
 
-        } catch (\Exception $e) {
-            DB::rollback();
+            Log::info('Target cart items before delete', [
+                'cart_id' => $userCart->id,
+                'cart_item_ids' => $targetCartItemIds
+            ]);
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to place order'
-            ], 500);
+            // ===== SESSION CART TRƯỚC KHI XÓA =====
+            $sessionCart = session('cart', []);
+            Log::info('Session cart before delete', $sessionCart);
+
+            // ===== XÓA CART_ITEM TRONG DB =====
+            if (!empty($targetCartItemIds)) {
+
+                $deletedCount = CartItem::destroy($targetCartItemIds);
+
+                Log::info('Delete cart items result', [
+                    'expected_delete' => count($targetCartItemIds),
+                    'actual_deleted' => $deletedCount
+                ]);
+            }
+
+            // ===== XÓA CART_ITEM TRONG SESSION =====
+            if (!empty($sessionCart)) {
+
+                $filteredSessionCart = array_values(array_filter(
+                    $sessionCart,
+                    function ($item) use ($paidProductVariantIds) {
+                        return !in_array($item['productVariant_id'], $paidProductVariantIds);
+                    }
+                ));
+
+                if (empty($filteredSessionCart)) {
+                    session()->forget('cart');
+                    Log::info('Session cart cleared');
+                } else {
+                    session(['cart' => $filteredSessionCart]);
+                    Log::info('Session cart after delete', $filteredSessionCart);
+                }
+            }
+
+            // ===== ĐẾM LẠI CART_ITEM TRONG DB =====
+            $remainingItemsCount = CartItem::where('cart_id', $userCart->id)->count();
+
+            Log::info('Remaining cart items', [
+                'cart_id' => $userCart->id,
+                'remaining_items_count' => $remainingItemsCount
+            ]);
+
+            // ===== NẾU CART RỖNG → XÓA CART =====
+            if ($remainingItemsCount === 0) {
+                $userCart->delete();
+
+                Log::info('Deleted empty cart', [
+                    'cart_id' => $userCart->id
+                ]);
+            }
         }
+
+
+
+        DB::commit();
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Đặt hàng thành công!',
+        ]);
     }
 
     /**

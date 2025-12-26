@@ -457,6 +457,26 @@ export default {
     registration_email_sent: 'Пожалуйста, проверьте свою электронную почту для получения инструкций по завершению регистрации.',
     placeholder_email_address: 'Введите ваш email',
     placeholder_phone: 'Введите ваш номер телефона',
-    placeholder_full_name: 'Введите ваше полное имя'
+    placeholder_full_name: 'Введите ваше полное имя',
+    payment_cod_success: 'Заказ успешно создан!',
+    payment_failed: 'Платеж не удался. Пожалуйста.',
+    try_again: 'Попробуйте позже.',
+
+    // Missing keys that were causing Vue i18n warnings
+    estimated_delivery: 'Примерная доставка',
+    standard_shipping: 'Стандартная доставка',
+    fast_shipping: 'Быстрая доставка',
+    delivery_address: 'Адрес доставки',
+    unit_price: 'Цена за единицу',
+    date_of_receipt: 'Дата получения',
+    amount: 'Сумма',
+    total_product_cost: 'Общая стоимость товаров',
+    shipping_cost: 'Стоимость доставки',
+    total_payment: 'Общая сумма к оплате',
+    qr_code_reloaded: 'QR-код успешно перезагружен',
+    save_address_title: 'Вы хотите сохранить этот адрес доставки?',
+    save_address_text: 'Адрес будет сохранён в вашем профиле для будущих покупок.',
+    save_address_success: 'Адрес доставки сохранён!',
+    save_address_failed: 'Не удалось сохранить адрес!',
   }
 }
