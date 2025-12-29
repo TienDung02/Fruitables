@@ -1,7 +1,8 @@
-Ngôn ngữ:
+Chọn Ngôn ngữ / Choose Language / 言語を選択 / Выберите язык
+
 - 🇻🇳 Tiếng Việt (mặc định)
 - 🇺🇸 [English](README.en.md)
-- 🇯🇵 [日本語](README.jp.md)
+- 🇯🇵 [日本語](README.ja.md)
 - 🇷🇺 [Русский](README.ru.md)
 
 
