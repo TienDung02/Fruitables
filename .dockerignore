@@ -31,7 +31,6 @@ auth.json
 Thumbs.db
 tests
 vendor
-composer.lock
 package-lock.json
 docker-compose.override.yml
 
