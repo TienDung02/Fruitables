@@ -492,5 +492,30 @@ export default {
     username_save_failed: 'ユーザー名の保存に失敗しました！',
     password_copied_success: 'パスワードがコピーされました！',
     copy_failed: 'コピーに失敗しました！',
+
+    reset_password: 'パスワードをリセット',
+    reset_your_password: 'パスワードをリセット',
+    enter_your_email_to_reset: 'パスワードをリセットするためにメールアドレスを入力してください。',
+    send_reset_link: 'リセットリンクを送信',
+    back_to_login: 'ログインに戻る',
+    reset_link_sent: 'パスワードのリセット手順を完了するための案内がメールに送信されましたのでご確認ください。',
+    email_not_found: 'そのメールアドレスは見つかりませんでした。',
+    invalid_reset_token: '無効なまたは期限切れのリセットトークン。',
+
+    rate_limit: {
+      login_attempts: "ログインの試行回数が多すぎます。{minutes}分後に再試行してください。",
+      register_attempts: "登録リクエストの回数が多すぎます。{minutes}分後に再試行してください。",
+      password_reset: "パスワードリセットリクエストの回数が多すぎます。{minutes}分後に再試行してください。"
+    },
+    rate_limit_title: "ログイン試行が多すぎます",
+    ok: "OK",
+
+    instruction: "パスワードを取得するには、以下のボタンをクリックしてください。",
+    warning: "このパスワードは<strong>一度しか表示されません</strong>。アクセス権を失わないよう、すぐにコピーまたは保存してください。",
+    reload_warning: "ページをリロードすると、パスワードは<strong>消え</strong>、再取得できません。",
+
+    retrieve_button: 'パスワードを取得',
+
+
   }
 }

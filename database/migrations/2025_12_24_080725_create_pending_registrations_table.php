@@ -13,14 +13,25 @@ return new class extends Migration
     {
         Schema::create('pending_registrations', function (Blueprint $table) {
             $table->id();
-            $table->string('email', 191)->unique();
+
+            $table->string('email', 191);
+            $table->string('type', 50); // 🔥 register | reset_password
+
             $table->string('username')->nullable();
             $table->string('password')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
+
             $table->string('token', 191)->unique();
-            $table->string('step')->default('emails');
+            $table->boolean('used')->default(false);
+            $table->string('step')->default('email');
             $table->timestamp('expires_at');
+
             $table->timestamps();
+
+            $table->unique(['email', 'type']); // 🔥 QUAN TRỌNG
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
+
     }
 
     /**

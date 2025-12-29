@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class CompleteRegistrationMail extends Mailable
+class ResetPassword extends Mailable
 {
     use Queueable, SerializesModels;
     use SerializesModels;
@@ -26,7 +26,7 @@ class CompleteRegistrationMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Hoàn tất đăng ký tài khoản')
-            ->view('emails.completeRegistrationMail');
+            ->subject('Reset Your Password')
+            ->view('emails.resetPassword');
     }
 }

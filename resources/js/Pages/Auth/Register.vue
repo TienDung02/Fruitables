@@ -9,7 +9,10 @@
             </div>
 
             <!-- Right Panel - Login Form -->
-            <div class="login-right-pane">
+            <div class="login-right-pane position-relative">
+                <div class="me-3 languageSwitcher">
+                    <LanguageSwitcher />
+                </div>
                 <!-- Brand Logo -->
                 <div class="fruitable-brand">
                     <span class="fruitable-logo-circle"><img class="w-75 h-75" src="/images/logo.png" alt=""></span>
@@ -39,7 +42,13 @@
                                 required
                                 autocomplete="username"
                             />
-                            <InputError class="mt-2" :message="form.errors.email" />
+                            <InputError
+                                :message="
+                            typeof form.errors.emails === 'object'
+                              ? t(`messages.${form.errors.emails.key}`, form.errors.emails.params || {})
+                              : form.errors.emails
+                          " class="mt-2 text-danger"
+                            />
                         </div>
                         <PrimaryButton
                             class="btn btn-fruit"
@@ -71,6 +80,9 @@ import InputLabel from '@/Components/InputLabel.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import TextInput from '@/Components/TextInput.vue'
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3'
+import LanguageSwitcher from "@/Components/LanguageSwitcher.vue";
+import Swal from "sweetalert2";
+import { useI18n } from 'vue-i18n';
 
 export default {
     components: {
@@ -80,8 +92,12 @@ export default {
         TextInput,
         Head,
         Link,
+        LanguageSwitcher,
     },
-
+    setup() {
+        const { t } = useI18n();
+        return { t };
+    },
     data() {
         return {
             form: useForm({
@@ -129,11 +145,81 @@ export default {
     },
 
     methods: {
+        isRateLimitError(errors) {
+            if (!errors || !errors.emails) return false;
+
+            const emailErrors = Array.isArray(errors.emails)
+                ? errors.emails
+                : [errors.emails];
+
+            return emailErrors.some(error =>
+                typeof error === 'object' &&
+                error.key &&
+                error.key.includes('rate_limit')
+            );
+        },
+
         submit() {
             this.form.post(route('register.emails.submit'), {
                 onFinish: () => this.form.reset('email'),
+                onError: (errors) => {
+                    console.log('❌ Login failed');
+                    console.log('🐛 Errors:', errors);
+
+                    // ✅ Kiểm tra nếu là rate limit error
+                    if (this.isRateLimitError(errors)) {
+                        const emailError = Array.isArray(errors.emails)
+                            ? errors.emails[0]
+                            : errors.emails;
+
+                        const minutes = emailError.params?.minutes || 1;
+                        const translatedMessage =
+                            emailError?.key
+                                ? this.t('messages.rate_limit.register_attempts', { minutes })
+                                : emailError;
+
+
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: this.$t('messages.rate_limit.register_attempts'),
+                            text: translatedMessage,
+                            confirmButtonText: this.$t('messages.ok'),
+                        });
+                    }
+                },
             })
         },
     },
 }
 </script>
+<style scoped>
+.languageSwitcher{
+    position: absolute;
+    padding: 30px 20px;
+    top: 0;
+    right: 0;
+}
+.dropdown-item span{
+    font-size: 13px;
+    margin-left: 5px;
+}
+.language-switcher .flag[data-v-44967e4d] {
+    width: 20px;
+    height: 20px;
+}
+.text-white{
+    padding-right: 0.5rem;
+    font-size: 15px;
+}
+.dropdown-toggle{
+    background: linear-gradient(95deg, #6da02ca8 62%, #9bea00 100%) !important;
+    padding: 2px 0.75rem;
+}
+.dropdown-toggle:hover {
+    border: 1px solid #6da02c !important;
+}
+.dropdown-toggle:hover > .text-white {
+    color: #8bc34a !important;
+}
+</style>

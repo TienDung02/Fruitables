@@ -7,11 +7,12 @@ import { createApp, h } from 'vue';
 import { ZiggyVue } from '../../vendor/tightenco/ziggy';
 import { createPinia } from 'pinia';
 import i18n from './i18n'
+import './plugins/axios'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => title,
+    title: (title) => `${title} - Fruitables`,
     resolve: (name) => {
         return resolvePageComponent(
             `./Pages/${name}.vue`,

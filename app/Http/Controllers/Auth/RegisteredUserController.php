@@ -13,8 +13,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
-use App\Mail\CompleteRegistrationMail;
-use App\Mail\AccountAlreadyExistsMail;
+use Illuminate\Support\Facades\App;
+use App\Mail\CompleteActionMail;
+use App\Mail\AccountStatusMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use App\Models\PendingRegistration;
@@ -37,65 +38,60 @@ class RegisteredUserController extends Controller
             'email' => 'required|email',
         ]);
 
-        $token = Str::uuid();
-
         $email = $request->email;
-
         $userExists = User::where('emails', $email)->exists();
+        $locale = App::getLocale();
 
-        PendingRegistration::updateOrCreate(
-            ['email' => $request->email],
-            [
-                'token' => $token,
-                'step' => 'email',
-                'expires_at' => now()->addMinutes(15),
-            ]
-        );
+        Log::info("Processing registration for {$email} with locale: {$locale}");
 
         try {
             if ($userExists) {
-//                $token = Str::uuid();
-//                PendingRegistration::updateOrCreate(
-//                    ['email' => $email],
-//                    [
-//                        'token' => $token,
-//                        'step' => 'username',
-//                        'expires_at' => now()->addMinutes(15),
-//                    ]
-//                );
-
                 Mail::to($email)->send(
-                    new AccountAlreadyExistsMail()
+                    new AccountStatusMail(
+                        linkUrl: route('login'),
+                        locale: $locale,
+                        type: 'exists',
+                    )
                 );
-
+                return redirect()->route('register')
+                    ->with([
+                        'email_sent' => true,
+//                        'email' => $request->email,
+                ]);
             } else {
-                // 👉 NHÁNH A: user mới
                 $token = Str::uuid();
 
                 PendingRegistration::updateOrCreate(
-                    ['email' => $email],
+                    [
+                        'email' => $email,
+                        'type' => 'register',
+                    ],
+
                     [
                         'token' => $token,
                         'step' => 'email',
                         'expires_at' => now()->addMinutes(15),
+                        'used' => false,
                     ]
                 );
 
-                Mail::to($email)->send(new CompleteRegistrationMail($token));
-
+                Mail::to($email)->send(
+                    new CompleteActionMail(
+                        token: $token,
+                        type: 'register',
+                        locale: $locale
+                    )
+                );
                 Log::info("Complete registration email sent to {$email}");
-            }
-
-            return redirect()->route('register')
-                ->with([
-                    'email_sent' => true,
-                    'email' => $request->email,
+                return redirect()->route('register')
+                    ->with([
+                        'email_sent' => true,
+//                        'email' => $request->email,
                 ]);
-
-
+            }
         } catch (\Throwable $e) {
             Log::error("Failed to send registration email to {$request->email}: ".$e->getMessage());
-            // Trả về redirect với flash session lỗi
+
             return redirect()->route('register')
                 ->with([
                     'email_sent' => false,
@@ -103,10 +99,13 @@ class RegisteredUserController extends Controller
                 ]);
         }
     }
-    public function showUsernameForm(string $token) {
+    public function showUsernameForm(string $token)
+    {
         $pending = PendingRegistration::where('token', $token)
             ->where('expires_at', '>', now())
+            ->where('used', false)
             ->firstOrFail();
+
         return Inertia::render('Auth/SubmitUsername', [
             'token' => $token,
             'email' => $pending->email,
@@ -114,8 +113,7 @@ class RegisteredUserController extends Controller
     }
     public function submitUsername(Request $request, string $token)
     {
-        Log::info('Submit username started', ['token' => $token]);
-
+        Log::info('submitUsername had called');
         $request->validate([
             'username' => 'required|string|min:3|max:30|unique:users,username',
         ]);
@@ -123,6 +121,7 @@ class RegisteredUserController extends Controller
         try {
             $pending = PendingRegistration::where('token', $token)
                 ->where('expires_at', '>', now())
+                ->where('used', false) // ✅ Double check
                 ->firstOrFail();
 
             $pending->update([
@@ -133,77 +132,67 @@ class RegisteredUserController extends Controller
             Log::info("Pending registration username updated successfully", [
                 'token' => $token,
                 'username' => $request->username,
-                'email' => $pending->email
             ]);
 
-            // Sinh password mới và tạo user luôn
-            $plainPassword = Str::password(16, true, true, true);
-            Log::info('Generated plain password', ['plainPassword' => $plainPassword]);
-            $hashedPassword = Hash::make($plainPassword);
-
-
-            $user = User::create([
-                'username' => $request->username,
-                'emails' => $pending->email,
-                'password' => $hashedPassword,
-            ]);
-
-            Log::info("User created successfully", [
-                'user_id' => $user->id,
-                'username' => $user->name,
-                'email' => $user->emails
-            ]);
-
-            $pending->update([
-                'password' => $hashedPassword,
-                'step' => 'password',
-            ]);
-
-//            return redirect()->route('register.password', $token)
-//                ->with('password', $plainPassword);
-
-            return redirect()->route('register.password', $token)
-                ->with([
-                    'password' => $plainPassword,
-                ]);
+            return redirect()->route('register.password', $token);
 
         } catch (\Throwable $e) {
-            Log::error("Failed to submit username / create user", [
+            Log::error("Failed to submit username", [
                 'token' => $token,
                 'error' => $e->getMessage()
             ]);
-            return back()->withErrors('Đã có lỗi xảy ra. Vui lòng thử lại.');
+            return back()->withErrors('Token không hợp lệ hoặc đã hết hạn.');
         }
     }
 
     // Bước 3: show password
     public function showPasswordPage(string $token)
     {
-        Log::info("Show password page started", ['token' => $token]);
 
         try {
-            $pending = PendingRegistration::where('token', $token)->firstOrFail();
+            $pending = PendingRegistration::where('token', $token)
+                ->where('expires_at', '>', now())
+                ->where('used', false)
+                ->where('step', 'username')
+                ->firstOrFail();
 
+            // ✅ TẠO USER + PASSWORD CHỈ 1 LẦN
+            $plainPassword = Str::password(16, true, true, true);
+
+            $user = User::create([
+                'username' => $pending->username,
+                'emails' => $pending->email,
+                'password' => Hash::make($plainPassword),
+            ]);
+
+            $pending->update([
+                'user_id' => $user->id,
+                'step' => 'completed',
+                'used' => true,
+            ]);
+
+            Log::info("User created successfully", [
+                'user_id' => $user->id,
+                'username' => $user->username,
+            ]);
+
+            // ✅ TRUYỀN TRỰC TIẾP VÀO VIEW - KHÔNG QUA SESSION
             return Inertia::render('Auth/ShowPassword', [
-                'password' => session('password'), // chỉ hiển thị 1 lần
-                'token' => $token,
+                'password' => $plainPassword,  // Chỉ tồn tại trong response này
+                'username' => $pending->username,
+                'email' => $pending->email,
             ]);
 
         } catch (\Throwable $e) {
-            Log::error("Failed to show password page", [
+            Log::error("Failed to create user", [
                 'token' => $token,
                 'error' => $e->getMessage()
             ]);
-            abort(404, 'Pending registration not found or expired');
+
+            abort(404, 'Token không hợp lệ hoặc đã được sử dụng.');
         }
     }
 
-    // Bước 4: finalize (chỉ cần redirect tới login)
-    public function finalize(Request $request, string $token)
-    {
-        Log::info("Finalize registration - redirect to login", ['token' => $token]);
-        return redirect()->route('login')->with('success', 'Đăng ký thành công. Vui lòng đăng nhập.');
-    }
 
 
     /**

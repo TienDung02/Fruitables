@@ -488,5 +488,28 @@ export default {
     username_save_failed: 'Failed to save username!',
     password_copied_success: 'Password has been copied!',
     copy_failed: 'Copy failed!',
+
+    reset_password: 'Reset Password',
+    enter_your_email_to_reset: 'Enter your email address to reset your password.',
+    send_reset_link: 'Send Reset Link',
+    back_to_login: 'Back to Login',
+    reset_link_sent: 'Please check your email for instructions to complete the password reset.',
+    invalid_reset_token: 'The password reset token is invalid or has expired.',
+
+    rate_limit: {
+      login_attempts: "Too many login attempts. Please try again in {minutes} minutes.",
+      register_attempts: "Too many registration requests. Please try again in {minutes} minutes.",
+      password_reset: "Too many password reset requests. Please try again in {minutes} minutes."
+    },
+    rate_limit_title: "Too many login attempts",
+    ok: "OK",
+
+    instruction: "To retrieve your password, please click the button below.",
+    warning: "This password will be displayed <strong>only once</strong>. Please copy or save it immediately to avoid losing access.",
+    reload_warning: "If you reload the page, the password will <strong>disappear</strong> and cannot be retrieved again.",
+
+    retrieve_button: 'Retrieve Password',
+
+
   }
 }

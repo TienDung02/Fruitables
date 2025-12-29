@@ -924,7 +924,7 @@ export default {
                 if (this.shippingInfo.is_logged_in && shippingData.synced_from_db && shippingData.current) {
                     const current = shippingData.current;
                     this.formData.name = current.name || '';
-                    this.formData.detail_address = current.full_address || '';
+                    this.formData.address = current.full_address || '';
                     this.formData.phone = current.phone || '';
                     this.formData.ward_id = current.ward_id || '';
                     this.formData.email = current.email || '';

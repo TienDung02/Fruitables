@@ -13,10 +13,9 @@ const props = defineProps({
     token: String
 });
 const form = useForm({
-    username: '',
 });
 const submit = () => {
-    form.post(route('register.username.submit', { token: props.token }), {
+    form.post(route('password.retrieve.submit', { token: props.token }), {
         onSuccess: () => {
             Swal.fire({
                 icon: 'success',
@@ -71,7 +70,7 @@ const submit = () => {
 
 
 <template>
-    <Head :title="$t('messages.register')" />
+    <Head :title="$t('messages.reset_password')" />
 
     <div class="main-login-bg">
         <div class="login-container">
@@ -101,18 +100,6 @@ const submit = () => {
                 <!-- Login Form -->
                 <form @submit.prevent="submit">
                     <div class="mt-4">
-                        <InputLabel for="username" class="form-label" :value="$t('messages.enter_username')" />
-
-                        <TextInput
-                            id="username"
-                            type="text"
-                            class="form-control mt-1 block w-full"
-                            v-model="form.username"
-                            :placeholder="$t('messages.username_placeholder')"
-                            required
-                            autocomplete="username"
-                        />
-
                         <InputError class="mt-2" :message="form.errors.username" />
                     </div>
 
@@ -121,16 +108,14 @@ const submit = () => {
                         :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing"
                     >
-                        {{ $t('messages.register') }}
+                        {{ $t('messages.retrieve_button') }}
                     </PrimaryButton>
 
                     <div class="flex-links justify-content-end mt-2">
-            <span class="text-center">
-                <Link
-                    :href="route('login')"
-                    class="signup-link rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    {{ $t('messages.already_registered') }}
+            <span>
+                {{ $t('messages.dont_have_account') }}
+                <Link :href="route('register')" class="signup-link">
+                    {{ $t('messages.register') }}
                 </Link>
             </span>
                     </div>

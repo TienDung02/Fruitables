@@ -2,7 +2,7 @@
     <div class="dropdown language-switcher" ref="dropdown">
         <!-- Nút hiển thị ngôn ngữ hiện tại -->
         <button
-            class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2"
+            class="btn btn-sm dropdown-toggle bg-primary d-flex align-items-center gap-2 btn-language-switcher"
             @click="toggleDropdown"
         >
             <img
@@ -10,7 +10,7 @@
                 class="flag"
                 alt=""
             >
-            <span class="text-white">{{ currentLang.label }}</span>
+            <span class="text-white me-2">{{ currentLang.label }}</span>
         </button>
 
         <!-- Dropdown -->
@@ -128,15 +128,23 @@ onUnmounted(() => {
 }
 
 .language-switcher li:hover, .language-switcher button:hover {
+    border: 1px solid #81c408;
     border-radius: 10px;
-    background: #fff;
+    background: #fff !important;
     color: #81c408;
     font-weight: bolder;
     text-shadow: 1px 1px 1px #ffb524;
 }
+.language-switcher li button{
+    padding: 0.25rem;
+    justify-content: center;
+}
 
 .language-switcher li, .language-switcher button {
     border-radius: 10px;
+}
+.btn-language-switcher:hover > .text-white{
+    color: #8bc34a !important;
 }
 
 .language-switcher .dropdown-item.active {

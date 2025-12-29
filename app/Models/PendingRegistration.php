@@ -11,8 +11,11 @@ class PendingRegistration extends Model
         'username',
         'password',
         'token',
+        'type',
         'step',
         'expires_at',
+        'used',
+        'user_id',
     ];
 
     protected $casts = [

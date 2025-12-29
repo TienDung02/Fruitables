@@ -17,6 +17,7 @@ Route::middleware('guest')->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'submitEmail'])
+//        ->middleware('throttle:register-email')
         ->name('register.emails.submit');
 
     // STEP 2: Username (qua email)
@@ -33,19 +34,42 @@ Route::middleware('guest')->group(function () {
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])->middleware('throttle:login');
 
-    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
-        ->name('password.request');
+//    Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
+//        ->name('password.request');
+//
+//    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+//        ->name('password.emails');
 
-    Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
-        ->name('password.emails');
 
-    Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
+    Route::get('reset-password', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 
-    Route::post('reset-password', [NewPasswordController::class, 'store'])
+    Route::post('reset-password', [NewPasswordController::class, 'submitEmail'])
+//        ->middleware('throttle:password-reset')
         ->name('password.store');
+
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'showRetrievePage'])
+        ->name('password.retrieve');
+
+    Route::post('/reset-password/{token}', [NewPasswordController::class, 'retrievePassword'])
+        ->name('password.retrieve.submit');
+
+    // STEP 3: Hiển thị password cho user
+    Route::get('/show-reset-password/{token}', [NewPasswordController::class, 'showPasswordPage'])
+        ->name('password.retrieve.show');
+
+//    Route::prefix('reset-password')->group(function () {
+//        Route::post('/', [RegisteredUserController::class, 'submitEmail'])
+//            ->name('password.email');
+//
+//        Route::get('{token}', [RegisteredUserController::class, 'showRetrievePage'])
+//            ->name('password.retrieve');
+//
+//        Route::post('{token}', [RegisteredUserController::class, 'retrievePassword'])
+//            ->name('password.retrieve.submit');
+//    });
 });
 
 Route::middleware('auth')->group(function () {

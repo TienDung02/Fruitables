@@ -9,7 +9,10 @@
             </div>
 
             <!-- Right Panel -->
-            <div class="login-right-pane">
+            <div class="login-right-pane position-relative">
+                <div class="me-3 languageSwitcher">
+                    <LanguageSwitcher />
+                </div>
                 <!-- Brand Logo -->
                 <div class="fruitable-brand">
                     <span class="fruitable-logo-circle"><img class="w-75 h-75" src="/images/logo.png" alt=""></span>
@@ -25,9 +28,9 @@
                 <!-- Password -->
                 <div class="mt-4">
                     <label class="form-label">{{ $t('messages.strong_password') }}</label>
-                    <div class="d-flex align-items-center">
-                        <input type="text" class="form-control me-2" :value="password" readonly ref="passwordInput">
-                        <button type="button" class="btn btn-secondary" @click="copyPassword">
+                    <div class="d-flex align-items-stretch">
+                        <input type="text" class="form-control me-2 w-75" :value="password" readonly ref="passwordInput">
+                        <button type="button" class="btn btn-secondary w-25" @click="copyPassword">
                             {{ $t('messages.copy') }}
                         </button>
                     </div>
@@ -49,13 +52,14 @@ import GuestLayout from '@/Layouts/GuestLayout.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
 import { Head, Link, usePage } from '@inertiajs/vue3'
 import Swal from 'sweetalert2'
-
+import LanguageSwitcher from "@/Components/LanguageSwitcher.vue";
 export default {
     components: {
         GuestLayout,
         PrimaryButton,
         Head,
         Link,
+        LanguageSwitcher,
     },
 
     props: {
@@ -103,3 +107,33 @@ export default {
     },
 }
 </script>
+<style scoped>
+.languageSwitcher{
+    position: absolute;
+    padding: 30px 20px;
+    top: 0;
+    right: 0;
+}
+.dropdown-item span{
+    font-size: 13px;
+    margin-left: 5px;
+}
+.language-switcher .flag[data-v-44967e4d] {
+    width: 20px;
+    height: 20px;
+}
+.text-white{
+    padding-right: 0.5rem;
+    font-size: 15px;
+}
+.dropdown-toggle{
+    background: linear-gradient(95deg, #6da02ca8 62%, #9bea00 100%) !important;
+    padding: 2px 0.75rem;
+}
+.dropdown-toggle:hover {
+    border: 1px solid #6da02c !important;
+}
+.dropdown-toggle:hover > .text-white {
+    color: #8bc34a !important;
+}
+</style>

@@ -1,5 +1,14 @@
 export default {
   messages: {
+      rate_limit: {
+          login_attempts: "Quá nhiều lần đăng nhập. Vui lòng thử lại sau {minutes} phút.",
+          register_attempts: "Quá nhiều lần gửi yêu cầu đăng ký. Vui lòng thử lại sau {minutes} phút.",
+          password_reset: "Quá nhiều lần yêu cầu đặt lại mật khẩu. Vui lòng thử lại sau {minutes} phút.",
+      },
+      rate_limit_title: "Đăng nhập quá nhiều lần",
+      ok: "OK",
+
+
     // Navigation
     home: 'Trang chủ',
     shop: 'Cửa hàng',
@@ -462,6 +471,7 @@ export default {
 
     invalid_credentials: 'Thông tin đăng nhập không chính xác.',
     registration_email_sent: 'Vui lòng kiểm tra email để nhận hướng dẫn hoàn tất đăng ký.',
+
     placeholder_email_address: 'Nhập email của bạn',
     placeholder_phone: 'Nhập số điện thoại của bạn',
     placeholder_full_name: 'Nhập họ và tên của bạn',
@@ -484,5 +494,20 @@ export default {
     username_save_failed: 'Lưu username thất bại!',
     password_copied_success: 'Password đã được copy!',
     copy_failed: 'Copy thất bại!',
+
+    reset_password: 'Đặt lại mật khẩu',
+    enter_your_email_to_reset: 'Nhập email của bạn để đặt lại mật khẩu',
+    send_reset_link: 'Gửi liên kết đặt lại',
+    reset_link_sent: 'Vui lòng kiểm tra email để nhận hướng dẫn hoàn tất đặt lại mật khẩu.',
+    back_to_login: 'Quay lại trang đăng nhập',
+
+    instruction: "Để nhận mật khẩu, vui lòng nhấn nút bên dưới.",
+    warning: "Mật khẩu này chỉ được hiển thị <strong>một lần duy nhất</strong>. Hãy sao chép hoặc lưu lại ngay lập tức để tránh mất quyền truy cập.",
+    reload_warning: "Nếu bạn tải lại trang, mật khẩu sẽ <strong>biến mất</strong> và không thể lấy lại được.",
+
+    retrieve_button: 'Lấy mật khẩu mới'
+
+
+
   }
 }

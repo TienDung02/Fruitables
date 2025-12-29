@@ -4,7 +4,7 @@
         <div class="container topbar bg-primary d-none d-lg-block">
             <div class="d-flex justify-content-between">
                 <div class="top-info ps-2">
-                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="#" class="text-white">{{ $t('messages.dormitory_area_hcmu') }}</a></small>
+                    <small class="me-3"><i class="fas fa-map-marker-alt me-2 text-secondary"></i> <a href="https://www.google.com/maps/place/K%C3%BD+t%C3%BAc+x%C3%A1+Khu+A+%C4%90H+Qu%E1%BB%91c+gia+TP.+H%E1%BB%93+Ch%C3%AD+Minh/@10.8782516,106.8037156,17z/data=!3m1!4b1!4m6!3m5!1s0x3174d8a5f4e477e9:0x29d5aeb365cee20b!8m2!3d10.8782463!4d106.8062905!16s%2Fg%2F1tncqcyc?authuser=0&entry=ttu&g_ep=EgoyMDI1MTIwOS4wIKXMDSoKLDEwMDc5MjA3M0gBUAM%3D" class="text-white">{{ $t('messages.dormitory_area_hcmu') }}</a></small>
                     <small class="me-3"><i class="fas fa-envelope me-2 text-secondary"></i><a href="#" class="text-white">nongtiendung2309@gmail.com</a></small>
                 </div>
                 <div class="d-flex align-items-center">

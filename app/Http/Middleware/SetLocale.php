@@ -5,29 +5,24 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Session;
+use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
 {
     /**
      * Handle an incoming request.
      */
-    public function handle(Request $request, Closure $next)
+    public function handle(Request $request, Closure $next): Response
     {
-        // Lấy ngôn ngữ từ session, URL parameter, hoặc mặc định
-        $locale = $request->get('locale') ?? Session::get('locale') ?? config('app.locale');
+        // ✅ Lấy locale từ header (do axios interceptor gửi)
+        $locale = $request->header('X-Locale', 'vi');
 
-        // Kiểm tra ngôn ngữ có được hỗ trợ không
-        $supportedLocales = ['en', 'vi'];
-        if (!in_array($locale, $supportedLocales)) {
-            $locale = config('app.locale');
+        // Validate locale
+        $supportedLocales = ['en', 'vi', 'ru', 'jp'];
+
+        if (in_array($locale, $supportedLocales)) {
+            App::setLocale($locale);
         }
-
-        // Set locale cho ứng dụng
-        App::setLocale($locale);
-
-        // Lưu locale vào session
-        Session::put('locale', $locale);
 
         return $next($request);
     }
