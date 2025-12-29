@@ -13,7 +13,7 @@ Ngôn ngữ:
   <p align="center">
     Đây là dự án starter kit xây dựng trên Laravel 12 + Vue 3 + Inertia.js, hướng tới việc phát triển nhanh các ứng dụng web hiện đại với kiến trúc SPA nhưng vẫn giữ được sức mạnh của Laravel phía backend.
     <br />
-    <a href="https://fruitable.site/"><strong>Xem website »</strong></a>
+    <strong>Xem website » <a href="https://fruitable.site/">https://fruitable.site</a></strong>
   </p>
 </p>
 
