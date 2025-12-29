@@ -2,7 +2,7 @@ Chọn Ngôn ngữ / Choose Language / 言語を選択 / Выберите язы
 
 - 🇻🇳 [Tiếng Việt](README.md)
 - 🇺🇸 English (current)
-- 🇯🇵 [日本語](README.jp.md)
+- 🇯🇵 [日本語](README.ja.md)
 - 🇷🇺 [Русский](README.ru.md)
 
 
