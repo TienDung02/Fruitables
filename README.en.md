@@ -1,6 +1,6 @@
 Language:
 - 🇻🇳 [Tiếng Việt](README.md)
-- 🇺🇸 English (active)
+- 🇺🇸 English (current)
 - 🇯🇵 [日本語](README.jp.md)
 - 🇷🇺 [Русский](README.ru.md)
 
