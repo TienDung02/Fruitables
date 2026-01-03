@@ -11,7 +11,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\CurrencyController;
-use App\Http\Controllers\SepayController;
+//use App\Http\Controllers\SepayController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +21,7 @@ Route::get('dashboard', [DashboardController::class, 'index']);
 Route::get('dashboard/data', [DashboardController::class, 'getDashboardData']);
 Route::get('dashboard/products/all', [DashboardController::class, 'allProducts']);
 Route::get('dashboard/products/featured', [DashboardController::class, 'featuredProducts']);
-Route::get('dashboard/products/bestsellers', [DashboardController::class, 'bestsellingProducts']);
+//Route::get('/products/bestsellers', [DashboardController::class, 'bestsellingProducts']);
 
 Route::get('products/bestsellers', [ProductController::class, 'bestsellers']);
 Route::get('products/featured', [ProductController::class, 'featured']);
@@ -202,11 +202,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::put('orders/{order}/status', [OrderController::class, 'updateStatus']);
 });
 
-// Location routes
-Route::prefix('locations')->group(function () {
-    Route::get('/', [LocationController::class, 'index']);
-    Route::get('/{id}', [LocationController::class, 'show']);
-    Route::post('/', [LocationController::class, 'store']);
-    Route::put('/{id}', [LocationController::class, 'update']);
-    Route::delete('/{id}', [LocationController::class, 'destroy']);
-});
+//// Location routes
+//Route::prefix('locations')->group(function () {
+//    Route::get('/', [LocationController::class, 'index']);
+//    Route::get('/{id}', [LocationController::class, 'show']);
+//    Route::post('/', [LocationController::class, 'store']);
+//    Route::put('/{id}', [LocationController::class, 'update']);
+//    Route::delete('/{id}', [LocationController::class, 'destroy']);
+//});

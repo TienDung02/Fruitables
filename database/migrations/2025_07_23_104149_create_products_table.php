@@ -17,6 +17,10 @@ return new class extends Migration
             $table->string('slug', 191);
             $table->text('description');
             $table->text('short_description')->nullable();
+            $table->decimal('min_price', 10, 2)->nullable();
+            $table->decimal('max_price', 10, 2)->nullable();
+            $table->decimal('min_sale_price', 10, 2)->nullable();
+            $table->boolean('has_sale')->nullable();
             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->boolean('is_featured')->default(false);
             $table->boolean('is_active')->default(true);

@@ -107,15 +107,35 @@ class JamProductFactory extends Factory
     public function withVariants()
     {
         return $this->afterCreating(function ($product) {
-            // Tạo nhiều biến thể cho sản phẩm jam
+            // Tạo nhiều biến thể cho sản phẩm jam với giá tăng dần theo khối lượng
             $sizes = ['100g', '200g', '500g', '1kg'];
-            foreach ($sizes as $size) {
+            $basePrices = [500, 800, 1500, 2500]; // Giá tăng theo khối lượng
+
+            foreach ($sizes as $index => $size) {
+                $price = $this->faker->numberBetween(
+                    $basePrices[$index] + 100,
+                    $basePrices[$index] + 300
+                );
+
+                // Chỉ tạo sale_price nếu có khoảng hợp lệ
+                $salePrice = null;
+
+                if ($price - 1 > $basePrices[$index]) {
+                    $salePrice = $this->faker->numberBetween(
+                        $basePrices[$index] + 1,
+                        $price - 1
+                    );
+                }
                 \App\Models\ProductVariant::factory()->create([
                     'product_id' => $product->id,
-                    'unit' => 'Jar',
-                    'size' => $size,
+                    'unit'       => 'Pack',
+                    'size'       => $size,
+                    'price'      => $price,
+                    'sale_price' => $salePrice,
                 ]);
             }
+
+            $product->updatePriceRange();
         });
     }
 }

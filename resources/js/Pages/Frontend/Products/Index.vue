@@ -182,8 +182,8 @@
                                                     v-model.number="priceRange.min"
                                                     @input="handleMinRangeChange"
                                                     type="range"
-                                                    min="0"
-                                                    max="100"
+                                                    :min="productMinPrice"
+                                                    :max="productMaxPrice"
                                                     step="1"
                                                     class="price-range-input price-range-min">
 
@@ -193,8 +193,8 @@
                                                     v-model.number="priceRange.max"
                                                     @input="handleMaxRangeChange"
                                                     type="range"
-                                                    min="0"
-                                                    max="100"
+                                                    :min="productMinPrice"
+                                                    :max="productMaxPrice"
                                                     step="1"
                                                     class="price-range-input price-range-max">
                                             </div>
@@ -202,17 +202,17 @@
                                             <!-- Price Display Only -->
                                             <div class="d-flex justify-content-between align-items-center mt-3">
                                                 <span class="price-display">
-                                                    ${{ priceRange.min }}
+                                                    {{ priceRange.min }}₫
                                                 </span>
                                                 <span class="text-muted mx-2">{{ $t('messages.to') }}</span>
                                                 <span class="price-display">
-                                                    ${{ priceRange.max }}
+                                                    {{ priceRange.max }}₫
                                                 </span>
                                             </div>
                                         </div>
 
                                         <!-- Clear Price Filter -->
-                                        <div v-if="(priceRange.min > 0) || (priceRange.max < 100)" class="text-center">
+                                        <div v-if="(priceRange.min > this.productMinPrice) || (priceRange.max < this.productMaxPrice)" class="text-center">
                                             <button @click="clearPriceFilter" class="btn btn-outline-danger btn-sm">
                                                 <i class="fas fa-times me-1"></i>
                                                 {{ $t('messages.clear_price_filter') }}
@@ -242,11 +242,11 @@
                                                         <i class="fa fa-star"></i>
                                                     </div>
                                                     <div v-if="featuredProduct.variants[0].sale_price" class="d-flex mb-2 align-items-center">
-                                                        <h5  class=" me-2 mb-0">${{ featuredProduct.variants[0].sale_price }} / {{ featuredProduct.variants[0].size }}</h5>
-                                                        <h6 class="text-danger text-decoration-line-through mb-0">${{ featuredProduct.variants[0].price }}/ {{ featuredProduct.variants[0].size }}</h6>
+                                                        <h5  class=" me-2 mb-0">{{ Number(featuredProduct.variants[0].sale_price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
+                                                        <h6 class="text-danger text-decoration-line-through mb-0">{{ Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h6>
                                                     </div>
                                                     <div v-else class="d-flex mb-2">
-                                                        <h5  class=" me-2">${{ featuredProduct.variants[0].price }} / {{ featuredProduct.variants[0].size }}</h5>
+                                                        <h5  class=" me-2">{{ Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
                                                     </div>
                                                 </div>
                                             </div>
@@ -266,7 +266,7 @@
                         </div>
                         <div class="col-lg-9">
                             <!-- Search & Filter indicators -->
-                            <div v-if="searchQuery || selectedCategoryId || sortBy || priceRange.min > 0 || priceRange.max < 100" class="mb-4">
+                            <div v-if="searchQuery || selectedCategoryId || sortBy || priceRange.min > this.productMaxPrice || priceRange.max < this.productMaxPrice" class="mb-4">
                                 <div class="d-flex flex-wrap align-items-center gap-2">
                                     <span class="text-muted">{{ $t('messages.active_filters') }}</span>
 
@@ -298,7 +298,7 @@
                                     </span>
 
                                     <!-- Price range indicator -->
-                                    <span v-if="priceRange.min > 0 || priceRange.max < 100" class="badge bg-success">
+                                    <span v-if="priceRange.min > this.productMinPrice || priceRange.max < this.productMaxPrice" class="badge bg-success">
                                         <i class="fas fa-dollar-sign me-1"></i>
                                         {{ $t('messages.price_range_filter') }}: ${{ priceRange.min }} <i class="fas fa-arrow-right"></i> ${{ priceRange.max }}
                                         <button @click="clearPriceRange" class="btn btn-sm p-0 text-white ms-1">
@@ -376,8 +376,36 @@
                                                         }}...</p>
                                                     <div class="d-flex justify-content-between flex-lg-wrap">
                                                         <p class="text-dark fs-5 fw-bold mb-0">
-                                                            <div  v-if="product.variants[0].sale_price"> <span class="text-danger">${{ product.variants[0].sale_price }} / {{ product.variants[0].unit }}</span>  &nbsp; <span class="text-decoration-line-through opacity-75 fs-6"> ${{ product.variants[0].price }}/ {{ product.variants[0].unit }}</span></div>
-                                                            <span v-else>${{ product.variants[0].price }} / {{ product.variants[0].unit }}</span>
+                                                            <template v-if="product.min_price !== product.max_price">
+                                                                <!-- sale làm GIÁ THẤP NHẤT giảm -->
+                                                                <span v-if="product.has_sale && product.min_sale_price < product.min_price">
+                                                                  <span class="text-danger">
+                                                                    {{ Number(product.min_sale_price).toFixed(0) }}₫
+                                                                  </span>
+                                                                  -
+                                                                  <span>
+                                                                    {{ Number(product.max_price).toFixed(0) }}₫
+                                                                  </span>
+                                                                </span>
+                                                                <!-- có sale nhưng KHÔNG ảnh hưởng giá thấp nhất -->
+                                                                <span v-else>
+                                                                  {{ Number(product.min_price).toFixed(0) }}₫ - {{ Number(product.max_price).toFixed(0) }}₫
+                                                                </span>
+                                                            </template>
+                                                            <template v-else>
+                                                                <span v-if="product.has_sale">
+                                                                  <span class="text-danger">
+                                                                    {{ Number(product.min_price).toFixed(0) }}₫
+                                                                  </span>
+                                                                  &nbsp;
+                                                                  <span class="text-decoration-line-through opacity-75 fs-6">
+                                                                    {{ Number(product.max_price).toFixed(0) }}₫
+                                                                  </span>
+                                                                </span>
+                                                                <span v-else>
+                                                                  {{ Number(product.max_price).toFixed(0) }}₫
+                                                                </span>
+                                                            </template>
                                                         </p>
 
                                                     </div>
@@ -518,6 +546,8 @@ export default {
                 min: 0,
                 max: 100
             },
+            productMaxPrice: 0,              // Max price from backend (will be updated)
+            productMinPrice: 0,              // Min price from backend (will be updated)
             priceTimeout: null,
             pagination: {
                 current_page: 1,
@@ -541,13 +571,15 @@ export default {
             await Promise.all([
                 this.fetchProducts(),
                 this.fetchCategories(),
-                this.fetchFeaturedProducts()
+                this.fetchFeaturedProducts(),
+                // this.rangeTrack(),
             ]);
         } catch (error) {
             console.error('❌ Error in mounted:', error);
         }
         console.log(this.featuredProducts)
         // Initialize wishlist
+
         await this.initializeWishlist();
     },
     computed: {
@@ -556,16 +588,24 @@ export default {
             return useCartStore();
         },
         rangeTrackStyle() {
+
             const min = this.priceRange.min;
             const max = this.priceRange.max;
-            const left = (min / 100) * 100;
-            const width = ((max - min) / 100) * 100;
+
+            const minLimit = this.productMinPrice;
+            const maxLimit = this.productMaxPrice;
+
+            const range = maxLimit - minLimit;
+
+            const left = ((min - minLimit) / range) * 100;
+            const width = ((max - min) / range) * 100;
 
             return {
                 left: `${left}%`,
                 width: `${width}%`
             };
         }
+
     },
     methods: {
         async fetchProducts(page = 1) {
@@ -584,14 +624,26 @@ export default {
                 if (this.sortBy) {
                     url += `&sort=${this.sortBy}`;
                 }
-                if (this.priceRange.min > 0) {
+                if (this.priceRange.min > this.productMinPrice) {
                     url += `&price_min=${this.priceRange.min}`;
                 }
-                if (this.priceRange.max < 100) {
+                if (this.priceRange.max < this.productMaxPrice) {
                     url += `&price_max=${this.priceRange.max}`;
                 }
                 const response = await axios.get(url);
                 this.products = response.data.data;
+                this.productMaxPrice = Number(response.data.productMaxPrice).toFixed(0);
+                this.productMinPrice = Number(response.data.productMinPrice).toFixed(0);
+
+                console.log('productMaxPrice', this.productMaxPrice);
+                console.log('productMinPrice', this.productMinPrice);
+                if (this.priceRange.max === 100) {
+                    this.priceRange.max = this.productMaxPrice;
+                }
+                if (this.priceRange.min === 0) {
+                    this.priceRange.min = this.productMinPrice;
+                }
+
                 this.pagination = {
                     current_page: response.data.current_page || 1,
                     last_page: response.data.last_page || 1,
@@ -612,6 +664,24 @@ export default {
                 this.loading = false;
                 this.isSearching = false; //  ADD: Stop search loading
             }
+        },
+        async rangeTrack() {
+
+            const min = this.priceRange.min;
+            const max = this.priceRange.max;
+
+            const minLimit = this.productMinPrice;
+            const maxLimit = this.productMaxPrice;
+
+            const range = maxLimit - minLimit;
+
+            const left = ((min - minLimit) / range) * 100;
+            const width = ((max - min) / range) * 100;
+
+            return {
+                left: `${left}%`,
+                width: `${width}%`
+            };
         },
         async fetchCategories() {
             try {
@@ -739,10 +809,10 @@ export default {
          */
         async applyPriceFilter() {
             // Validate price range
-            if (this.priceRange.min < 0) this.priceRange.min = 0;
-            if (this.priceRange.max > 100) this.priceRange.max = 100;
+            if (this.priceRange.min < this.productMinPrice) this.priceRange.min = this.productMinPrice;
+            if (this.priceRange.max > this.productMaxPrice) this.priceRange.max = this.productMaxPrice;
             if (this.priceRange.min >= this.priceRange.max) {
-                this.priceRange.min = Math.max(0, this.priceRange.max - 1);
+                this.priceRange.min = Math.max(this.priceRange.min, this.priceRange.max - 1);
             }
 
             // Reset về trang đầu khi apply filter mới
@@ -761,8 +831,8 @@ export default {
         },
 
         async clearPriceFilter() {
-            this.priceRange.min = 0;
-            this.priceRange.max = 100;
+            this.priceRange.min = this.productMinPrice;
+            this.priceRange.max = this.productMaxPrice;
             await this.applyPriceFilter();
         },
 
@@ -871,8 +941,8 @@ export default {
             this.searchQuery = '';
             this.selectedCategoryId = null;
             this.sortBy = '';
-            this.priceRange.min = 0;
-            this.priceRange.max = 100;
+            this.priceRange.min = this.productMinPrice;
+            this.priceRange.max = this.productMaxPrice;
             this.pagination.current_page = 1;
             await this.fetchProducts(1);
         },
@@ -914,19 +984,19 @@ export default {
         },
         //  Clear price range
         async clearPriceRange() {
-            this.priceRange.min = 0;
-            this.priceRange.max = 100;
+            this.priceRange.min = this.productMinPrice;
+            this.priceRange.max = this.productMaxPrice;
             this.pagination.current_page = 1;
             await this.fetchProducts(1);
         },
         isInWishlist(productId) {
-            console.log('🔍 isInWishlist check:', {
-                productId: productId,
-                productIdType: typeof productId,
-                wishlistIds: this.wishlistIds,
-                wishlistIdsTypes: this.wishlistIds.map(id => typeof id),
-                result: this.wishlistIds.includes(productId)
-            });
+            // console.log('🔍 isInWishlist check:', {
+            //     productId: productId,
+            //     productIdType: typeof productId,
+            //     wishlistIds: this.wishlistIds,
+            //     wishlistIdsTypes: this.wishlistIds.map(id => typeof id),
+            //     result: this.wishlistIds.includes(productId)
+            // });
             return this.wishlistIds.includes(productId);
         },
         async toggleWishlist(productId) {

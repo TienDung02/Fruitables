@@ -73,10 +73,22 @@ class FreshProductFactory extends Factory
     public function withVariants()
     {
         return $this->afterCreating(function ($product) {
-            \App\Models\ProductVariant::factory()->create([
+            // Tạo một variant duy nhất cho sản phẩm fresh với đơn vị kg
+            // Giá fresh products từ 500-8000 VND/kg
+            $price = $this->faker->numberBetween(500, 8000);
+
+
+            $variant = \App\Models\ProductVariant::factory()->create([
                 'product_id' => $product->id,
                 'unit' => 'kg',
-                'size' => 'kg',
+                'size' => '1kg',
+                'price' => $price
+            ]);
+
+            // Đối với fresh products, min_price = max_price vì chỉ có 1 variant
+            $product->update([
+                'min_price' => $variant->price,
+                'max_price' => $variant->price,
             ]);
         });
     }

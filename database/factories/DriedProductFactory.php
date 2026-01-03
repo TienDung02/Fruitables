@@ -31,7 +31,6 @@ class DriedProductFactory extends Factory
 
         $allDried = array_merge($berries, $citrus, $others, $stone, $tropical);
         $name = $this->faker->randomElement($allDried);
-        $price = $this->faker->randomFloat(2, 15, 80); // Dried products are more expensive
 
         // Determine category based on product type
         $categorySlug = 'other-dried-fruits'; // default
@@ -119,15 +118,35 @@ class DriedProductFactory extends Factory
     public function withVariants()
     {
         return $this->afterCreating(function ($product) {
-            // Tạo nhiều biến thể cho sản phẩm dried
             $sizes = ['100g', '200g', '500g', '1kg'];
-            foreach ($sizes as $size) {
+            $basePrices = [600, 1000, 1800, 3000]; // Giá cao hơn jam vì dried fruit đắt hơn
+
+            foreach ($sizes as $index => $size) {
+                $price = $this->faker->numberBetween(
+                    $basePrices[$index] + 100,
+                    $basePrices[$index] + 300
+                );
+
+                // Chỉ tạo sale_price nếu có khoảng hợp lệ
+                $salePrice = null;
+
+                if ($price - 1 > $basePrices[$index]) {
+                    $salePrice = $this->faker->numberBetween(
+                        $basePrices[$index] + 1,
+                        $price - 1
+                    );
+                }
                 \App\Models\ProductVariant::factory()->create([
                     'product_id' => $product->id,
-                    'unit' => 'Pack',
-                    'size' => $size,
+                    'unit'       => 'Pack',
+                    'size'       => $size,
+                    'price'      => $price,
+                    'sale_price' => $salePrice,
                 ]);
             }
+
+            // Cập nhật min_price và max_price dựa trên variants
+            $product->updatePriceRange();
         });
     }
 }

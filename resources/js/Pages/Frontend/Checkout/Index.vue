@@ -91,7 +91,7 @@
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">{{ $t('messages.phone') }}<sup>*</sup></label>
-                            <input type="tel" class="form-control" :placeholder="$t('messages.placeholder_phone')" v-model="formData.phone" required>
+                            <input type="tel" class="form-control" pattern="^(0|\+84)[0-9]{9}$" title="Số điện thoại không hợp lệ" :placeholder="$t('messages.placeholder_phone')" v-model="formData.phone" required>
                         </div>
                         <div class="form-item">
                             <label class="form-label my-3">{{ $t('messages.email_address') }} <sup>*</sup></label>
@@ -1456,8 +1456,8 @@ export default {
             const address = (raw.address ?? '').toString().trim();
             const detail = (raw.detail_address ?? '').toString().trim();
 
-            console.log('validateForm start — raw:', raw);
-            console.log('validateForm — normalized:', { name, phoneRaw, phoneSanitized, email, address, detail });
+            // console.log('validateForm start — raw:', raw);
+            // console.log('validateForm — normalized:', { name, phoneRaw, phoneSanitized, email, address, detail });
 
             // required fields check
             const missing = [];
@@ -1480,7 +1480,7 @@ export default {
             // email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             const emailValid = emailRegex.test(email);
-            console.log('validateForm => email check:', { email, emailValid });
+            // console.log('validateForm => email check:', { email, emailValid });
             if (!emailValid) {
                 Swal.fire({
                     position: "top-end",
@@ -1495,8 +1495,22 @@ export default {
             // phone format (sanitized)
             const phoneRegex = /^[0-9]{10,11}$/;
             const phoneValid = phoneRegex.test(phoneSanitized);
-            console.log('validateForm => phone check:', { phoneRaw, phoneSanitized, phoneValid });
-            if (!phoneValid) {
+            // console.log('validateForm => phone check:', { phoneRaw, phoneSanitized, phoneValid });
+
+            const phoneAllowedRegex = /^[0-9+\s]+$/;
+
+            if (!phoneAllowedRegex.test(phoneRaw)) {
+                Swal.fire({
+                    position: "top-end",
+                    icon: "error",
+                    title: this.$t('messages.invalid_phone_format'),
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                return false;
+            }
+
+            if (!phoneRegex.test(phoneSanitized)) {
                 Swal.fire({
                     position: "top-end",
                     icon: "error",
@@ -1509,7 +1523,7 @@ export default {
 
             // address presence
             const hasAddress = address !== '' || detail !== '';
-            console.log('validateForm => address check:', { address, detail, hasAddress });
+            // console.log('validateForm => address check:', { address, detail, hasAddress });
             if (!hasAddress) {
                 Swal.fire({
                     position: "top-end",
@@ -1521,7 +1535,7 @@ export default {
                 return false;
             }
 
-            console.log('validateForm => all checks passed');
+            // console.log('validateForm => all checks passed');
             return true;
         },
 

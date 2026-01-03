@@ -25,14 +25,14 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-
+        Log::info('User Profile', $user->toArray());
         return Inertia::render('Frontend/Profile/Index', [
             'auth' => [
                 'user' => [
                     'id' => $user->id,
                     'username' => $user->username,
                     'full_name' => $user->full_name,
-                    'emails' => $user->email,
+                    'emails' => $user->emails,
                     'phone' => $user->phone,
                     'gender' => $user->gender,
                     'dob' => $user->dob?->format('Y-m-d'),

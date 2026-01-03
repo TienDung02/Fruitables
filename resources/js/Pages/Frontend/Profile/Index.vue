@@ -78,7 +78,7 @@
                                         <div class="shopee-clone-form-group">
                                             <label class="shopee-clone-form-label">{{ $t('messages.emails') }}</label>
                                             <div class="shopee-clone-form-value-with-action">
-                                                <span>{{ showFullEmail ? auth?.user?.email : maskEmail(auth?.user?.email) }}</span>
+                                                <span>{{ showFullEmail ? auth?.user?.emails : maskEmail(auth?.user?.emails) }}</span>
                                                 <a href="#" class="shopee-clone-change-link" @click.prevent="toggleEmailVisibility">
                                                     <i :class="showFullEmail ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
                                                 </a>
@@ -866,7 +866,7 @@ export default {
 
         async savePhone() {
             if (!this.phoneForm.phone.trim()) {
-                Swal.fire('Error', 'Please enter a phone number', 'error');
+                this.showNotification(this.$t('messages.please_enter_phone'), 'error');
                 return;
             }
 
@@ -885,14 +885,14 @@ export default {
                     this.isEditingPhone = false;
                     this.phoneForm.phone = '';
 
-                    Swal.fire('Success', 'Phone number updated successfully!', 'success');
+                    this.showNotification(this.$t('messages.phone_updated_success'), 'success');
                 }
             } catch (error: any) {
                 console.error('Error updating phone:', error);
                 if (error.response?.data?.message) {
-                    Swal.fire('Error', error.response.data.message, 'error');
+                    this.showNotification(error.response.data.message, 'error');
                 } else {
-                    Swal.fire('Error', 'Failed to update phone number', 'error');
+                    this.showNotification(this.$t('messages.failed_update_phone'), 'error');
                 }
             } finally {
                 this.isLoadingPhone = false;
@@ -945,7 +945,7 @@ export default {
                     this.previewImage = null;
                     this.selectedFile = null;
 
-                    Swal.fire('Success', 'Profile updated successfully!', 'success');
+                    this.showNotification(this.$t('messages.profile_updated_success'), 'success');
                 }
             } catch (error: any) {
                 console.error('Error updating profile:', error);
@@ -958,11 +958,11 @@ export default {
                 }
 
                 if (error.response?.data?.message) {
-                    Swal.fire('Error', error.response.data.message, 'error');
+                    this.showNotification(error.response.data.message, 'error');
                 } else if (error.response?.status === 405) {
-                    Swal.fire('Error', 'Method not allowed. Please refresh the page and try again.', 'error');
+                    this.showNotification(this.$t('messages.method_not_allowed'), 'error');
                 } else {
-                    Swal.fire('Error', 'Failed to update profile', 'error');
+                    this.showNotification(this.$t('messages.failed_update_profile'), 'error');
                 }
             } finally {
                 this.isLoading = false;
@@ -974,45 +974,89 @@ export default {
             try {
                 const response = await axios.post('/api/profile/change-password', this.passwordForm);
                 if (response.data.success) {
-                    Swal.fire('Success', 'Password changed successfully!', 'success');
-                    this.passwordForm = {
-                        current_password: '',
-                        new_password: '',
-                        new_password_confirmation: '',
-                    };
+                    this.showNotification(this.$t('messages.password_changed_success'), 'success');
+                    // Reset password form
+                    this.passwordForm.current_password = '';
+                    this.passwordForm.new_password = '';
+                    this.passwordForm.new_password_confirmation = '';
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error changing password:', error);
                 if (error.response?.data?.message) {
-                    Swal.fire('Error', error.response.data.message, 'error');
+                    this.showNotification(this.$t('messages.error'), 'error');
                 } else {
-                    Swal.fire('Error', 'Failed to change password', 'error');
+                    this.showNotification(this.$t('messages.error'), 'error');
                 }
             } finally {
                 this.isLoading = false;
             }
         },
 
-        // Address methods
+        async loadLocationData() {
+            try {
+                const response = await axios.get('/api/locations');
+                if (response.data.success) {
+                    this.locationData.cities = response.data.data.cities;
+                    this.locationData.districts = response.data.data.districts;
+                    this.locationData.wards = response.data.data.wards;
+
+                    // Set default city, district, ward if in edit mode and address form is not empty
+                    if (this.isEditMode && this.addressForm.province_id && this.addressForm.district_id && this.addressForm.ward_id) {
+                        this.selectedCity = this.locationData.cities.find(city => city.id === this.addressForm.province_id) || null;
+                        this.selectedDistrict = this.locationData.districts.find(district => district.id === this.addressForm.district_id) || null;
+                        this.selectedWard = this.locationData.wards.find(ward => ward.id === this.addressForm.ward_id) || null;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading location data:', error);
+            }
+        },
+
+        toggleLocationDropdown() {
+            this.showLocationDropdown = !this.showLocationDropdown;
+        },
+
+        setLocationLevel(level: 'city' | 'district' | 'ward') {
+            this.currentLocationLevel = level;
+
+            // Reset selected values if changing to a higher level
+            if (level === 'city') {
+                this.selectedDistrict = null;
+                this.selectedWard = null;
+            } else if (level === 'district') {
+                this.selectedWard = null;
+            }
+        },
+
+        selectCity(city: any) {
+            this.selectedCity = city;
+            this.addressForm.province_id = city.id;
+            this.toggleLocationDropdown();
+        },
+
+        selectDistrict(district: any) {
+            this.selectedDistrict = district;
+            this.addressForm.district_id = district.id;
+            this.toggleLocationDropdown();
+        },
+
+        selectWard(ward: any) {
+            this.selectedWard = ward;
+            this.addressForm.ward_id = ward.id;
+            this.toggleLocationDropdown();
+        },
+
+        clearLocation() {
+            this.selectedCity = null;
+            this.selectedDistrict = null;
+            this.selectedWard = null;
+            this.addressForm.province_id = null;
+            this.addressForm.district_id = null;
+            this.addressForm.ward_id = null;
+        },
+
         openAddressDialog() {
-            this.showAddressDialog = true;
             this.isEditMode = false;
-            this.resetAddressForm();
-        },
-
-        editAddress(address) {
-            this.showAddressDialog = true;
-            this.isEditMode = true;
-            this.addressForm = { ...address };
-        },
-
-        closeAddressDialog() {
-            this.showAddressDialog = false;
-            this.resetAddressForm();
-            this.showLocationDropdown = false;
-        },
-
-        resetAddressForm() {
             this.addressForm = {
                 id: null,
                 name: '',
@@ -1026,6 +1070,11 @@ export default {
             this.selectedCity = null;
             this.selectedDistrict = null;
             this.selectedWard = null;
+            this.showAddressDialog = true;
+        },
+
+        closeAddressDialog() {
+            this.showAddressDialog = false;
         },
 
         async saveAddress() {
@@ -1039,14 +1088,14 @@ export default {
                 const response = await axios[method](url, this.addressForm);
 
                 if (response.data.success) {
-                    Swal.fire('Success', response.data.message, 'success');
+                    this.showNotification(this.$t('messages.success'), 'success');
                     this.closeAddressDialog();
                     // Refresh addresses
                     window.location.reload();
                 }
             } catch (error) {
                 console.error('Error saving address:', error);
-                Swal.fire('Error', 'Failed to save address', 'error');
+                this.showNotification(this.$t('messages.error'), 'error');
             } finally {
                 this.isLoading = false;
             }
@@ -1054,36 +1103,37 @@ export default {
 
         async deleteAddress(addressId) {
             const result = await Swal.fire({
-                title: 'Are you sure?',
-                text: 'You won\'t be able to revert this!',
+                title: this.$t('messages.are_you_sure'),
+                text: this.$t('messages.cannot_revert'),
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: this.$t('messages.yes_delete'),
+                cancelButtonText: this.$t('messages.cancel')
             });
 
             if (result.isConfirmed) {
                 try {
                     const response = await axios.delete(`/api/profile/addresses/${addressId}`);
                     if (response.data.success) {
-                        Swal.fire('Deleted!', 'Address has been deleted.', 'success');
+                        this.showNotification(this.$t('messages.deleted'), 'success');
                         window.location.reload();
                     }
                 } catch (error) {
                     console.error('Error deleting address:', error);
-                    Swal.fire('Error', 'Failed to delete address', 'error');
+                    this.showNotification(this.$t('messages.error'), 'error');
                 }
             }
         },
 
         validateAddressForm() {
             if (!this.addressForm.name || !this.addressForm.phone || !this.addressForm.address) {
-                Swal.fire('Error', 'Please fill in all required fields', 'error');
+                this.showNotification(this.$t('messages.error'), 'error');
                 return false;
             }
             if (!this.selectedWard || !this.selectedDistrict || !this.selectedCity) {
-                Swal.fire('Error', 'Please select city, district, and ward', 'error');
+                this.showNotification(this.$t('messages.error'), 'error');
                 return false;
             }
 
@@ -1092,149 +1142,6 @@ export default {
             this.addressForm.province_id = this.selectedCity.id;
 
             return true;
-        },
-
-        // Location methods
-        toggleLocationDropdown() {
-            this.showLocationDropdown = !this.showLocationDropdown;
-        },
-
-        setLocationLevel(level) {
-            this.currentLocationLevel = level;
-        },
-
-        async selectCity(city) {
-            this.selectedCity = city;
-            this.selectedDistrict = null;
-            this.selectedWard = null;
-            this.currentLocationLevel = 'district';
-
-            // Load districts for selected city
-            await this.loadDistricts(city.id);
-        },
-
-        async selectDistrict(district) {
-            this.selectedDistrict = district;
-            this.selectedWard = null;
-            this.currentLocationLevel = 'ward';
-
-            // Load wards for selected district
-            await this.loadWards(district.id);
-        },
-
-        selectWard(ward) {
-            this.selectedWard = ward;
-            this.showLocationDropdown = false;
-        },
-
-        clearLocation() {
-            this.selectedCity = null;
-            this.selectedDistrict = null;
-            this.selectedWard = null;
-            this.currentLocationLevel = 'city';
-            // Reset districts and wards
-            this.locationData.districts = [];
-            this.locationData.wards = [];
-        },
-
-        // Notification methods
-        async markAsRead(notificationId) {
-            try {
-                await axios.post(`/api/profile/notifications/${notificationId}/read`);
-                const notification = this.userNotifications.find(n => n.id === notificationId);
-                if (notification) {
-                    notification.is_read = true;
-                }
-            } catch (error) {
-                console.error('Error marking notification as read:', error);
-            }
-        },
-
-        async markAllAsRead() {
-            this.markingAllAsRead = true;
-            try {
-                const response = await axios.post('/api/profile/notifications/mark-all-as-read');
-                if (response.data.success) {
-                    this.userNotifications.forEach(notification => {
-                        notification.is_read = true;
-                    });
-                    Swal.fire('Success', 'All notifications marked as read!', 'success');
-                }
-            } catch (error) {
-                console.error('Error marking all notifications as read:', error);
-                Swal.fire('Error', 'Failed to mark notifications as read', 'error');
-            } finally {
-                this.markingAllAsRead = false;
-            }
-        },
-
-        // Order methods
-        reorder(order) {
-            // Logic to reorder items
-            console.log('Reordering:', order);
-        },
-
-        // Avatar preview method
-        onFileSelected(event) {
-            const file = event.target.files[0];
-            if (file) {
-                // Kiểm tra kích thước file (1MB = 1024*1024 bytes)
-                if (file.size > 1024 * 1024) {
-                    this.showNotification(this.$t('messages.file_size_too_large'), 'warning');
-                    return;
-                }
-
-                // Kiểm tra định dạng file
-                const allowedTypes = ['image/jpeg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                    this.showNotification(this.$t('messages.invalid_file_format'), 'warning');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.previewImage = e.target.result;
-                };
-                reader.readAsDataURL(file);
-
-                // Lưu file đã chọn để gửi lên server
-                this.selectedFile = file;
-            }
-        },
-
-        // Location data methods
-        async loadLocationData() {
-            try {
-                // Chỉ load provinces khi component mount
-                const response = await axios.get('/api/locations/provinces');
-                if (response.data.success) {
-                    this.locationData.cities = response.data.data || [];
-                }
-            } catch (error) {
-                console.error('Error loading provinces:', error);
-            }
-        },
-
-        async loadDistricts(provinceId) {
-            try {
-                const response = await axios.get(`/api/locations/districts/${provinceId}`);
-                if (response.data.success) {
-                    this.locationData.districts = response.data.data || [];
-                }
-            } catch (error) {
-                console.error('Error loading districts:', error);
-            }
-        },
-
-        async loadWards(districtId) {
-            try {
-                const response = await axios.get(`/api/locations/wards/${districtId}`);
-                if (response.data.success) {
-                    this.locationData.wards = response.data.data || [];
-                }
-            } catch (error) {
-                console.error('Error loading wards:', error);
-            }
         },
         showNotification(message, type = 'success') {
             let icon = 'success';
@@ -1262,13 +1169,11 @@ export default {
                 icon: icon,
                 title: title,
                 showConfirmButton: false,
-                timer: 1500,
+                timer: 2000
             });
         },
     }
 }
 </script>
 
-<style lang="scss" scoped>
 
-</style>

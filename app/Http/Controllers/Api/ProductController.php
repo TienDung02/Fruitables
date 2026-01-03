@@ -19,7 +19,7 @@ class ProductController extends Controller
         Log::info('Product index called with params: ', $request->all());
         try {
             $query = Product::with(['category', 'media', 'variants'])
-                ->where('products.is_active', true); // Specify table name to avoid ambiguity
+                ->where('products.is_active', true);
 
             //apply search filter
             $this->applySearchFilter($query, $request);
@@ -34,10 +34,24 @@ class ProductController extends Controller
             $this->applyOrdering($query, $request);
 
             $products = $query->paginate(9);
+            Log::info('Products:', $products->items());
+            $productMaxPrice = Product::where('is_active', true)
+                ->whereNotNull('max_price')
+                ->max('max_price');
+            $productMinPrice = Product::where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNotNull('min_sale_price')
+                        ->orWhereNotNull('min_price');
+                })
+                ->selectRaw('MIN(COALESCE(min_sale_price, min_price)) as min_price')
+                ->value('min_price');
+
 
             return response()->json([
                 'success' => true,
                 'data' => $products->items(),
+                'productMaxPrice' => $productMaxPrice,
+                'productMinPrice' => $productMinPrice,
                 'current_page' => $products->currentPage(),
                 'last_page' => $products->lastPage(),
                 'per_page' => $products->perPage(),
@@ -61,7 +75,6 @@ class ProductController extends Controller
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('products.name', 'LIKE', "%{$searchTerm}%")
-                    ->orWhere('products.description', 'LIKE', "%{$searchTerm}%")
                     ->orWhere('products.short_description', 'LIKE', "%{$searchTerm}%")
                     ->orWhereHas('category', function($categoryQuery) use ($searchTerm) {
                         $categoryQuery->where('name', 'LIKE', "%{$searchTerm}%");
@@ -88,42 +101,28 @@ class ProductController extends Controller
 
     private function applyPriceFilter($query, $request)
     {
-        // Frontend gửi price_min và price_max
         $priceMin = $request->get('price_min');
         $priceMax = $request->get('price_max');
 
-        Log::info('Applying price filter:', [
-            'price_min' => $priceMin,
-            'price_max' => $priceMax
-        ]);
-
-        // Nếu có filter theo giá, lọc dựa trên variant đầu tiên của mỗi sản phẩm
-        if ($priceMin !== null || $priceMax !== null) {
-            $query->whereHas('variants', function($variantQuery) use ($priceMin, $priceMax) {
-                // Chỉ lấy variant đầu tiên (có thể sắp xếp theo created_at hoặc id)
-                $variantQuery->whereIn('id', function($subQuery) {
-                    $subQuery->selectRaw('MIN(id)')
-                             ->from('product_variants')
-                             ->groupBy('product_id');
-                });
-
-                if ($priceMin !== null && $priceMax !== null) {
-                    // Lọc theo cả min và max price của variant đầu tiên
-                    $variantQuery->where(function($q) use ($priceMin, $priceMax) {
-                        // Ưu tiên sale_price nếu có, không thì dùng price
-                        $q->whereRaw('COALESCE(sale_price, price) BETWEEN ? AND ?', [$priceMin, $priceMax]);
-                    });
-                } elseif ($priceMin !== null) {
-                    // Chỉ có min price
-                    $variantQuery->whereRaw('COALESCE(sale_price, price) >= ?', [$priceMin]);
-                } elseif ($priceMax !== null) {
-                    // Chỉ có max price
-                    $variantQuery->whereRaw('COALESCE(sale_price, price) <= ?', [$priceMax]);
-                }
-            });
-
-            Log::info('Price filter applied successfully (first variant only)');
+        if ($priceMin === null && $priceMax === null) {
+            return;
         }
+
+        $query->where(function ($q) use ($priceMin, $priceMax) {
+            $effectivePrice = "CASE
+            WHEN has_sale = 1 AND min_sale_price IS NOT NULL
+            THEN min_sale_price
+            ELSE min_price
+            END";
+
+            if ($priceMin !== null && $priceMax !== null) {
+                $q->whereRaw("$effectivePrice BETWEEN ? AND ?", [$priceMin, $priceMax]);
+            } elseif ($priceMin !== null) {
+                $q->whereRaw("$effectivePrice >= ?", [$priceMin]);
+            } elseif ($priceMax !== null) {
+                $q->whereRaw("$effectivePrice <= ?", [$priceMax]);
+            }
+        });
     }
 
     private function applyOrdering($query, $request)
@@ -139,24 +138,26 @@ class ProductController extends Controller
                 $query->orderBy('products.name', 'desc');
                 break;
             case 'price_asc':
-                Log::info('Sorting by price ascending (first variant)');
-                // Join với variant đầu tiên để sort theo giá của variant đó
-                $query->leftJoin('product_variants as pv_sort', function($join) {
-                    $join->on('products.id', '=', 'pv_sort.product_id')
-                         ->whereRaw('pv_sort.id = (SELECT MIN(id) FROM product_variants WHERE product_id = products.id)');
-                })
-                ->orderByRaw('COALESCE(pv_sort.sale_price, pv_sort.price) ASC')
-                ->select('products.*');
+                Log::info('Sorting by effective price ascending');
+                $query->orderByRaw("
+                    CASE
+                        WHEN products.has_sale = 1
+                             AND products.min_sale_price IS NOT NULL
+                        THEN products.min_sale_price
+                        ELSE products.min_price
+                    END ASC
+                ");
                 break;
             case 'price_desc':
-                Log::info('Sorting by price descending (first variant)');
-                // Join với variant đầu tiên để sort theo giá của variant đó
-                $query->leftJoin('product_variants as pv_sort', function($join) {
-                    $join->on('products.id', '=', 'pv_sort.product_id')
-                         ->whereRaw('pv_sort.id = (SELECT MIN(id) FROM product_variants WHERE product_id = products.id)');
-                })
-                ->orderByRaw('COALESCE(pv_sort.sale_price, pv_sort.price) DESC')
-                ->select('products.*');
+                Log::info('Sorting by effective price descending');
+                $query->orderByRaw("
+                    CASE
+                        WHEN products.has_sale = 1
+                             AND products.min_sale_price IS NOT NULL
+                        THEN products.min_sale_price
+                        ELSE products.min_price
+                    END DESC
+                ");
                 break;
             case 'oldest':
                 $query->orderBy('products.created_at', 'asc');
@@ -209,30 +210,24 @@ class ProductController extends Controller
     /**
      * Get best-selling products (most sold products).
      */
-    public function bestsellers(Request $request): JsonResponse
+    public function bestsellers(): JsonResponse
     {
         try {
-            $limit = $request->get('limit', 6);
-
-            // Lấy top product variants dựa trên tổng số lượng bán
-            $topVariants = ProductVariant::with(['orderItems', 'product', 'product.category', 'product.media'])
-                ->whereHas('orderItems') // ProductVariant có relation orderItems trực tiếp
-                ->where('is_active', true)
-                ->get()
-                ->map(function ($variant) {
-                    // Tính tổng số lượng bán cho variant này
-                    $totalSold = $variant->orderItems->sum('quantity');
-                    $totalOrders = $variant->orderItems->count();
-
-                    $variant->total_sold = $totalSold;
-                    $variant->total_orders = $totalOrders;
-
-                    return $variant;
-                })
-                ->sortByDesc('total_sold')
-                ->take($limit * 2); // Lấy nhiều hơn để đảm bảo có đủ unique products
-
-            // Group theo product và lấy product có tổng bán cao nhất
+            $limit = 6;
+            try {
+                $topVariants = ProductVariant::with([
+                    'orderItems',
+                    'product.category',
+                    'product.media'
+                ])
+                    ->where('is_active', true)
+                    ->whereHas('orderItems')
+                    ->whereHas('product')
+                    ->get();
+            } catch (\Throwable $e) {
+                Log::error('Bestseller API error: ' . $e->getMessage());
+                Log::error($e->getTraceAsString());
+            }
             $bestsellingProducts = $topVariants
                 ->groupBy('product_id')
                 ->map(function ($variants) {

@@ -15,22 +15,18 @@ class Product extends Model
         'slug',
         'description',
         'short_description',
-        'price',
-        'sale_price',
-        'sku',
-        'stock_quantity',
+        'min_price',
+        'max_price',
+        'min_sale_price',
+        'has_sale',
         'category_id',
-        'weight',
         'is_featured',
         'is_active',
-        'meta_title',
-        'meta_description'
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
-        'sale_price' => 'decimal:2',
-        'weight' => 'decimal:2',
+        'min_price' => 'decimal:2',
+        'max_price' => 'decimal:2',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -115,19 +111,51 @@ class Product extends Model
     }
 
     /**
-     * Get the effective price (sale price if available, otherwise regular price)
+     * Get the effective price (min_price if available)
      */
     public function getEffectivePriceAttribute()
     {
-        return $this->sale_price ?? $this->price;
+        return $this->min_price;
     }
 
     /**
-     * Check if Products is on sale
+     * Check if Products has price range (min_price != max_price)
      */
-    public function getIsOnSaleAttribute()
+    public function getHasPriceRangeAttribute()
     {
-        return !is_null($this->sale_price) && $this->sale_price < $this->price;
+        return $this->min_price != $this->max_price;
+    }
+
+    /**
+     * Update min_price and max_price based on variants
+     */
+    public function updatePriceRange()
+    {
+        $variants = $this->variants()
+            ->where('is_active', '1')
+            ->where('stock_quantity', '>', 0)
+            ->get();
+
+        if ($variants->isEmpty()) {
+            $this->update([
+                'min_price'      => null,
+                'max_price'      => null,
+                'min_sale_price' => null,
+                'has_sale'       => false,
+            ]);
+            return;
+        }
+
+        $this->update([
+            'min_price' => $variants->min('price'),
+            'max_price' => $variants->max('price'),
+
+            'min_sale_price' => $variants
+                ->whereNotNull('sale_price')
+                ->min('sale_price'),
+
+            'has_sale' => $variants->whereNotNull('sale_price')->isNotEmpty(),
+        ]);
     }
 
     /**

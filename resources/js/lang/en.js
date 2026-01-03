@@ -82,6 +82,19 @@ export default {
     file_size_too_large: 'File size must be less than 1MB',
     invalid_file_format: 'Only JPEG and PNG formats are allowed',
 
+    // Profile page translations
+    profile_information: 'Profile Information',
+    update_profile_description: "Update your account's profile information and email address.",
+    update_password: 'Update Password',
+    update_password_description: 'Ensure your account is using a long, random password to stay secure.',
+    delete_account: 'Delete Account',
+    delete_account_description: 'Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any data or information that you wish to retain.',
+    delete_account_confirmation: 'Are you sure you want to delete your account?',
+    delete_account_warning: 'Once your account is deleted, all of its resources and data will be permanently deleted. Please enter your password to confirm you would like to permanently delete your account.',
+    email_unverified: 'Your email address is unverified.',
+    resend_verification: 'Click here to re-send the verification email.',
+    verification_sent: 'A new verification link has been sent to your email address.',
+
     // Checkout Fields
     billing_details: 'Billing Details',
     province_district_ward: 'Province/District/Ward',
@@ -209,7 +222,7 @@ export default {
     please_rate: 'Please Rate',
     post_comment: 'Post Comment',
     featured_products: 'Featured Products',
-    fresh_fruits_banner: 'Fresh Fruits Banner',
+    fresh_fruits_banner: 'Fresh Fruits.',
     related_products: 'Related Products',
     vegetable: 'Vegetable',
     parsely: 'Parsley',
@@ -509,7 +522,8 @@ export default {
     reload_warning: "If you reload the page, the password will <strong>disappear</strong> and cannot be retrieved again.",
 
     retrieve_button: 'Retrieve Password',
-
+    invalid_email_format: 'Invalid email format.',
+    invalid_phone_format: 'Invalid phone number format.'
 
   }
 }

@@ -1992,3 +1992,18 @@ input[type='radio']:checked:after {
         padding-left: 0 !important;
     }
 }
+/*.swal2-popup.swal2-modal.swal2-icon-success.swal2-show{*/
+/*    display: flex !important;;*/
+/*    transform: scale(0.8) !important;*/
+/*    min-width: 38rem !important;*/
+/*    padding: 0.5rem 0 !important;*/
+/*}*/
+/*.swal2-success-circular-line-left, .swal2-success-circular-line-right{*/
+/*    display: none;*/
+/*}*/
+/*.swal2-icon.swal2-success.swal2-icon-show{*/
+/*    margin: 0.5rem auto !important;*/
+/*}*/
+/*#swal2-title{*/
+/*    padding: 1rem 2rem;*/
+/*}*/

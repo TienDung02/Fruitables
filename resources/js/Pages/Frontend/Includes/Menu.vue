@@ -38,10 +38,10 @@
                 </button>
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto">
-                        <Link :href="route('dashboard')" class="nav-item nav-link active">{{ $t('messages.home') }}</Link>
-                        <Link :href="route('products.index')" class="nav-item nav-link">{{ $t('messages.shop') }}</Link>
-                        <Link :href="route('contact.index')" class="nav-item nav-link">{{ $t('messages.contact') }}</Link>
-                        <Link :href="route('about.index')" class="nav-item nav-link">{{ $t('messages.about') }}</Link>
+                        <Link :href="route('dashboard')" :class="['nav-item', 'nav-link', { active: isHome }]">{{ $t('messages.home') }}</Link>
+                        <Link :href="route('products.index')" :class="['nav-item', 'nav-link', { active: isShop }]">{{ $t('messages.shop') }}</Link>
+                        <Link :href="route('contact.index')" :class="['nav-item', 'nav-link', { active: isContact }]">{{ $t('messages.contact') }}</Link>
+                        <Link :href="route('about.index')" :class="['nav-item', 'nav-link', { active: isAbout }]">{{ $t('messages.about') }}</Link>
                     </div>
                     <div class="d-flex m-3 me-0">
                         <a href="#" class="position-relative me-4 my-auto">
@@ -127,6 +127,30 @@ export default {
         },
         flashMessages() {
             return this.$page.props.flash || {};
+        },
+        // Thêm computed property để xác định menu active
+        currentRoute() {
+            console.log('Current route:', this.$page.component);
+            return this.$page.component;
+        },
+        isHome() {
+            return this.currentRoute === 'Dashboard' || this.currentRoute === 'Frontend/Dashboard/Index';
+        },
+        isShop() {
+            return this.currentRoute?.includes('Product')
+                || this.currentRoute?.includes('Frontend/Products/Index')
+                || this.currentRoute?.includes('Cart')
+                || this.currentRoute?.includes('Frontend/Cart/Index')
+                || this.currentRoute?.includes('Checkout')
+                || this.currentRoute?.includes('Frontend/Checkout/Index')
+                || this.currentRoute?.includes('Wishlist')
+                || this.currentRoute?.includes('Frontend/Wishlist/Index');
+        },
+        isContact() {
+            return this.currentRoute?.includes('Contact') || this.currentRoute?.includes('Frontend/Contact/Index');
+        },
+        isAbout() {
+            return this.currentRoute?.includes('About') || this.currentRoute?.includes('Frontend/About/Index');
         }
     },
     watch: {

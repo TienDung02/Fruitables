@@ -15,7 +15,6 @@ class OrderItem extends Model
         'productVariant_id',
         'quantity',
         'price'
-        // Loại bỏ 'total' vì không có trong database
     ];
 
     protected $casts = [
@@ -37,14 +36,6 @@ class OrderItem extends Model
     public function productVariant(): BelongsTo
     {
         return $this->belongsTo(ProductVariant::class, 'productVariant_id', 'id');
-    }
-
-    /**
-     * Get the product through product variant.
-     */
-    public function product(): BelongsTo
-    {
-        return $this->belongsTo(Product::class, 'productVariant_id', 'id');
     }
 
     /**

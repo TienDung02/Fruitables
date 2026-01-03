@@ -253,40 +253,41 @@
                         <div class="row g-4 fruite">
                             <div class="col-lg-12">
                                 <h4 class="mb-4">{{ $t('messages.featured_products') }}</h4>
-                                <div  v-for="featuredProduct in featuredProducts" :key="featuredProduct.id" class="d-flex align-items-center justify-content-start mb-5">
-                                    <div class="rounded me-3" style="width: 100px; height: 100px;">
-                                        <img
-                                            :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`"
-                                            alt=""
-                                            class="img-fluid rounded h-100" style="object-fit: contain">
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-2">{{featuredProduct.name}}</h5>
-                                        <div class="d-flex mb-2">
-                                            <i class="fa fa-star text-secondary"></i>
-                                            <i class="fa fa-star text-secondary"></i>
-                                            <i class="fa fa-star text-secondary"></i>
-                                            <i class="fa fa-star text-secondary"></i>
-                                            <i class="fa fa-star"></i>
+                                <div  v-for="featuredProduct in featuredProducts" :key="featuredProduct.id">
+                                    <Link :href="route('detail.index', featuredProduct.id)"  class="d-flex align-items-center justify-content-start mb-5">
+                                        <div class="rounded me-3" style="width: 100px; height: 100px;">
+                                            <img
+                                                :src="`/${featuredProduct.media?.find(m => m.is_primary)?.file_path || featuredProduct.media?.[0]?.file_path || 'products/default.jpg'}`"
+                                                alt=""
+                                                class="img-fluid rounded h-100" style="object-fit: contain">
                                         </div>
-                                        <div class="d-flex mb-2">
-                                            <h5 class="fw-bold mb-3">
-                                                <div v-if="featuredProduct.sale_price">
-                                                    <span class="text-danger">${{ featuredProduct.variants[0].sale_price }}</span>
-                                                    &nbsp;
-                                                    <span class="text-decoration-line-through opacity-75 fs-4">${{ featuredProduct.variants[0].price }}</span>
+                                        <div>
+                                            <h5 class="mb-2">{{featuredProduct.name}}</h5>
+                                            <div class="d-flex mb-2">
+                                                <i class="fa fa-star text-secondary"></i>
+                                                <i class="fa fa-star text-secondary"></i>
+                                                <i class="fa fa-star text-secondary"></i>
+                                                <i class="fa fa-star text-secondary"></i>
+                                                <i class="fa fa-star"></i>
+                                            </div>
+                                            <div class="d-flex mb-2">
+                                                <div v-if="featuredProduct.variants[0].sale_price" class="d-flex mb-2 align-items-center">
+                                                    <h5  class=" me-2 mb-0">{{ Number(featuredProduct.variants[0].sale_price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
+                                                    <h6 class="text-danger text-decoration-line-through mb-0">{{ Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h6>
                                                 </div>
-                                                <span v-else>${{ featuredProduct.variants[0].price }}</span>
-                                            </h5>
+                                                <div v-else class="d-flex mb-2">
+                                                    <h5  class=" me-2">{{ Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </Link>
                                 </div>
                             </div>
                             <div class="col-lg-12">
                                 <div class="position-relative">
                                     <img src="/images/img/banner-fruits.jpg" class="img-fluid w-100 rounded" alt="">
                                     <div class="position-absolute" style="top: 50%; right: 10px; transform: translateY(-50%);">
-                                        <h3 class="text-secondary fw-bold">{{ $t('messages.fresh_fruits_banner').replace(' ', '<br>').replace(' ', '<br>') }}</h3>
+                                        <h3 class="text-secondary fw-bold">{{ $t('messages.fresh_fruits_banner') }}</h3>
                                     </div>
                                 </div>
                             </div>
@@ -435,6 +436,7 @@ import axios from "axios";
 import { useCartStore } from '@/stores/cart';
 import Swal from 'sweetalert2';
 import Footer from '@/Pages/Frontend/Includes/Footer.vue';
+import  { Link } from '@inertiajs/vue3';
 export default {
     components: {
         Search,
@@ -443,6 +445,7 @@ export default {
         Swiper,
         SwiperSlide,
         Footer,
+        Link,
     },
     computed: {
         // Calculate range track fill style

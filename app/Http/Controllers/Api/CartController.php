@@ -113,7 +113,7 @@ class CartController extends Controller
         ]);
 
         // Sử dụng SessionController để cập nhật session
-        $sessionController = new \App\Http\Controllers\Api\SessionController();
+        $sessionController = app(\App\Http\Controllers\Api\SessionController::class);
         $sessionController->addToSessionCart($request);
 
         return response()->json(['message' => 'Đã thêm sản phẩm vào giỏ hàng thành công!'], 200);

@@ -88,7 +88,7 @@ export default {
         },
 
         formatPrice(price) {
-            return `$${parseFloat(price).toFixed(2)}`;
+            return `${parseFloat(price).toFixed(0)}₫`;
         },
 
         changeTab(tabSlug) {
@@ -125,7 +125,7 @@ export default {
     <Menu></Menu>
 
     <!-- Hero Start -->
-    <div class="container-fluid py-5 mb-5 hero-header">
+    <div class="container-fluid py-5 mb-5 hero-header" style="background-image: url('images/img/background-homepage.png'); background-size: cover; background-position: center;">
         <div class="container py-5">
             <div class="row g-5 align-items-center">
                 <div class="col-md-12 col-lg-7">
@@ -558,11 +558,11 @@ export default {
                                         <i class="fas fa-star"></i>
                                     </div>
                                     <div v-if="bestsellingProduct.variants[0].sale_price" class="d-flex mb-2 align-items-center">
-                                        <h5  class=" me-2 mb-0">${{ bestsellingProduct.variants[0].sale_price }} / {{ bestsellingProduct.variants[0].size }}</h5>
-                                        <h6 class="text-danger text-decoration-line-through mb-0">${{ bestsellingProduct.variants[0].price }} / {{ bestsellingProduct.variants[0].size }}</h6>
+                                        <h5  class=" me-2 mb-0">{{ Number(bestsellingProduct.variants[0].sale_price).toFixed(0) }}₫ / {{ bestsellingProduct.variants[0].size }}</h5>
+                                        <h6 class="text-danger text-decoration-line-through mb-0">{{ Number(bestsellingProduct.variants[0].price).toFixed(0) }}₫ / {{ bestsellingProduct.variants[0].size }}</h6>
                                     </div>
                                     <div v-else class="d-flex mb-2">
-                                        <h5  class=" me-2">${{ bestsellingProduct.variants[0].price }} / {{ bestsellingProduct.variants[0].size }}</h5>
+                                        <h5  class=" me-2">{{ Number(bestsellingProduct.variants[0].price).toFixed(0) }}₫ / {{ bestsellingProduct.variants[0].size }}</h5>
                                     </div>
                                 </div>
                             </div>
@@ -595,11 +595,11 @@ export default {
                                     <i class="fas fa-star"></i>
                                 </div>
                                 <div v-if="featuredProduct.variants[0].sale_price" class="d-flex mb-2 align-items-center justify-content-center">
-                                    <h5  class=" me-2 mb-0">${{ featuredProduct.variants[0].sale_price }} / {{ featuredProduct.variants[0].size }}</h5>
-                                    <h6 class="text-danger text-decoration-line-through mb-0">${{ featuredProduct.variants[0].price }} / {{ featuredProduct.variants[0].size }}</h6>
+                                    <h5  class=" me-2 mb-0">{{ Number(featuredProduct.variants[0].sale_price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
+                                    <h6 class="text-danger text-decoration-line-through mb-0">{{ Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h6>
                                 </div>
                                 <div v-else class="d-flex mb-2 justify-content-center">
-                                    <h5  class=" me-2">${{ featuredProduct.variants[0].price }} / {{ featuredProduct.variants[0].size }}</h5>
+                                    <h5  class=" me-2">{{  Number(featuredProduct.variants[0].price).toFixed(0) }}₫ / {{ featuredProduct.variants[0].size }}</h5>
                                 </div>
                             </div>
                         </Link>
